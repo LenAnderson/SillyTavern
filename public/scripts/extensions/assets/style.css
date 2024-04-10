@@ -182,6 +182,8 @@
 }
 .assets-list-git {
     flex-basis: 100%;
+}
+.assets-list-div {
     display: flex;
     flex-direction: row;
     flex-wrap: wrap;
