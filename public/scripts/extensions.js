@@ -955,7 +955,8 @@ jQuery(function () {
      *
      * @listens #third_party_extension_button#click - The click event of the '#third_party_extension_button' element.
      */
-    $('#third_party_extension_button').on('click', async () => {
+    $('#third_party_extension_button').on('click', async (evt) => {
+        if (evt.target.closest('#third_party_extension_button')?.hasAttribute('data-assetManager')) return;
         const html = `<h3>Enter the Git URL of the extension to install</h3>
     <br>
     <p><b>Disclaimer:</b> Please be aware that using external extensions can have unintended side effects and may pose security risks. Always make sure you trust the source before importing an extension. We are not responsible for any damage caused by third-party extensions.</p>
