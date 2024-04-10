@@ -106,7 +106,7 @@ function downloadAssetsList(url) {
                         assetTypeMenu.append(`
                         <div class="assets-list-git">
                             To download extensions from this page, you need to have <a href="https://git-scm.com/downloads" target="_blank">Git</a> installed.<br>
-                            Click the <i class="fa-solid fa-sm fa-arrow-up-right-from-square"></i> icon to visit the Extension's repo for tips on how to use it.
+                            Click the <i class="fa-brands fa-sm fa-github"></i> icon to visit the Extension's repo for tips on how to use it.
                         </div>`);
                     }
 
