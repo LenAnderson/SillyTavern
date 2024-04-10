@@ -1,22 +1,40 @@
 <div id="assets_ui">
-    <div class="inline-drawer">
+    <div class="inline-drawer assets-third-party">
         <div class="inline-drawer-toggle inline-drawer-header">
-            <b>Download Extensions & Assets</b>
+            <b>Download third party extensions</b>
             <div class="inline-drawer-icon fa-solid fa-circle-chevron-down down"></div>
         </div>
         <div class="inline-drawer-content">
-            <label for="assets-json-url-field">Assets URL</label>
-            <div class="assets-connect-div">
-                <input id="assets-json-url-field" class="text_pole widthUnset flex1">
-                <i id="assets-connect-button" class="menu_button fa-solid fa-plug-circle-exclamation fa-xl redOverlayGlow"></i>
-            </div>
-            <div id="assets_filters" class="flex-container">
-                <select id="assets_type_select" class="text_pole flex1">
-                </select>
-                <input id="assets_search" class="text_pole flex1" placeholder="Search" type="search">
-            </div>
-            <div class="inline-drawer-content" id="assets_menu">
+            <h4>Enter the Git URL of the extension to install</h4>
+            <p>
+                <b>Disclaimer:</b> Please be aware that using external extensions can have unintended side effects
+                and may pose security risks. Always make sure you trust the source before importing an extension.
+                We are not responsible for any damage caused by third-party extensions.
+            </p>
+            <div class="assets-third-party-form">
+                <input placeholder="https://github.com/author/extension-name" class="text_pole assets-third-party-url">
+                <div class="menu_button fa-fw fa-solid fa-download assets-third-party-trigger" title="Install extension"></div>
             </div>
         </div>
+    </div>
+    <div class="inline-drawer">
+        <h3 class="assets-title inline-drawer-header inline-drawer-toggle">
+            Extensions & Assets Catalog
+            <span class="assets-config-trigger menu_button fa-solid fa-gear inline-drawer-icon"></span>
+        </h3>
+        <div class="assets-config inline-drawer-content">
+            <label for="assets-json-url-field">
+                Assets URL
+                <input id="assets-json-url-field" class="text_pole widthUnset flex1">
+                <i id="assets-connect-button" class="menu_button fa-solid fa-plug-circle-exclamation redOverlayGlow"></i>
+            </label>
+        </div>
+    </div>
+    <div id="assets_filters" class="flex-container">
+        <select id="assets_type_select" class="text_pole flex1">
+        </select>
+        <input id="assets_search" class="text_pole flex1" placeholder="Search" type="search">
+    </div>
+    <div class="" id="assets_menu">
     </div>
 </div>

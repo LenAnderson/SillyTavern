@@ -3,8 +3,9 @@ TODO:
 */
 //const DEBUG_TONY_SAMA_FORK_MODE = true
 
-import { getRequestHeaders, callPopup, processDroppedFiles } from '../../../script.js';
+import { getRequestHeaders, callPopup, processDroppedFiles, reloadMarkdownProcessor } from '../../../script.js';
 import { deleteExtension, extensionNames, getContext, installExtension, renderExtensionTemplate } from '../../extensions.js';
+import { POPUP_TYPE, Popup, callGenericPopup } from '../../popup.js';
 import { executeSlashCommands } from '../../slash-commands.js';
 import { getStringHash, isValidUrl } from '../../utils.js';
 export { MODULE_NAME };
@@ -66,6 +67,7 @@ function downloadAssetsList(url) {
                 $('#assets_menu').empty();
 
                 console.debug(DEBUG_PREFIX, 'Received assets dictionary', json);
+                json.sort((a,b)=>(a.name ?? a.id).toLowerCase().localeCompare((b.name ?? b.id).toLowerCase()));
 
                 for (const i of json) {
                     //console.log(DEBUG_PREFIX,i)
@@ -159,6 +161,7 @@ function downloadAssetsList(url) {
                             console.debug(DEBUG_PREFIX, 'installed, checked');
                             label.toggleClass('fa-download');
                             label.toggleClass('fa-check');
+                            element.addClass('asset-installed');
                             element.on('click', assetDelete);
                             element.on('mouseenter', function () {
                                 label.removeClass('fa-check');
@@ -181,25 +184,77 @@ function downloadAssetsList(url) {
                         const displayName = DOMPurify.sanitize(asset['name'] || asset['id']);
                         const description = DOMPurify.sanitize(asset['description'] || '');
                         const url = isValidUrl(asset['url']) ? asset['url'] : '';
+                        const thumb = isValidUrl(asset['thumb']) ? `background-image:url('${asset['thumb']}');` : '';
                         const title = assetType === 'extension' ? `Extension repo/guide: ${url}` : 'Preview in browser';
                         const previewIcon = (assetType === 'extension' || assetType === 'character') ? 'fa-arrow-up-right-from-square' : 'fa-headphones-simple';
+                        const tags = asset['tags'] ?? [];
+                        const author = asset['author'] ?? {
+                            name: new URL(url).pathname.split('/')[1],
+                            url: url.split('/').slice(0, -1).join('/'),
+                        };
 
-                        const assetBlock = $('<i></i>')
-                            .append(element)
-                            .append(`<div class="flex-container flexFlowColumn flexNoGap">
-                                        <span class="asset-name flex-container alignitemscenter">
-                                            <b>${displayName}</b>
-                                            <a class="asset_preview" href="${url}" target="_blank" title="${title}">
-                                                <i class="fa-solid fa-sm ${previewIcon}"></i>
-                                            </a>
-                                        </span>
-                                        <small class="asset-description">
-                                            ${description}
-                                        </small>
-                                     </div>`);
+                        const assetBlock = $('<i></i>');
+                        if (assetType == 'extension') {
+                            assetBlock.attr('data-type', 'extension');
+                            const github = $(`<a target="_blank" href="${url}" class="asset-github fa-fw fa-brands fa-github fa-lg"></a>`)
+                                .attr('title', 'Open on GitHub')
+                            ;
+                            const readme = $('<div class="asset-readme fa-regular fa-book-open fa-lg" title="Open Readme"></div>');
+                            const actions = $('<div class="asset-actions"></div>')
+                                .append(element)
+                                .append(readme)
+                                .append(github)
+                            ;
+                            assetBlock
+                                .append(`
+                                    <div class="asset-thumb ${thumb ? '' : 'fa-solid fa-cubes'}" style="${thumb}"></div>
+                                    <div class="asset-name">${displayName}</div>
+                                    <div class="asset-author">by <a href="${author.url ?? 'javascript:;'}" title="${author.url ?? ''}" target="_blank">${author.name}</a></div>
+                                    <div class="asset-description">${description}</div>
+                                    <div class="asset-tags">
+                                        ${tags.map(tag=>`<div class="asset-tag">${tag}</div>`).join(' ')}
+                                    </div>
+                                `)
+                                .append(actions);
+                            readme.on('click', async(evt)=>{
+                                evt.stopPropagation();
+                                const converter = reloadMarkdownProcessor();
+                                const data = await getReadme(url);
+                                const md = data.md;
+                                const html = `
+                                    <div class="mes asset-readme-dlg"><div class="mes_text">${converter.makeHtml(md)}</div></div>
+                                `;
+                                const readmeDlg = new Popup(html, POPUP_TYPE.TEXT, null, { okButton:'Close', wide:true });
+                                readmeDlg.dom.addEventListener('mousedown', evt=>evt.stopPropagation());
+                                for (const a of Array.from(readmeDlg.text.querySelectorAll('a'))) {
+                                    a.target = '_blank';
+                                    if (a.href.startsWith('/')) a.href = `https://github.com${a.href}`;
+                                    else if (!a.href.includes('://')) a.href = `${url}/${a.href}`;
+                                }
+                                for (const el of Array.from(readmeDlg.text.querySelectorAll('[src]'))) {
+                                    if (el.src.startsWith('/')) el.src = `https://github.com${el.src}`;
+                                    else if (!el.src.includes('://')) el.src = `${data.baseUrl}/${el.src}`;
+                                }
+                                readmeDlg.show();
+                            });
+                        } else {
+                            assetBlock
+                                .append(element)
+                                .append(`<div class="flex-container flexFlowColumn flexNoGap">
+                                            <span class="asset-name flex-container alignitemscenter">
+                                                <b>${displayName}</b>
+                                                <a class="asset_preview" href="${url}" target="_blank" title="${title}">
+                                                    <i class="fa-solid fa-sm ${previewIcon}"></i>
+                                                </a>
+                                            </span>
+                                            <small class="asset-description">
+                                                ${description}
+                                            </small>
+                                        </div>`);
 
-                        if (assetType === 'character') {
-                            assetBlock.find('.asset-name').prepend(`<div class="avatar"><img src="${asset['url']}" alt="${displayName}"></div>`);
+                            if (assetType === 'character') {
+                                assetBlock.find('.asset-name').prepend(`<div class="avatar"><img src="${asset['url']}" alt="${displayName}"></div>`);
+                            }
                         }
 
                         assetBlock.addClass('asset-block');
@@ -328,6 +383,35 @@ async function deleteAsset(assetType, filename) {
     }
 }
 
+async function getReadme(extensionUrl) {
+    const readmeUrl = new URL(extensionUrl);
+    readmeUrl.host = 'api.github.com';
+    readmeUrl.pathname = `/repos${readmeUrl.pathname}/readme`;
+    let baseUrl = '';
+    let md = `
+## No README found.
+
+Visit [GitHub](${extensionUrl}) for details.
+    `;
+    try {
+        const response = await fetch(readmeUrl);
+        if (response.ok) {
+            const data = await response.json();
+            md = decodeURIComponent(
+                atob(data.content)
+                    .split('')
+                    .map(char=>`%${`00${char.charCodeAt(0).toString(16)}`.slice(-2)}`)
+                    .join(''),
+            );
+            baseUrl = data.download_url.split('/').slice(0, -1).join('/');
+        }
+    } catch { /* empty */ }
+    return {
+        md,
+        baseUrl,
+    };
+}
+
 //#############################//
 //  API Calls                  //
 //#############################//
@@ -348,27 +432,37 @@ async function updateCurrentAssets() {
 }
 
 
-//#############################//
-//  Extension load             //
-//#############################//
+const installButton = document.querySelector('#third_party_extension_button');
+installButton.querySelector('span').textContent = 'Install extenions & assets';
+installButton.setAttribute('data-assetManager', '1');
+installButton.addEventListener('click', async(evt)=>{
+    evt.stopImmediatePropagation();
 
-// This function is called when the extension is loaded
-jQuery(async () => {
-    // This is an example of loading HTML from a file
-    const windowHtml = $(renderExtensionTemplate(MODULE_NAME, 'window', {}));
-
-    const assetsJsonUrl = windowHtml.find('#assets-json-url-field');
-    assetsJsonUrl.val(ASSETS_JSON_URL);
-
-    const connectButton = windowHtml.find('#assets-connect-button');
-    connectButton.on('click', async function () {
-        const url = String(assetsJsonUrl.val());
+    const dom = renderExtensionTemplate(MODULE_NAME, 'window');
+    const dlg = new Popup(dom, POPUP_TYPE.TEXT, null, { okButton:'Close', wide:true, large:true });
+    dlg.dom.addEventListener('mousedown', evt=>evt.stopPropagation());
+    dlg.dlg.style.aspectRatio = 'unset';
+    /**@type {HTMLInputElement}*/
+    const thirdPartyUrl = dlg.dom.querySelector('.assets-third-party-url');
+    const thirdPartyTrigger = dlg.dom.querySelector('.assets-third-party-trigger');
+    thirdPartyTrigger.addEventListener('click', async()=>{
+        const url = thirdPartyUrl.value?.trim();
+        if (url) {
+            await installExtension(url);
+        }
+    });
+    /**@type {HTMLInputElement}*/
+    const assetsJsonUrl = dlg.dom.querySelector('#assets-json-url-field');
+    assetsJsonUrl.value = ASSETS_JSON_URL;
+    /**@type {HTMLElement}*/
+    const connectButton = dlg.dom.querySelector('#assets-connect-button');
+    connectButton.addEventListener('click', async()=>{
+        const url = assetsJsonUrl.value;
         const rememberKey = `Assets_SkipConfirm_${getStringHash(url)}`;
         const skipConfirm = localStorage.getItem(rememberKey) === 'true';
 
         const template = renderExtensionTemplate(MODULE_NAME, 'confirm', { url });
-        const confirmation = skipConfirm || await callPopup(template, 'confirm');
-
+        const confirmation = skipConfirm || await callGenericPopup(template, POPUP_TYPE.CONFIRM);
         if (confirmation) {
             try {
                 if (!skipConfirm) {
@@ -378,22 +472,21 @@ jQuery(async () => {
 
                 console.debug(DEBUG_PREFIX, 'Confimation, loading assets...');
                 downloadAssetsList(url);
-                connectButton.removeClass('fa-plug-circle-exclamation');
-                connectButton.removeClass('redOverlayGlow');
-                connectButton.addClass('fa-plug-circle-check');
+                connectButton.classList.remove('fa-plug-circle-exclamation');
+                connectButton.classList.remove('redOverlayGlow');
+                connectButton.classList.add('fa-plug-circle-check');
             } catch (error) {
                 console.error('Error:', error);
                 toastr.error(`Cannot get assets list from ${url}`);
-                connectButton.removeClass('fa-plug-circle-check');
-                connectButton.addClass('fa-plug-circle-exclamation');
-                connectButton.removeClass('redOverlayGlow');
+                connectButton.classList.remove('fa-plug-circle-check');
+                connectButton.classList.add('fa-plug-circle-exclamation');
+                connectButton.classList.remove('redOverlayGlow');
             }
         }
         else {
             console.debug(DEBUG_PREFIX, 'Connection refused by user');
         }
     });
-
-    windowHtml.find('#assets_filters').hide();
-    $('#extensions_settings').append(windowHtml);
+    connectButton.click();
+    await dlg.show();
 });

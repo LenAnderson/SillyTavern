@@ -105,3 +105,213 @@
         transform: rotate(1turn);
     }
 }
+
+
+
+
+/* ASSET CATALOG */
+.shadow_popup .asset-readme-dlg.mes {
+    text-align: left;
+    padding: 0;
+    border: none;
+    border-radius: unset;
+    background: transparent;
+    margin: 0;
+}
+#assets_ui {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+#assets_menu {
+    overflow: auto;
+}
+.assets-third-party {
+    margin: 0 2em 0 2em;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    > .inline-drawer-header {
+        opacity: 0.5;
+        justify-content: flex-end;
+        gap: 1em;
+        > b {
+            font-weight: normal;
+        }
+    }
+    > .inline-drawer-content {
+        max-width: 50vw;
+        margin-bottom: 2em;
+        .assets-third-party-form {
+            display: flex;
+            gap: 0.5em;
+            align-items: baseline;
+        }
+    }
+}
+.assets-title {
+    display: flex;
+    justify-content: center;
+    align-items: baseline;
+    gap: 0.5em;
+    margin: 0;
+    > .assets-config-trigger {
+        font-size: calc(1em / 1.17);
+    }
+}
+.assets-config {
+    display: none;
+    padding-bottom: 1em;
+    &.active {
+        display: block;
+    }
+    > label {
+        display: flex;
+        align-items: center;
+        gap: 0.5em;
+        > .assets-json-url-field {
+            flex: 1 1 auto;
+        }
+        > #assets-connect-button {
+            margin: 0;
+            padding: 0.2 1em;
+            font-size: 1.5em;
+            width: unset;
+        }
+    }
+}
+.assets-list-git {
+    flex-basis: 100%;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 1em;
+}
+.asset-block[data-type="extension"] {
+    border-radius: 5px;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    width: calc(25% - 1em);
+    align-items: stretch;
+    text-align: left;
+    background: color-mix(in srgb, rgb(128 128 128) 30%, var(--SmartThemeBlurTintColor));
+    &:hover {
+        > .asset-thumb {
+            opacity: 1;
+            filter: saturate(1);
+        }
+    }
+
+    > .asset-thumb {
+        aspect-ratio: 2 / 1;
+        background: color-mix(in srgb, rgb(128 128 128) 75%, var(--SmartThemeBlurTintColor));
+        background-size: cover;
+        background-position: center;
+        border-radius: 5px;
+        container-type: inline-size;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        opacity: 0.5;
+        filter: saturate(0.5);
+        transition: 200ms;
+        &:before {
+            font-size: 30cqw;
+            opacity: 0.25;
+        }
+    }
+
+    > .asset-name {
+        font-size: 1.25em;
+    }
+
+    > .asset-author {
+        color: var(--SmartThemeEmColor);
+        font-size: smaller;
+        > a {
+            color: var(--SmartThemeQuoteColor);
+            opacity: 0.5;
+            transition: 200ms;
+            &:hover {
+                opacity: 1;
+            }
+        }
+    }
+
+    > .asset-description {
+        flex: 1 1 auto;
+        margin: 5px 0;
+    }
+
+    >.asset-tags {
+        display: flex;
+        flex-direction: row;
+        flex-wrap: wrap;
+        gap: 0.25em;
+        font-size: x-small;
+        > .asset-tag {
+            border-radius: 1em;
+            padding: 2px 7px;
+            border: 1px solid rgb(100 100 100);
+            background: rgb(40 40 40);
+            color: rgb(150 150 150);
+        }
+    }
+
+    > .asset-actions {
+        display: flex;
+        justify-content: stretch;
+        align-items: center;
+
+        > .asset-download-button {
+            align-self: flex-start;
+            margin: 1em;
+            display: flex;
+            align-items: baseline;
+            gap: 1em;
+            opacity: 0.75;
+            transition: 200ms;
+            flex: 1 1 auto;
+            &:after {
+                content: "Install";
+                opacity: 0;
+                transition: 200ms;
+            }
+            &.asset-installed:after {
+                content: "Uninstall";
+            }
+            &.asset-download-button-loading:after {
+                content: "";
+                opacity: 1;
+            }
+            &:hover, &:hover:after {
+                opacity: 1;
+            }
+        }
+        > .asset-github, > .asset-readme {
+            cursor: pointer;
+            margin: 1em;
+            opacity: 0.5;
+            transition: 200ms;
+            &:hover {
+                opacity: 1;
+            }
+        }
+    }
+}
+@media screen and (max-width: 1200px) {
+    .asset-block[data-type="extension"] {
+        width: calc(33% - 1em);
+    }
+}
+@media screen and (max-width: 910px) {
+    .asset-block[data-type="extension"] {
+        width: calc(50% - 1em);
+    }
+}
+@media screen and (max-width: 600px) {
+    .asset-block[data-type="extension"] {
+        width: calc(100% - 1em);
+    }
+}
