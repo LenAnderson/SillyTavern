@@ -206,7 +206,7 @@
     }
 
     > .asset-thumb {
-        aspect-ratio: 2 / 1;
+        aspect-ratio: 3 / 1;
         background: color-mix(in srgb, rgb(128 128 128) 75%, var(--SmartThemeBlurTintColor));
         background-size: cover;
         background-position: center;
@@ -244,6 +244,7 @@
     > .asset-description {
         flex: 1 1 auto;
         margin: 5px 0;
+        font-size: small;
     }
 
     >.asset-tags {
