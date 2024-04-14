@@ -125,6 +125,15 @@
 }
 #assets_menu {
     overflow: auto;
+    &:has(.assets-list-container) {
+        overflow: hidden;
+        .assets-list-div {
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            height: 100%;
+        }
+    }
 }
 .assets-third-party {
     margin: 0 2em 0 2em;
@@ -140,7 +149,7 @@
         }
     }
     > .inline-drawer-content {
-        max-width: 50vw;
+        max-width: max(500px, 50vw);
         margin-bottom: 2em;
         .assets-third-party-form {
             display: flex;
@@ -180,21 +189,55 @@
         }
     }
 }
-.assets-list-git {
-    flex-basis: 100%;
-}
-.assets-list-div {
+.assets-list-head {
     display: flex;
-    flex-direction: row;
-    flex-wrap: wrap;
     gap: 1em;
+    justify-content: space-between;
+    font-size: smaller;
+    align-items: center;
+}
+.assets-list-git {
+}
+.assets-list-size-wrap {
+    display: flex;
+    align-items: baseline;
+    gap: 0.5em;
+    white-space: nowrap;
+}
+.assets-list-container {
+    --tileSize: 250;
+    gap: 1em;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(calc(var(--tileSize) * 1px), 1fr));
+    overflow: auto;
+
+    &.assets-tiny {
+        .asset-block[data-type="extension"] {
+            > .asset-thumb {
+                display: none;
+            }
+            > .asset-name {
+                font-size: 1em;
+            }
+            > .asset-author {
+                font-size: x-small;
+            }
+            > .asset-description {
+                font-size: x-small;
+            }
+            > .asset-actions {
+                font-size: x-small;
+            }
+        }
+    }
 }
 .asset-block[data-type="extension"] {
+    min-width: 200px;
     border-radius: 5px;
     display: flex;
     flex-direction: column;
     gap: 0;
-    width: calc(25% - 1em);
+    /* width: calc(25% - 1em); */
     align-items: stretch;
     text-align: left;
     background: color-mix(in srgb, rgb(128 128 128) 30%, var(--SmartThemeBlurTintColor));
@@ -226,11 +269,13 @@
 
     > .asset-name {
         font-size: 1.25em;
+        padding: 0 0.25em;
     }
 
     > .asset-author {
         color: var(--SmartThemeEmColor);
         font-size: smaller;
+        padding: 0 0.25em;
         > a {
             color: var(--SmartThemeQuoteColor);
             opacity: 0.5;
@@ -245,6 +290,7 @@
         flex: 1 1 auto;
         margin: 5px 0;
         font-size: small;
+        padding: 0 0.25em;
     }
 
     >.asset-tags {
@@ -253,6 +299,7 @@
         flex-wrap: wrap;
         gap: 0.25em;
         font-size: x-small;
+        padding: 0 0.25em;
         > .asset-tag {
             border-radius: 1em;
             padding: 2px 7px;
@@ -269,7 +316,7 @@
 
         > .asset-download-button {
             align-self: flex-start;
-            margin: 1em;
+            margin: 0.5em;
             display: flex;
             align-items: baseline;
             gap: 1em;
@@ -294,27 +341,13 @@
         }
         > .asset-github, > .asset-readme {
             cursor: pointer;
-            margin: 1em;
+            margin: 0.5em;
             opacity: 0.5;
             transition: 200ms;
+            color: inherit;
             &:hover {
                 opacity: 1;
             }
         }
-    }
-}
-@media screen and (max-width: 1200px) {
-    .asset-block[data-type="extension"] {
-        width: calc(33% - 1em);
-    }
-}
-@media screen and (max-width: 910px) {
-    .asset-block[data-type="extension"] {
-        width: calc(50% - 1em);
-    }
-}
-@media screen and (max-width: 600px) {
-    .asset-block[data-type="extension"] {
-        width: calc(100% - 1em);
     }
 }

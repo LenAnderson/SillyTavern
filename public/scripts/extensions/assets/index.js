@@ -3,8 +3,8 @@ TODO:
 */
 //const DEBUG_TONY_SAMA_FORK_MODE = true
 
-import { getRequestHeaders, callPopup, processDroppedFiles, reloadMarkdownProcessor } from '../../../script.js';
-import { deleteExtension, extensionNames, getContext, installExtension, renderExtensionTemplateAsync } from '../../extensions.js';
+import { getRequestHeaders, processDroppedFiles, reloadMarkdownProcessor, saveSettingsDebounced } from '../../../script.js';
+import { deleteExtension, extensionNames, extension_settings, getContext, installExtension, renderExtensionTemplateAsync } from '../../extensions.js';
 import { POPUP_TYPE, Popup, callGenericPopup } from '../../popup.js';
 import { executeSlashCommands } from '../../slash-commands.js';
 import { getStringHash, isValidUrl } from '../../utils.js';
@@ -99,15 +99,44 @@ function downloadAssetsList(url) {
 
                 for (const assetType of assetTypes) {
                     let assetTypeMenu = $('<div />', { id: 'assets_audio_ambient_div', class: 'assets-list-div' });
+                    let assetContainer = assetTypeMenu;
                     assetTypeMenu.attr('data-type', assetType);
                     assetTypeMenu.append(`<h3>${KNOWN_TYPES[assetType] || assetType}</h3>`).hide();
 
                     if (assetType == 'extension') {
-                        assetTypeMenu.append(`
-                        <div class="assets-list-git">
-                            To download extensions from this page, you need to have <a href="https://git-scm.com/downloads" target="_blank">Git</a> installed.<br>
-                            Click the <i class="fa-brands fa-sm fa-github"></i> icon to visit the Extension's repo for tips on how to use it.
-                        </div>`);
+                        const head = $(`
+                            <div class="assets-list-head">
+                                <div class="assets-list-git">
+                                    To download extensions from this page, you need to have <a href="https://git-scm.com/downloads" target="_blank">Git</a> installed.<br>
+                                    Click the <i class="fa-brands fa-sm fa-github"></i> icon to visit the Extension's repo for tips on how to use it.
+                                </div>
+                            </div>
+                        `);
+                        assetTypeMenu.append(head);
+                        assetContainer = $('<div class="assets-list-container"></div>');
+                        assetTypeMenu.append(assetContainer);
+
+                        const sizeWrap = $('<label class="assets-list-size-wrap">Tile size: </label>');
+                        const sizeInp = $('<input id="assets-list-size" type="range" min="190" max="500" step="10">');
+                        sizeWrap.append(sizeInp);
+                        const updateTileSize = (value, noSave = false)=>{
+                            sizeInp.val(value);
+                            assetContainer[0].style.setProperty('--tileSize', value.toString());
+                            if (value < 200) {
+                                assetContainer.addClass('assets-tiny');
+                            } else {
+                                assetContainer.removeClass('assets-tiny');
+                            }
+                            if (!extension_settings.assets) extension_settings.assets = {};
+                            extension_settings.assets.tileSize = value;
+                            if (!noSave) saveSettingsDebounced();
+                        };
+                        sizeInp.on('input', ()=>{
+                            const value = Number(sizeInp[0].value);
+                            updateTileSize(value);
+                        });
+                        head.append(sizeWrap);
+                        updateTileSize(extension_settings.assets?.tileSize ?? 250, true);
                     }
 
                     for (const i in availableAssets[assetType]) {
@@ -193,7 +222,7 @@ function downloadAssetsList(url) {
                             url: url.split('/').slice(0, -1).join('/'),
                         };
 
-                        const assetBlock = $('<i></i>');
+                        const assetBlock = $('<div></div>');
                         if (assetType == 'extension') {
                             assetBlock.attr('data-type', 'extension');
                             const github = $(`<a target="_blank" href="${url}" class="asset-github fa-fw fa-brands fa-github fa-lg"></a>`)
@@ -259,7 +288,7 @@ function downloadAssetsList(url) {
 
                         assetBlock.addClass('asset-block');
 
-                        assetTypeMenu.append(assetBlock);
+                        assetContainer.append(assetBlock);
                     }
                     assetTypeMenu.appendTo('#assets_menu');
                     assetTypeMenu.on('click', 'a.asset_preview', previewAsset);
