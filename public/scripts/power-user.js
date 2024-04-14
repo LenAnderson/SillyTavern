@@ -13,7 +13,6 @@ import {
     printCharactersDebounced,
     setCharacterId,
     setEditedMessageId,
-    renderTemplate,
     chat,
     getFirstDisplayedMessageId,
     showMoreMessages,
@@ -39,6 +38,7 @@ import { registerSlashCommand } from './slash-commands.js';
 import { tags } from './tags.js';
 import { tokenizers } from './tokenizers.js';
 import { BIAS_CACHE } from './logit-bias.js';
+import { renderTemplateAsync } from './templates.js';
 
 import { countOccurrences, debounce, delay, download, getFileText, isOdd, resetScrollHeight, shuffle, sortMoments, stringToRange, timestampToMoment } from './utils.js';
 
@@ -1363,8 +1363,8 @@ export function registerDebugFunction(functionId, name, description, func) {
     debug_functions.push({ functionId, name, description, func });
 }
 
-function showDebugMenu() {
-    const template = renderTemplate('debug', { functions: debug_functions });
+async function showDebugMenu() {
+    const template = await renderTemplateAsync('debug', { functions: debug_functions });
     callPopup(template, 'text', '', { wide: true, large: true });
 }
 
@@ -2764,6 +2764,14 @@ export function getCustomStoppingStrings(limit = undefined) {
     return strings;
 }
 
+export function forceCharacterEditorTokenize() {
+    $('[data-token-counter]').each(function () {
+        $(document.getElementById($(this).data('token-counter'))).data('last-value-hash', '');
+    });
+    $('#rm_ch_create_block').trigger('input');
+    $('#character_popup').trigger('input');
+}
+
 $(document).ready(() => {
     const adjustAutocompleteDebounced = debounce(() => {
         $('.ui-autocomplete-input').each(function () {
@@ -3175,8 +3183,7 @@ $(document).ready(() => {
         saveSettingsDebounced();
 
         // Trigger character editor re-tokenize
-        $('#rm_ch_create_block').trigger('input');
-        $('#character_popup').trigger('input');
+        forceCharacterEditorTokenize();
     });
 
     $('#send_on_enter').on('change', function () {

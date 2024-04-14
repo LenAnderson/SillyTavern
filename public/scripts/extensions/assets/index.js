@@ -4,7 +4,7 @@ TODO:
 //const DEBUG_TONY_SAMA_FORK_MODE = true
 
 import { getRequestHeaders, callPopup, processDroppedFiles, reloadMarkdownProcessor } from '../../../script.js';
-import { deleteExtension, extensionNames, getContext, installExtension, renderExtensionTemplate } from '../../extensions.js';
+import { deleteExtension, extensionNames, getContext, installExtension, renderExtensionTemplateAsync } from '../../extensions.js';
 import { POPUP_TYPE, Popup, callGenericPopup } from '../../popup.js';
 import { executeSlashCommands } from '../../slash-commands.js';
 import { getStringHash, isValidUrl } from '../../utils.js';
@@ -438,7 +438,7 @@ installButton.setAttribute('data-assetManager', '1');
 installButton.addEventListener('click', async(evt)=>{
     evt.stopImmediatePropagation();
 
-    const dom = renderExtensionTemplate(MODULE_NAME, 'window');
+    const dom = await renderExtensionTemplateAsync(MODULE_NAME, 'window');
     const dlg = new Popup(dom, POPUP_TYPE.TEXT, null, { okButton:'Close', wide:true, large:true });
     dlg.dom.addEventListener('mousedown', evt=>evt.stopPropagation());
     dlg.dlg.style.aspectRatio = 'unset';
@@ -461,7 +461,7 @@ installButton.addEventListener('click', async(evt)=>{
         const rememberKey = `Assets_SkipConfirm_${getStringHash(url)}`;
         const skipConfirm = localStorage.getItem(rememberKey) === 'true';
 
-        const template = renderExtensionTemplate(MODULE_NAME, 'confirm', { url });
+        const template = await renderExtensionTemplateAsync(MODULE_NAME, 'confirm', { url });
         const confirmation = skipConfirm || await callGenericPopup(template, POPUP_TYPE.CONFIRM);
         if (confirmation) {
             try {
