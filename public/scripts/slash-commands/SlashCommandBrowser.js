@@ -56,7 +56,7 @@ export class SlashCommandBrowser {
                                         ...cmd.unnamedArgumentList.map(it=>it.typeList).flat(),
                                         ...cmd.aliases,
                                         cmd.helpString,
-                                    ];
+                                    ].filter(it=>it);
                                     const find = ()=>targets.find(t=>(fuzzyList.find(f=>f.test(t)) ?? quotedList.find(q=>t.includes(q))) !== undefined) !== undefined;
                                     if (fuzzyList.length + quotedList.length === 0 || find()) {
                                         this.itemMap[cmd.name].classList.remove('isFiltered');
