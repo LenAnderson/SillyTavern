@@ -107,15 +107,21 @@ EventEmitter.prototype.emit = async function (event) {
         listeners = this.events[event].slice();
         length = listeners.length;
 
+        const start = performance.now();
         for (i = 0; i < length; i++) {
             try {
+                const start = performance.now();
                 await listeners[i].apply(this, args);
+                const dur = performance.now() - start;
+                console[dur > 17 ? 'warn' : 'log']('[LISTENER]', `[${event}]`, dur, listeners[i]);
             }
             catch (err) {
                 console.error(err);
                 console.trace('Error in event listener');
             }
         }
+        const dur = performance.now() - start;
+        console.log('[LISTENER]', `[${event}]`, '[TOTAL]', dur);
     }
 };
 
