@@ -55,6 +55,7 @@ const {
 } = textgen_types;
 
 const LLAMACPP_DEFAULT_ORDER = [
+    'dry',
     'top_k',
     'tfs_z',
     'typical_p',
@@ -1038,11 +1039,13 @@ export function parseTextgenLogprobs(token, logprobs) {
             return { token, topLogprobs: candidates };
         }
         case LLAMACPP: {
-            /** @type {Record<string, number>[]} */
             if (!logprobs?.length) {
                 return null;
             }
-            const candidates = logprobs[0].probs.map(x => [x.tok_str, x.prob]);
+            const candidates = logprobs?.[0]?.probs?.map(x => [x.tok_str, x.prob]);
+            if (!candidates) {
+                return null;
+            }
             return { token, topLogprobs: candidates };
         }
         default:
