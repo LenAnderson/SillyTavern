@@ -251,7 +251,8 @@ export const commonEnumProviders = {
      */
     messages: ({ allowIdAfter = false, allowVars = false } = {}) => (_, scope) => {
         return [
-            ...chat.map((message, index) => new SlashCommandEnumValue(String(index), `${message.name}: ${message.mes}`, enumTypes.number, message.is_user ? enumIcons.user : message.is_system ? enumIcons.system : enumIcons.assistant)),
+            // ...chat.map((message, index) => new SlashCommandEnumValue(String(index), `${message.name}: ${message.mes}`, enumTypes.number, message.is_user ? enumIcons.user : message.is_system ? enumIcons.system : enumIcons.assistant)),
+            new SlashCommandEnumValue(`0-${chat.length - 1}`, null, enumTypes.number, enumIcons.message, (input)=>/^(\d+(-\d*)?)?$/.test(input), (input)=>input),
             ...allowIdAfter ? [new SlashCommandEnumValue(String(chat.length), '>> After Last Message >>', enumTypes.enum, '➕')] : [],
             ...allowVars ? commonEnumProviders.variables('all')(_, scope) : [],
         ];
