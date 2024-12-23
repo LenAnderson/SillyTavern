@@ -233,7 +233,7 @@ import {
     initUserAvatar,
 } from './scripts/personas.js';
 import { getBackgrounds, initBackgrounds, loadBackgroundSettings, background_settings } from './scripts/backgrounds.js';
-import { hideLoader, showLoader } from './scripts/loader.js';
+import { hideLoader, showLoader, updateLoaderStatus } from './scripts/loader.js';
 import { BulkEditOverlay, CharacterContextMenu } from './scripts/BulkEditOverlay.js';
 import { loadFeatherlessModels, loadMancerModels, loadOllamaModels, loadTogetherAIModels, loadInfermaticAIModels, loadOpenRouterModels, loadVllmModels, loadAphroditeModels, loadDreamGenModels, initTextGenModels, loadTabbyModels, loadGenericModels } from './scripts/textgen-models.js';
 import { appendFileContent, hasPendingFileAttachment, populateFileAttachment, decodeStyleTags, encodeStyleTags, isExternalMediaAllowed, getCurrentEntityId, preserveNeutralChat, restoreNeutralChat } from './scripts/chats.js';
@@ -296,6 +296,8 @@ await new Promise((resolve) => {
 });
 
 showLoader();
+const { promise:initPromise, resolve:initResolve } = Promise.withResolvers();
+updateLoaderStatus('initial setup', initPromise);
 
 // Configure toast library:
 toastr.options.escapeHtml = true; // Prevent raw HTML inserts
@@ -932,56 +934,117 @@ export async function pingServer() {
 
 async function firstLoadInit() {
     try {
+        const { promise, resolve } = Promise.withResolvers();
+        updateLoaderStatus('getting CSRF token', promise);
         const tokenResponse = await fetch('/csrf-token');
         const tokenData = await tokenResponse.json();
         token = tokenData.token;
+        resolve();
     } catch {
         hideLoader();
         toastr.error(t`Couldn't get CSRF token. Please refresh the page.`, t`Error`, { timeOut: 0, extendedTimeOut: 0, preventDuplicates: true });
         throw new Error('Initialization failed');
     }
 
-    initLibraryShims();
-    addShowdownPatch(showdown);
-    reloadMarkdownProcessor();
-    applyBrowserFixes();
+    updateLoaderStatus('adding compatibility patches',
+        initLibraryShims(),
+        addShowdownPatch(showdown),
+        reloadMarkdownProcessor(),
+        applyBrowserFixes(),
+    );
     await getClientVersion();
     await readSecretState();
     await initLocales();
-    initDefaultSlashCommands();
-    initTextGenModels();
-    initOpenAI();
-    initSystemPrompts();
+    updateLoaderStatus('registering additional slash commands',
+        initDefaultSlashCommands(),
+    );
+    updateLoaderStatus('initializing LLM providers',
+        initTextGenModels(),
+        initOpenAI(),
+        initSystemPrompts(),
+    );
     initExtensions();
-    initExtensionSlashCommands();
-    ToolManager.initToolSlashCommands();
+    updateLoaderStatus('registering extension slash commands',
+        initExtensionSlashCommands(),
+    );
+    updateLoaderStatus('registering tool call slash commands',
+        ToolManager.initToolSlashCommands(),
+    );
+    const { promise:presetPromise, resolve:presetResolve } = Promise.withResolvers();
+    updateLoaderStatus('initializing preset manager', presetPromise);
     await initPresetManager();
+    presetResolve();
+    const { promise:welcomePromise, resolve:welcomeResolve } = Promise.withResolvers();
+    updateLoaderStatus('loading welcome message', welcomePromise);
     await getSystemMessages();
+    welcomeResolve();
     sendSystemMessage(system_message_types.WELCOME);
     sendSystemMessage(system_message_types.WELCOME_PROMPT);
+    const { promise:settingsPromise, resolve:settingsResolve } = Promise.withResolvers();
+    updateLoaderStatus('loading user settings', settingsPromise);
     await getSettings();
-    initKeyboard();
-    initDynamicStyles();
-    initTags();
-    initBookmarks();
-    initMacros();
+    settingsResolve();
+    updateLoaderStatus('registering keyboard shortcuts',
+        initKeyboard(),
+    );
+    updateLoaderStatus('loading dynamic styles',
+        initDynamicStyles(),
+    );
+    updateLoaderStatus('initializing tags',
+        initTags(),
+    );
+    updateLoaderStatus('initializing bookmarks',
+        initBookmarks(),
+    );
+    updateLoaderStatus('initializing macros',
+        initMacros(),
+    );
+    const { promise:avatarPromise, resolve:avatarResolve } = Promise.withResolvers();
+    updateLoaderStatus('loading user avatars', avatarPromise);
     await getUserAvatars(true, user_avatar);
+    avatarResolve();
+    const { promise:charPromise, resolve:charResolve } = Promise.withResolvers();
+    updateLoaderStatus('loading characters', charPromise);
     await getCharacters();
+    charResolve();
+    const { promise:bgPromise, resolve:bgResolve } = Promise.withResolvers();
+    updateLoaderStatus('loading backgrounds', bgPromise);
     await getBackgrounds();
+    bgResolve();
+    const { promise:tokenizerPromise, resolve:tokenizerResolve } = Promise.withResolvers();
+    updateLoaderStatus('initializing tokenizers', tokenizerPromise);
     await initTokenizers();
+    tokenizerResolve();
     initBackgrounds();
     initAuthorsNote();
-    initPersonas();
-    initRossMods();
-    initStats();
-    initCfg();
-    initLogprobs();
-    initInputMarkdown();
-    initServerHistory();
-    initSettingsSearch();
-    initBulkEdit();
+    updateLoaderStatus('loading personas',
+        initPersonas(),
+        initRossMods(),
+        initStats(),
+    );
+    updateLoaderStatus('initializing CFG and log probs',
+        initCfg(),
+        initLogprobs(),
+    );
+    updateLoaderStatus('initializing markdown shortcuts',
+        initInputMarkdown(),
+    );
+    updateLoaderStatus('initializing server history',
+        initServerHistory(),
+    );
+    updateLoaderStatus('initializing settings search',
+        initSettingsSearch(),
+    );
+    updateLoaderStatus('initializing character bulk edit',
+        initBulkEdit(),
+    );
+    const { promise:scraperPromise, resolve:scraperResolve } = Promise.withResolvers();
+    updateLoaderStatus('initializing data bank scrapers', scraperPromise);
     await initScrapers();
-    doDailyExtensionUpdatesCheck();
+    scraperResolve();
+    updateLoaderStatus('checking for extension updates',
+        doDailyExtensionUpdatesCheck(),
+    );
     await hideLoader();
     await fixViewport();
     await eventSource.emit(event_types.APP_READY);
@@ -6821,7 +6884,10 @@ export async function getSettings() {
         if (data.enable_extensions) {
             const enableAutoUpdate = Boolean(data.enable_extensions_auto_update);
             const isVersionChanged = settings.currentVersion !== currentVersion;
+            const { promise:extPromise, resolve:extResolve } = Promise.withResolvers();
+            updateLoaderStatus('loading extensions', extPromise);
             await loadExtensionSettings(settings, isVersionChanged, enableAutoUpdate);
+            extResolve();
             await eventSource.emit(event_types.EXTENSION_SETTINGS_LOADED);
         }
 
@@ -9385,6 +9451,10 @@ jQuery(async function () {
         return '';
     }
 
+    initResolve();
+
+    const { promise:slashPromise, resolve:slashResolve } = Promise.withResolvers();
+    updateLoaderStatus('registering core slash commands', slashPromise);
     SlashCommandParser.addCommandObject(SlashCommand.fromProps({
         name: 'dupe',
         callback: duplicateCharacter,
@@ -9620,12 +9690,15 @@ jQuery(async function () {
         aliases: ['chat-history', 'manage-chats'],
         helpString: 'Opens the chat manager for the current character/group.',
     }));
+    slashResolve();
 
     setTimeout(function () {
         $('#groupControlsToggle').trigger('click');
         $('#groupCurrentMemberListToggle .inline-drawer-icon').trigger('click');
     }, 200);
 
+    const { promise:listenersPromise, resolve:listenersResolve } = Promise.withResolvers();
+    updateLoaderStatus('registering listeners', listenersPromise);
     $(document).on('click', '.api_loading', () => cancelStatusCheck('Canceled because connecting was manually canceled'));
 
     //////////INPUT BAR FOCUS-KEEPING LOGIC/////////////
@@ -11322,6 +11395,7 @@ jQuery(async function () {
         eventSource.emit(event_types.OPEN_CHARACTER_LIBRARY);
     });
 
+    listenersResolve();
     // Added here to prevent execution before script.js is loaded and get rid of quirky timeouts
     await firstLoadInit();
 

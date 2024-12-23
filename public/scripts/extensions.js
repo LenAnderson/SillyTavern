@@ -1,7 +1,7 @@
 import { DOMPurify, Popper } from '../lib.js';
 
 import { eventSource, event_types, saveSettings, saveSettingsDebounced, getRequestHeaders, animation_duration } from '../script.js';
-import { showLoader } from './loader.js';
+import { showLoader, updateLoaderStatus } from './loader.js';
 import { POPUP_RESULT, POPUP_TYPE, Popup, callGenericPopup } from './popup.js';
 import { renderTemplate, renderTemplateAsync } from './templates.js';
 import { delay, isSubsetOf, setValueByPath } from './utils.js';
@@ -370,6 +370,8 @@ async function activateExtensions() {
         const isDisabled = extension_settings.disabledExtensions.includes(name);
 
         if (meetsModuleRequirements && !isDisabled) {
+            const { promise, resolve } = Promise.withResolvers();
+            updateLoaderStatus(`Extension: ${manifest.display_name ?? name}`, promise);
             try {
                 console.debug('Activating extension', name);
                 const promise = Promise.all([addExtensionScript(name, manifest), addExtensionStyle(name, manifest)]);
@@ -381,6 +383,8 @@ async function activateExtensions() {
             catch (error) {
                 console.error('Could not activate extension', name);
                 console.error(error);
+            } finally {
+                resolve();
             }
         }
     }
