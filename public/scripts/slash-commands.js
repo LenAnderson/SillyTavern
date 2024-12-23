@@ -47,7 +47,7 @@ import {
 } from '../script.js';
 import { SlashCommandParser } from './slash-commands/SlashCommandParser.js';
 import { SlashCommandParserError } from './slash-commands/SlashCommandParserError.js';
-import { getMessageTimeStamp } from './RossAscends-mods.js';
+import { getMessageTimeStamp, isMobile } from './RossAscends-mods.js';
 import { hideChatMessageRange } from './chats.js';
 import { getContext, saveMetadataDebounced } from './extensions.js';
 import { getRegexedString, regex_placement } from './extensions/regex/engine.js';
@@ -1957,6 +1957,12 @@ export function initDefaultSlashCommands() {
                 <pre>/substr start=4 end=-1 {{var::x}}   | /echo  |/# morning is upon us     ||</pre>
             </div>
         `,
+    }));
+    SlashCommandParser.addCommandObject(SlashCommand.fromProps({
+        name: 'is-mobile',
+        callback: () => String(isMobile()),
+        returns: ARGUMENT_TYPE.BOOLEAN,
+        helpString: 'Returns true if the current device is a mobile device, false otherwise. Equivalent to <code>{{isMobile}}</code> macro.',
     }));
 
     registerVariableCommands();

@@ -1111,7 +1111,8 @@ function onHrSecondPassStepsInput() {
 }
 
 function onComfyUrlInput() {
-    extension_settings.sd.comfy_url = $('#sd_comfy_url').val();
+    // Remove trailing slashes
+    extension_settings.sd.comfy_url = String($('#sd_comfy_url').val());
     saveSettingsDebounced();
 }
 
@@ -1985,6 +1986,10 @@ async function loadNovelModels() {
 
     return [
         {
+            value: 'nai-diffusion-4-curated-preview',
+            text: 'NAI Diffusion Anime V4 (Curated Preview)',
+        },
+        {
             value: 'nai-diffusion-3',
             text: 'NAI Diffusion Anime V3',
         },
@@ -2048,7 +2053,7 @@ async function loadSchedulers() {
             schedulers = await getAutoRemoteSchedulers();
             break;
         case sources.novel:
-            schedulers = ['N/A'];
+            schedulers = ['karras', 'native', 'exponential', 'polyexponential'];
             break;
         case sources.vlad:
             schedulers = ['N/A'];
@@ -3157,6 +3162,7 @@ async function generateNovelImage(prompt, negativePrompt, signal) {
             prompt: prompt,
             model: extension_settings.sd.model,
             sampler: extension_settings.sd.sampler,
+            scheduler: extension_settings.sd.scheduler,
             steps: steps,
             scale: extension_settings.sd.scale,
             width: width,

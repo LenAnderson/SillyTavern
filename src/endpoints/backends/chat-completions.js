@@ -27,6 +27,7 @@ import {
     mergeMessages,
     cachingAtDepthForOpenRouterClaude,
     cachingAtDepthForClaude,
+    getPromptNames,
 } from '../../prompt-converters.js';
 
 import { readSecret, SECRET_KEYS } from '../secrets.js';
@@ -55,17 +56,16 @@ const API_NANOGPT = 'https://nano-gpt.com/api/v1';
  * Applies a post-processing step to the generated messages.
  * @param {object[]} messages Messages to post-process
  * @param {string} type Prompt conversion type
- * @param {string} charName Character name
- * @param {string} userName User name
+ * @param {import('../../prompt-converters.js').PromptNames} names Prompt names
  * @returns
  */
-function postProcessPrompt(messages, type, charName, userName) {
+function postProcessPrompt(messages, type, names) {
     switch (type) {
         case 'merge':
         case 'claude':
-            return mergeMessages(messages, charName, userName, false);
+            return mergeMessages(messages, names, false);
         case 'strict':
-            return mergeMessages(messages, charName, userName, true);
+            return mergeMessages(messages, names, true);
         default:
             return messages;
     }
@@ -101,7 +101,7 @@ async function sendClaudeRequest(request, response) {
         const additionalHeaders = {};
         const useTools = request.body.model.startsWith('claude-3') && Array.isArray(request.body.tools) && request.body.tools.length > 0;
         const useSystemPrompt = (request.body.model.startsWith('claude-2') || request.body.model.startsWith('claude-3')) && request.body.claude_use_sysprompt;
-        const convertedPrompt = convertClaudeMessages(request.body.messages, request.body.assistant_prefill, useSystemPrompt, useTools, request.body.char_name, request.body.user_name);
+        const convertedPrompt = convertClaudeMessages(request.body.messages, request.body.assistant_prefill, useSystemPrompt, useTools, getPromptNames(request));
         // Add custom stop sequences
         const stopSequences = [];
         if (Array.isArray(request.body.stop)) {
@@ -282,9 +282,9 @@ async function sendMakerSuiteRequest(request, response) {
             model.includes('gemini-1.5-flash') ||
             model.includes('gemini-1.5-pro') ||
             model.startsWith('gemini-exp')
-          ) && request.body.use_makersuite_sysprompt;
+        ) && request.body.use_makersuite_sysprompt;
 
-        const prompt = convertGooglePrompt(request.body.messages, model, should_use_system_prompt, request.body.char_name, request.body.user_name);
+        const prompt = convertGooglePrompt(request.body.messages, model, should_use_system_prompt, getPromptNames(request));
         let body = {
             contents: prompt.contents,
             safetySettings: GEMINI_SAFETY,
@@ -384,7 +384,7 @@ async function sendAI21Request(request, response) {
     request.socket.on('close', function () {
         controller.abort();
     });
-    const convertedPrompt = convertAI21Messages(request.body.messages, request.body.char_name, request.body.user_name);
+    const convertedPrompt = convertAI21Messages(request.body.messages, getPromptNames(request));
     const body = {
         messages: convertedPrompt,
         model: request.body.model,
@@ -447,7 +447,7 @@ async function sendMistralAIRequest(request, response) {
     }
 
     try {
-        const messages = convertMistralMessages(request.body.messages, request.body.char_name, request.body.user_name);
+        const messages = convertMistralMessages(request.body.messages, getPromptNames(request));
         const controller = new AbortController();
         request.socket.removeAllListeners('close');
         request.socket.on('close', function () {
@@ -528,7 +528,7 @@ async function sendCohereRequest(request, response) {
     }
 
     try {
-        const convertedHistory = convertCohereMessages(request.body.messages, request.body.char_name, request.body.user_name);
+        const convertedHistory = convertCohereMessages(request.body.messages, getPromptNames(request));
         const tools = [];
 
         if (Array.isArray(request.body.tools) && request.body.tools.length > 0) {
@@ -886,15 +886,14 @@ router.post('/generate', jsonParser, function (request, response) {
             request.body.messages = postProcessPrompt(
                 request.body.messages,
                 request.body.custom_prompt_post_processing,
-                request.body.char_name,
-                request.body.user_name);
+                getPromptNames(request));
         }
     } else if (request.body.chat_completion_source === CHAT_COMPLETION_SOURCES.PERPLEXITY) {
         apiUrl = API_PERPLEXITY;
         apiKey = readSecret(request.user.directories, SECRET_KEYS.PERPLEXITY);
         headers = {};
         bodyParams = {};
-        request.body.messages = postProcessPrompt(request.body.messages, 'strict', request.body.char_name, request.body.user_name);
+        request.body.messages = postProcessPrompt(request.body.messages, 'strict', getPromptNames(request));
     } else if (request.body.chat_completion_source === CHAT_COMPLETION_SOURCES.GROQ) {
         apiUrl = API_GROQ;
         apiKey = readSecret(request.user.directories, SECRET_KEYS.GROQ);

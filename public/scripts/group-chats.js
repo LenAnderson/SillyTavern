@@ -276,6 +276,20 @@ export function getGroupMembers(groupId = selected_group) {
 }
 
 /**
+ * Retrieves the member names of a group. If the group is not selected, an empty array is returned.
+ * @returns {string[]} An array of character names representing the members of the group.
+ */
+export function getGroupNames() {
+    if (!selected_group) {
+        return [];
+    }
+    const groupMembers = groups.find(x => x.id == selected_group)?.members;
+    return Array.isArray(groupMembers)
+        ? groupMembers.map(x => characters.find(y => y.avatar === x)?.name).filter(x => x)
+        : [];
+}
+
+/**
  * Finds the character ID for a group member.
  * @param {string} arg 0-based member index or character name
  * @returns {number} 0-based character ID
@@ -423,12 +437,18 @@ export function getGroupCharacterCards(groupId, characterId) {
      * @param {string} value Value to replace
      * @param {string} characterName Name of the character
      * @param {string} fieldName Name of the field
+     * @param {function(string): string} [preprocess] Preprocess function
      * @returns {string} Prepared text
      * */
-    function replaceAndPrepareForJoin(value, characterName, fieldName) {
+    function replaceAndPrepareForJoin(value, characterName, fieldName, preprocess = null) {
         value = value.trim();
         if (!value) {
             return '';
+        }
+
+        // Run preprocess function
+        if (typeof preprocess === 'function') {
+            value = preprocess(value);
         }
 
         // Prepare and replace prefixes
@@ -465,7 +485,7 @@ export function getGroupCharacterCards(groupId, characterId) {
         descriptions.push(replaceAndPrepareForJoin(character.description, character.name, 'Description'));
         personalities.push(replaceAndPrepareForJoin(character.personality, character.name, 'Personality'));
         scenarios.push(replaceAndPrepareForJoin(character.scenario, character.name, 'Scenario'));
-        mesExamplesArray.push(replaceAndPrepareForJoin(character.mes_example, character.name, 'Example Messages'));
+        mesExamplesArray.push(replaceAndPrepareForJoin(character.mes_example, character.name, 'Example Messages', (x) => !x.startsWith('<START>') ? `<START>\n${x}` : x));
     }
 
     const description = descriptions.filter(x => x.length).join('\n');

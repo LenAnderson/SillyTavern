@@ -4,6 +4,7 @@ import { timestampToMoment, isDigitsOnly, getStringHash, escapeRegex, uuidv4 } f
 import { textgenerationwebui_banned_in_macros } from './textgen-settings.js';
 import { getInstructMacros } from './instruct-mode.js';
 import { getVariableMacros } from './variables.js';
+import { isMobile } from './RossAscends-mods.js';
 
 /**
  * @typedef Macro
@@ -542,5 +543,6 @@ export function initMacros() {
         });
     }
 
+    MacrosParser.registerMacro('isMobile', () => String(isMobile()));
     initLastGenerationType();
 }

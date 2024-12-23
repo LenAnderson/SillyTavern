@@ -6,6 +6,7 @@ import fetch from 'node-fetch';
 import sanitize from 'sanitize-filename';
 import { sync as writeFileAtomicSync } from 'write-file-atomic';
 import FormData from 'form-data';
+import urlJoin from 'url-join';
 
 import { delay, getBasicAuthHeader, tryParse } from '../util.js';
 import { jsonParser } from '../express-common.js';
@@ -364,8 +365,7 @@ const comfy = express.Router();
 
 comfy.post('/ping', jsonParser, async (request, response) => {
     try {
-        const url = new URL(request.body.url);
-        url.pathname = '/system_stats';
+        const url = new URL(urlJoin(request.body.url, '/system_stats'));
 
         const result = await fetch(url);
         if (!result.ok) {
@@ -381,8 +381,7 @@ comfy.post('/ping', jsonParser, async (request, response) => {
 
 comfy.post('/samplers', jsonParser, async (request, response) => {
     try {
-        const url = new URL(request.body.url);
-        url.pathname = '/object_info';
+        const url = new URL(urlJoin(request.body.url, '/object_info'));
 
         const result = await fetch(url);
         if (!result.ok) {
@@ -400,8 +399,7 @@ comfy.post('/samplers', jsonParser, async (request, response) => {
 
 comfy.post('/models', jsonParser, async (request, response) => {
     try {
-        const url = new URL(request.body.url);
-        url.pathname = '/object_info';
+        const url = new URL(urlJoin(request.body.url, '/object_info'));
 
         const result = await fetch(url);
         if (!result.ok) {
@@ -429,8 +427,7 @@ comfy.post('/models', jsonParser, async (request, response) => {
 
 comfy.post('/schedulers', jsonParser, async (request, response) => {
     try {
-        const url = new URL(request.body.url);
-        url.pathname = '/object_info';
+        const url = new URL(urlJoin(request.body.url, '/object_info'));
 
         const result = await fetch(url);
         if (!result.ok) {
@@ -448,8 +445,7 @@ comfy.post('/schedulers', jsonParser, async (request, response) => {
 
 comfy.post('/vaes', jsonParser, async (request, response) => {
     try {
-        const url = new URL(request.body.url);
-        url.pathname = '/object_info';
+        const url = new URL(urlJoin(request.body.url, '/object_info'));
 
         const result = await fetch(url);
         if (!result.ok) {
@@ -516,15 +512,13 @@ comfy.post('/delete-workflow', jsonParser, async (request, response) => {
 
 comfy.post('/generate', jsonParser, async (request, response) => {
     try {
-        const url = new URL(request.body.url);
-        url.pathname = '/prompt';
+        const url = new URL(urlJoin(request.body.url, '/prompt'));
 
         const controller = new AbortController();
         request.socket.removeAllListeners('close');
         request.socket.on('close', function () {
             if (!response.writableEnded && !item) {
-                const interruptUrl = new URL(request.body.url);
-                interruptUrl.pathname = '/interrupt';
+                const interruptUrl = new URL(urlJoin(request.body.url, '/interrupt'));
                 fetch(interruptUrl, { method: 'POST', headers: { 'Authorization': getBasicAuthHeader(request.body.auth) } });
             }
             controller.abort();
@@ -543,8 +537,7 @@ comfy.post('/generate', jsonParser, async (request, response) => {
         const data = await promptResult.json();
         const id = data.prompt_id;
         let item;
-        const historyUrl = new URL(request.body.url);
-        historyUrl.pathname = '/history';
+        const historyUrl = new URL(urlJoin(request.body.url, '/history'));
         while (true) {
             const result = await fetch(historyUrl);
             if (!result.ok) {
@@ -568,8 +561,7 @@ comfy.post('/generate', jsonParser, async (request, response) => {
             throw new Error(`ComfyUI generation did not succeed.\n\n${errorMessages}`.trim());
         }
         const imgInfo = Object.keys(item.outputs).map(it => item.outputs[it].images).flat()[0];
-        const imgUrl = new URL(request.body.url);
-        imgUrl.pathname = '/view';
+        const imgUrl = new URL(urlJoin(request.body.url, '/view'));
         imgUrl.search = `?filename=${imgInfo.filename}&subfolder=${imgInfo.subfolder}&type=${imgInfo.type}`;
         const imgResponse = await fetch(imgUrl);
         if (!imgResponse.ok) {

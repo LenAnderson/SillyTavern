@@ -887,7 +887,40 @@ export function initRossMods() {
         saveSettingsDebounced();
     });
 
+    const cssAutofit = CSS.supports('field-sizing', 'content');
+
+    if (cssAutofit) {
+        let lastHeight = chatBlock.offsetHeight;
+        const chatBlockResizeObserver = new ResizeObserver((entries) => {
+            for (const entry of entries) {
+                if (entry.target !== chatBlock) {
+                    continue;
+                }
+
+                const threshold = 1;
+                const newHeight = chatBlock.offsetHeight;
+                const deltaHeight = newHeight - lastHeight;
+                const isScrollAtBottom = Math.abs(chatBlock.scrollHeight - chatBlock.scrollTop - newHeight) <= threshold;
+
+                if (!isScrollAtBottom && Math.abs(deltaHeight) > threshold) {
+                    chatBlock.scrollTop -= deltaHeight;
+                }
+                lastHeight = newHeight;
+            }
+        });
+
+        chatBlockResizeObserver.observe(chatBlock);
+    }
+
     sendTextArea.addEventListener('input', () => {
+        saveUserInputDebounced();
+
+        if (cssAutofit) {
+            // Unset modifications made with a manual resize
+            sendTextArea.style.height = 'auto';
+            return;
+        }
+
         const hasContent = sendTextArea.value !== '';
         const fitsCurrentSize = sendTextArea.scrollHeight <= sendTextArea.offsetHeight;
         const isScrollbarShown = sendTextArea.clientWidth < sendTextArea.offsetWidth;
@@ -895,7 +928,6 @@ export function initRossMods() {
         const needsDebounce = hasContent && (fitsCurrentSize || (isScrollbarShown && isHalfScreenHeight));
         if (needsDebounce) autoFitSendTextAreaDebounced();
         else autoFitSendTextArea();
-        saveUserInputDebounced();
     });
 
     restoreUserInput();

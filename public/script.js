@@ -851,11 +851,9 @@ export let is_send_press = false; //Send generation
 
 let this_del_mes = -1;
 
-//message editing and chat scroll position persistence
+//message editing
 var this_edit_mes_chname = '';
 var this_edit_mes_id;
-var scroll_holder = 0;
-var is_use_scroll_holder = false;
 
 //settings
 export let settings;
@@ -9800,25 +9798,27 @@ jQuery(async function () {
         chooseBogusFolder($(this), tagId);
     });
 
-    /**
-     * Sets the scroll height of the edit textarea to fit the content.
-     * @param {HTMLTextAreaElement} e Textarea element to auto-fit
-     */
-    function autoFitEditTextArea(e) {
-        scroll_holder = chatElement[0].scrollTop;
-        e.style.height = '0px';
-        const newHeight = e.scrollHeight + 4;
-        e.style.height = `${newHeight}px`;
-        is_use_scroll_holder = true;
-    }
-    const autoFitEditTextAreaDebounced = debounce(autoFitEditTextArea, debounce_timeout.short);
-    document.addEventListener('input', e => {
-        if (e.target instanceof HTMLTextAreaElement && e.target.classList.contains('edit_textarea')) {
-            const scrollbarShown = e.target.clientWidth < e.target.offsetWidth && e.target.offsetHeight >= window.innerHeight * 0.75;
-            const immediately = (e.target.scrollHeight > e.target.offsetHeight && !scrollbarShown) || e.target.value === '';
-            immediately ? autoFitEditTextArea(e.target) : autoFitEditTextAreaDebounced(e.target);
+    const cssAutofit = CSS.supports('field-sizing', 'content');
+    if (!cssAutofit) {
+        /**
+         * Sets the scroll height of the edit textarea to fit the content.
+         * @param {HTMLTextAreaElement} e Textarea element to auto-fit
+         */
+        function autoFitEditTextArea(e) {
+            e.style.height = '0px';
+            const newHeight = e.scrollHeight + 4;
+            e.style.height = `${newHeight}px`;
         }
-    });
+        const autoFitEditTextAreaDebounced = debounce(autoFitEditTextArea, debounce_timeout.short);
+        document.addEventListener('input', e => {
+            if (e.target instanceof HTMLTextAreaElement && e.target.classList.contains('edit_textarea')) {
+                const scrollbarShown = e.target.clientWidth < e.target.offsetWidth && e.target.offsetHeight >= window.innerHeight * 0.75;
+                const immediately = (e.target.scrollHeight > e.target.offsetHeight && !scrollbarShown) || e.target.value === '';
+                immediately ? autoFitEditTextArea(e.target) : autoFitEditTextAreaDebounced(e.target);
+            }
+        });
+    }
+
     const chatElementScroll = document.getElementById('chat');
     const chatScrollHandler = function () {
         if (power_user.waifuMode) {
@@ -9840,12 +9840,6 @@ jQuery(async function () {
     };
     chatElementScroll.addEventListener('wheel', chatScrollHandler, { passive: true });
     chatElementScroll.addEventListener('touchmove', chatScrollHandler, { passive: true });
-    chatElementScroll.addEventListener('scroll', function () {
-        if (is_use_scroll_holder) {
-            this.scrollTop = scroll_holder;
-            is_use_scroll_holder = false;
-        }
-    }, { passive: true });
 
     $(document).on('click', '.mes', function () {
         //when a 'delete message' parent div is clicked
@@ -10584,14 +10578,16 @@ jQuery(async function () {
                 .closest('.mes_block')
                 .find('.mes_text')
                 .append(
-                    '<textarea id=\'curEditTextarea\' class=\'edit_textarea mdHotkeys\' style=\'max-width:auto;\'></textarea>',
+                    '<textarea id=\'curEditTextarea\' class=\'edit_textarea mdHotkeys\'></textarea>',
                 );
             $('#curEditTextarea').val(text);
             let edit_textarea = $(this)
                 .closest('.mes_block')
                 .find('.edit_textarea');
-            edit_textarea.height(0);
-            edit_textarea.height(edit_textarea[0].scrollHeight);
+            if (!cssAutofit) {
+                edit_textarea.height(0);
+                edit_textarea.height(edit_textarea[0].scrollHeight);
+            }
             edit_textarea.focus();
             edit_textarea[0].setSelectionRange(     //this sets the cursor at the end of the text
                 String(edit_textarea.val()).length,

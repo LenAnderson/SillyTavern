@@ -33,7 +33,7 @@ import {
     system_message_types,
     this_chid,
 } from '../script.js';
-import { selected_group } from './group-chats.js';
+import { getGroupNames, selected_group } from './group-chats.js';
 
 import {
     chatCompletionDefaultPrompts,
@@ -60,6 +60,7 @@ import {
     parseJsonFile,
     resetScrollHeight,
     stringFormat,
+    uuidv4,
 } from './utils.js';
 import { countTokensOpenAIAsync, getTokenizerModel } from './tokenizers.js';
 import { isMobile } from './RossAscends-mods.js';
@@ -101,16 +102,16 @@ const default_new_group_chat_prompt = '[Start a new group chat. Group members: {
 const default_new_example_chat_prompt = '[Example Chat]';
 const default_continue_nudge_prompt = '[Continue the following message. Do not include ANY parts of the original message. Use capitalization and punctuation as if your reply is a part of the original message: {{lastChatMessage}}]';
 const default_bias = 'Default (none)';
-const default_personality_format = '[{{char}}\'s personality: {{personality}}]';
-const default_scenario_format = '[Circumstances and context of the dialogue: {{scenario}}]';
+const default_personality_format = '{{personality}}';
+const default_scenario_format = '{{scenario}}';
 const default_group_nudge_prompt = '[Write the next reply only as {{char}}.]';
 const default_bias_presets = {
     [default_bias]: [],
     'Anti-bond': [
-        { text: ' bond', value: -50 },
-        { text: ' future', value: -50 },
-        { text: ' bonding', value: -50 },
-        { text: ' connection', value: -25 },
+        { id: '22154f79-dd98-41bc-8e34-87015d6a0eaf', text: ' bond', value: -50 },
+        { id: '8ad2d5c4-d8ef-49e4-bc5e-13e7f4690e0f', text: ' future', value: -50 },
+        { id: '52a4b280-0956-4940-ac52-4111f83e4046', text: ' bonding', value: -50 },
+        { id: 'e63037c7-c9d1-4724-ab2d-7756008b433b', text: ' connection', value: -25 },
     ],
 };
 
@@ -543,11 +544,15 @@ function setupChatCompletionPromptManager(openAiSettings) {
  * @returns {Message[]} Array of message objects
  */
 export function parseExampleIntoIndividual(messageExampleString, appendNamesForGroup = true) {
+    const groupBotNames = getGroupNames().map(name => `${name}:`);
+
     let result = []; // array of msgs
     let tmp = messageExampleString.split('\n');
     let cur_msg_lines = [];
     let in_user = false;
     let in_bot = false;
+    let botName = name2;
+
     // DRY my cock and balls :)
     function add_msg(name, role, system_name) {
         // join different newlines (we split them by \n and join by \n)
@@ -571,10 +576,14 @@ export function parseExampleIntoIndividual(messageExampleString, appendNamesForG
             in_user = true;
             // we were in the bot mode previously, add the message
             if (in_bot) {
-                add_msg(name2, 'system', 'example_assistant');
+                add_msg(botName, 'system', 'example_assistant');
             }
             in_bot = false;
-        } else if (cur_str.startsWith(name2 + ':')) {
+        } else if (cur_str.startsWith(name2 + ':') || groupBotNames.some(n => cur_str.startsWith(n))) {
+            if (!cur_str.startsWith(name2 + ':') && groupBotNames.length) {
+                botName = cur_str.split(':')[0];
+            }
+
             in_bot = true;
             // we were in the user mode previously, add the message
             if (in_user) {
@@ -589,7 +598,7 @@ export function parseExampleIntoIndividual(messageExampleString, appendNamesForG
     if (in_user) {
         add_msg(name1, 'system', 'example_user');
     } else if (in_bot) {
-        add_msg(name2, 'system', 'example_assistant');
+        add_msg(botName, 'system', 'example_assistant');
     }
     return result;
 }
@@ -1866,6 +1875,7 @@ async function sendOpenAIRequest(type, messages, signal) {
         'n': canMultiSwipe ? oai_settings.n : undefined,
         'user_name': name1,
         'char_name': name2,
+        'group_names': getGroupNames(),
     };
 
     // Empty array will produce a validation error
@@ -3168,6 +3178,14 @@ function loadOpenAISettings(data, settings) {
 
     $('#openai_logit_bias_preset').empty();
     for (const preset of Object.keys(oai_settings.bias_presets)) {
+        // Backfill missing IDs
+        if (Array.isArray(oai_settings.bias_presets[preset])) {
+            oai_settings.bias_presets[preset].forEach((bias) => {
+                if (bias && !bias.id) {
+                    bias.id = uuidv4();
+                }
+            });
+        }
         const option = document.createElement('option');
         option.innerText = preset;
         option.value = preset;
@@ -3456,7 +3474,8 @@ function onLogitBiasPresetChange() {
     }
 
     oai_settings.bias_preset_selected = value;
-    $('.openai_logit_bias_list').empty();
+    const list = $('.openai_logit_bias_list');
+    list.empty();
 
     for (const entry of preset) {
         if (entry) {
@@ -3464,12 +3483,33 @@ function onLogitBiasPresetChange() {
         }
     }
 
+    // Check if a sortable instance exists
+    if (list.sortable('instance') !== undefined) {
+        // Destroy the instance
+        list.sortable('destroy');
+    }
+
+    // Make the list sortable
+    list.sortable({
+        delay: getSortableDelay(),
+        handle: '.drag-handle',
+        stop: function () {
+            const order = [];
+            list.children().each(function () {
+                order.unshift($(this).data('id'));
+            });
+            preset.sort((a, b) => order.indexOf(a.id) - order.indexOf(b.id));
+            console.log('Logit bias reordered:', preset);
+            saveSettingsDebounced();
+        },
+    });
+
     biasCache = undefined;
     saveSettingsDebounced();
 }
 
 function createNewLogitBiasEntry() {
-    const entry = { text: '', value: 0 };
+    const entry = { id: uuidv4(), text: '', value: 0 };
     oai_settings.bias_presets[oai_settings.bias_preset_selected].push(entry);
     biasCache = undefined;
     createLogitBiasListItem(entry);
@@ -3477,11 +3517,14 @@ function createNewLogitBiasEntry() {
 }
 
 function createLogitBiasListItem(entry) {
-    const id = oai_settings.bias_presets[oai_settings.bias_preset_selected].indexOf(entry);
+    if (!entry.id) {
+        entry.id = uuidv4();
+    }
+    const id = entry.id;
     const template = $('#openai_logit_bias_template .openai_logit_bias_form').clone();
     template.data('id', id);
     template.find('.openai_logit_bias_text').val(entry.text).on('input', function () {
-        oai_settings.bias_presets[oai_settings.bias_preset_selected][id].text = String($(this).val());
+        entry.text = String($(this).val());
         biasCache = undefined;
         saveSettingsDebounced();
     });
@@ -3500,13 +3543,17 @@ function createLogitBiasListItem(entry) {
             value = max;
         }
 
-        oai_settings.bias_presets[oai_settings.bias_preset_selected][id].value = value;
+        entry.value = value;
         biasCache = undefined;
         saveSettingsDebounced();
     });
     template.find('.openai_logit_bias_remove').on('click', function () {
         $(this).closest('.openai_logit_bias_form').remove();
-        oai_settings.bias_presets[oai_settings.bias_preset_selected].splice(id, 1);
+        const preset = oai_settings.bias_presets[oai_settings.bias_preset_selected];
+        const index = preset.findIndex(item => item.id === id);
+        if (index >= 0) {
+            preset.splice(index, 1);
+        }
         onLogitBiasPresetChange();
     });
     $('.openai_logit_bias_list').prepend(template);
@@ -3686,6 +3733,9 @@ async function onLogitBiasPresetImportFileChange(e) {
         if (typeof entry == 'object' && entry !== null) {
             if (Object.hasOwn(entry, 'text') &&
                 Object.hasOwn(entry, 'value')) {
+                if (!entry.id) {
+                    entry.id = uuidv4();
+                }
                 validEntries.push(entry);
             }
         }
