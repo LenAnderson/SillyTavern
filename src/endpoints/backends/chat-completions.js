@@ -72,6 +72,22 @@ function postProcessPrompt(messages, type, names) {
 }
 
 /**
+ * Gets OpenRouter transforms based on the request.
+ * @param {import('express').Request} request Express request
+ * @returns {string[] | undefined} OpenRouter transforms
+ */
+function getOpenRouterTransforms(request) {
+    switch (request.body.middleout) {
+        case 'on':
+            return ['middle-out'];
+        case 'off':
+            return [];
+        case 'auto':
+            return undefined;
+    }
+}
+
+/**
  * Sends a request to Claude API.
  * @param {express.Request} request Express request
  * @param {express.Response} response Express response
@@ -834,7 +850,9 @@ router.post('/generate', jsonParser, function (request, response) {
         apiKey = readSecret(request.user.directories, SECRET_KEYS.OPENROUTER);
         // OpenRouter needs to pass the Referer and X-Title: https://openrouter.ai/docs#requests
         headers = { ...OPENROUTER_HEADERS };
-        bodyParams = { 'transforms': ['middle-out'] };
+        bodyParams = {
+            'transforms': getOpenRouterTransforms(request),
+        };
 
         if (request.body.min_p !== undefined) {
             bodyParams['min_p'] = request.body.min_p;

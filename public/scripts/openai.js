@@ -207,6 +207,12 @@ const custom_prompt_post_processing_types = {
     STRICT: 'strict',
 };
 
+const openrouter_middleout_types = {
+    AUTO: 'auto',
+    ON: 'on',
+    OFF: 'off',
+};
+
 const sensitiveFields = [
     'reverse_proxy',
     'proxy_password',
@@ -267,6 +273,7 @@ const default_settings = {
     openrouter_sort_models: 'alphabetically',
     openrouter_providers: [],
     openrouter_allow_fallbacks: true,
+    openrouter_middleout: openrouter_middleout_types.ON,
     jailbreak_system: false,
     reverse_proxy: '',
     chat_completion_source: chat_completion_sources.OPENAI,
@@ -343,6 +350,7 @@ const oai_settings = {
     openrouter_sort_models: 'alphabetically',
     openrouter_providers: [],
     openrouter_allow_fallbacks: true,
+    openrouter_middleout: openrouter_middleout_types.ON,
     jailbreak_system: false,
     reverse_proxy: '',
     chat_completion_source: chat_completion_sources.OPENAI,
@@ -1920,6 +1928,7 @@ async function sendOpenAIRequest(type, messages, signal) {
         generate_data['use_fallback'] = oai_settings.openrouter_use_fallback;
         generate_data['provider'] = oai_settings.openrouter_providers;
         generate_data['allow_fallbacks'] = oai_settings.openrouter_allow_fallbacks;
+        generate_data['middleout'] = oai_settings.openrouter_middleout;
 
         if (isTextCompletion) {
             generate_data['stop'] = getStoppingStrings(isImpersonate, isContinue);
@@ -3022,6 +3031,7 @@ function loadOpenAISettings(data, settings) {
     oai_settings.openrouter_sort_models = settings.openrouter_sort_models ?? default_settings.openrouter_sort_models;
     oai_settings.openrouter_use_fallback = settings.openrouter_use_fallback ?? default_settings.openrouter_use_fallback;
     oai_settings.openrouter_allow_fallbacks = settings.openrouter_allow_fallbacks ?? default_settings.openrouter_allow_fallbacks;
+    oai_settings.openrouter_middleout = settings.openrouter_middleout ?? default_settings.openrouter_middleout;
     oai_settings.ai21_model = settings.ai21_model ?? default_settings.ai21_model;
     oai_settings.mistralai_model = settings.mistralai_model ?? default_settings.mistralai_model;
     oai_settings.cohere_model = settings.cohere_model ?? default_settings.cohere_model;
@@ -3130,6 +3140,7 @@ function loadOpenAISettings(data, settings) {
     $('#openrouter_group_models').prop('checked', oai_settings.openrouter_group_models);
     $('#openrouter_allow_fallbacks').prop('checked', oai_settings.openrouter_allow_fallbacks);
     $('#openrouter_providers_chat').val(oai_settings.openrouter_providers).trigger('change');
+    $('#openrouter_middleout').val(oai_settings.openrouter_middleout);
     $('#squash_system_messages').prop('checked', oai_settings.squash_system_messages);
     $('#continue_prefill').prop('checked', oai_settings.continue_prefill);
     $('#openai_function_calling').prop('checked', oai_settings.function_calling);
@@ -3370,6 +3381,7 @@ async function saveOpenAIPreset(name, settings, triggerUi = true) {
         openrouter_sort_models: settings.openrouter_sort_models,
         openrouter_providers: settings.openrouter_providers,
         openrouter_allow_fallbacks: settings.openrouter_allow_fallbacks,
+        openrouter_middleout: settings.openrouter_middleout,
         ai21_model: settings.ai21_model,
         mistralai_model: settings.mistralai_model,
         cohere_model: settings.cohere_model,
@@ -3836,6 +3848,7 @@ function onSettingsPresetChange() {
         openrouter_sort_models: ['#openrouter_sort_models', 'openrouter_sort_models', false],
         openrouter_providers: ['#openrouter_providers_chat', 'openrouter_providers', false],
         openrouter_allow_fallbacks: ['#openrouter_allow_fallbacks', 'openrouter_allow_fallbacks', true],
+        openrouter_middleout: ['#openrouter_middleout', 'openrouter_middleout', false],
         ai21_model: ['#model_ai21_select', 'ai21_model', false],
         mistralai_model: ['#model_mistralai_select', 'mistralai_model', false],
         cohere_model: ['#model_cohere_select', 'cohere_model', false],
@@ -5258,6 +5271,11 @@ export function initOpenAI() {
 
     $('#openrouter_allow_fallbacks').on('input', function () {
         oai_settings.openrouter_allow_fallbacks = !!$(this).prop('checked');
+        saveSettingsDebounced();
+    });
+
+    $('#openrouter_middleout').on('input', function () {
+        oai_settings.openrouter_middleout = String($(this).val());
         saveSettingsDebounced();
     });
 

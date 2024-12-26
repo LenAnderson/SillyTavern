@@ -14,6 +14,8 @@ import { POPUP_RESULT, POPUP_TYPE, callGenericPopup } from '../../popup.js';
 import { findSecret, secret_state, writeSecret } from '../../secrets.js';
 import { SlashCommand } from '../../slash-commands/SlashCommand.js';
 import { ARGUMENT_TYPE, SlashCommandArgument, SlashCommandNamedArgument } from '../../slash-commands/SlashCommandArgument.js';
+import { enumIcons } from '../../slash-commands/SlashCommandCommonEnumsProvider.js';
+import { enumTypes, SlashCommandEnumValue } from '../../slash-commands/SlashCommandEnumValue.js';
 import { SlashCommandParser } from '../../slash-commands/SlashCommandParser.js';
 import { splitRecursive } from '../../utils.js';
 
@@ -106,7 +108,8 @@ const languageCodes = {
     'Pashto': 'ps',
     'Persian': 'fa',
     'Polish': 'pl',
-    'Portuguese (Portugal, Brazil)': 'pt',
+    'Portuguese (Portugal)': 'pt-PT',
+    'Portuguese (Brazil)': 'pt-BR',
     'Punjabi': 'pa',
     'Romanian': 'ro',
     'Russian': 'ru',
@@ -394,9 +397,10 @@ async function chunkedTranslate(text, lang, translateFn, chunkSize = 5000) {
  * Translates text using the selected translation provider
  * @param {string} text Text to translate
  * @param {string} lang Target language code
+ * @param {string} provider Translation provider to use
  * @returns {Promise<string>} Translated text
  */
-async function translate(text, lang) {
+async function translate(text, lang, provider = null) {
     try {
         if (text == '') {
             return '';
@@ -406,13 +410,17 @@ async function translate(text, lang) {
             lang = extension_settings.translate.target_language;
         }
 
+        if (!provider) {
+            provider = extension_settings.translate.provider;
+        }
+
         // split text by embedded images links
         const chunks = text.split(/!\[.*?]\([^)]*\)/);
         const links = [...text.matchAll(/!\[.*?]\([^)]*\)/g)];
 
         let result = '';
         for (let i = 0; i < chunks.length; i++) {
-            result += await translateInner(chunks[i], lang);
+            result += await translateInner(chunks[i], lang, provider);
             if (i < links.length) result += links[i][0];
         }
 
@@ -423,11 +431,21 @@ async function translate(text, lang) {
     }
 }
 
-async function translateInner(text, lang) {
+/**
+ * Common translation function that handles the translation logic
+ * @param {string} text Text to translate
+ * @param {string} lang Target language code
+ * @param {string} provider Translation provider to use
+ * @returns {Promise<string>} Translated text
+ */
+async function translateInner(text, lang, provider) {
     if (text == '') {
         return '';
     }
-    switch (extension_settings.translate.provider) {
+    if (!provider) {
+        provider = extension_settings.translate.provider;
+    }
+    switch (provider) {
         case 'libre':
             return await translateProviderLibre(text, lang);
         case 'google':
@@ -445,7 +463,7 @@ async function translateInner(text, lang) {
         case 'yandex':
             return await translateProviderYandex(text, lang);
         default:
-            console.error('Unknown translation provider', extension_settings.translate.provider);
+            console.error('Unknown translation provider', provider);
             return text;
     }
 }
@@ -687,6 +705,14 @@ jQuery(async () => {
         helpString: 'Translate text to a target language. If target language is not provided, the value from the extension settings will be used.',
         namedArgumentList: [
             new SlashCommandNamedArgument('target', 'The target language code to translate to', ARGUMENT_TYPE.STRING, false, false, '', Object.values(languageCodes)),
+            SlashCommandNamedArgument.fromProps({
+                name: 'provider',
+                description: 'The translation provider to use. If not provided, the value from the extension settings will be used.',
+                typeList: [ARGUMENT_TYPE.STRING],
+                isRequired: false,
+                acceptsMultiple: false,
+                enumProvider: () => Array.from(document.getElementById('translation_provider').querySelectorAll('option')).map((option) => new SlashCommandEnumValue(option.value, option.text, enumTypes.name, enumIcons.server)),
+            }),
         ],
         unnamedArgumentList: [
             new SlashCommandArgument('The text to translate', ARGUMENT_TYPE.STRING, true, false, ''),
@@ -695,7 +721,8 @@ jQuery(async () => {
             const target = args?.target && Object.values(languageCodes).includes(String(args.target))
                 ? String(args.target)
                 : extension_settings.translate.target_language;
-            return await translate(String(value), target);
+            const provider = args?.provider || extension_settings.translate.provider;
+            return await translate(String(value), target, provider);
         },
         returns: ARGUMENT_TYPE.STRING,
     }));

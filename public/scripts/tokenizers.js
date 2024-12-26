@@ -32,6 +32,7 @@ export const tokenizers = {
     COMMAND_R: 16,
     NEMO: 17,
     BEST_MATCH: 99,
+    MANUAL_SELECTION: 411,
 };
 
 // A list of local tokenizers that support encoding and decoding token ids.
@@ -536,7 +537,6 @@ export function getTokenizerModel() {
         return oai_settings.openai_model;
     }
 
-    const turbo0301Tokenizer = 'gpt-3.5-turbo-0301';
     const turboTokenizer = 'gpt-3.5-turbo';
     const gpt4Tokenizer = 'gpt-4';
     const gpt4oTokenizer = 'gpt-4o';
@@ -561,9 +561,6 @@ export function getTokenizerModel() {
     if (oai_settings.chat_completion_source == chat_completion_sources.WINDOWAI && oai_settings.windowai_model) {
         if (oai_settings.windowai_model.includes('gpt-4')) {
             return gpt4Tokenizer;
-        }
-        else if (oai_settings.windowai_model.includes('gpt-3.5-turbo-0301')) {
-            return turbo0301Tokenizer;
         }
         else if (oai_settings.windowai_model.includes('gpt-3.5-turbo')) {
             return turboTokenizer;
@@ -609,9 +606,6 @@ export function getTokenizerModel() {
         }
         else if (oai_settings.openrouter_model.includes('gpt-4')) {
             return gpt4Tokenizer;
-        }
-        else if (oai_settings.openrouter_model.includes('gpt-3.5-turbo-0301')) {
-            return turbo0301Tokenizer;
         }
         else if (oai_settings.openrouter_model.includes('gpt-3.5-turbo')) {
             return turboTokenizer;
@@ -1064,9 +1058,14 @@ function decodeTextTokensFromServer(endpoint, ids, resolve) {
  * Encodes a string to tokens using the server API.
  * @param {number} tokenizerType Tokenizer type.
  * @param {string} str String to tokenize.
+ * @param {string} overrideModel Tokenizer for {tokenizers.MANUAL_SELECTION}.
  * @returns {number[]} Array of token ids.
  */
-export function getTextTokens(tokenizerType, str) {
+export function getTextTokens(tokenizerType, str, overrideModel = undefined) {
+    if (overrideModel && tokenizerType !== tokenizers.MANUAL_SELECTION) {
+        console.warn('overrideModel must be undefined unless using tokenizers.MANUAL_SELECTION', tokenizerType);
+        return [];
+    }
     switch (tokenizerType) {
         case tokenizers.API_CURRENT:
             return getTextTokens(currentRemoteTokenizerAPI(), str);
@@ -1086,6 +1085,9 @@ export function getTextTokens(tokenizerType, str) {
                 apiFailureTokenCount(str);
                 console.warn('This tokenizer type does not support encoding', tokenizerType);
                 return [];
+            }
+            if (tokenizerType === tokenizers.MANUAL_SELECTION) {
+                endpointUrl += `?model=${overrideModel}`;
             }
             if (tokenizerType === tokenizers.OPENAI) {
                 endpointUrl += `?model=${getTokenizerModel()}`;
