@@ -264,7 +264,11 @@ router.post('/deepl', jsonParser, async (request, response) => {
             params.append('formality', formality);
         }
 
-        const result = await fetch('https://api-free.deepl.com/v2/translate', {
+        const endpoint = request.body.endpoint === 'pro'
+            ? 'https://api.deepl.com/v2/translate'
+            : 'https://api-free.deepl.com/v2/translate';
+
+        const result = await fetch(endpoint, {
             method: 'POST',
             body: params,
             headers: {

@@ -1295,7 +1295,7 @@
     "sd_drawthings_auth_txt": "¡Ejecute la aplicación DrawThings con el interruptor API HTTP habilitado en la interfaz de usuario! Se debe poder acceder al servidor desde la máquina host de SillyTavern.",
     "sd_vlad_url": "Ejemplo: {{vlad_url}}",
     "The server must be accessible from the SillyTavern host machine.": "Se debe poder acceder al servidor desde la máquina host de SillyTavern.",
-    "Hint: Save an API key in Horde KoboldAI API settings to use it here.": "Sugerencia: guarde una clave API en la configuración de API de Horde KoboldAI para usarla aquí.",
+    "Hint: Save an API key in AI Horde API settings to use it here.": "Sugerencia: guarde una clave API en la configuración de API de AI Horde para usarla aquí.",
     "Allow NSFW images from Horde": "Permitir imágenes NSFW de Horda",
     "Sanitize prompts (recommended)": "Indicaciones para desinfectar (recomendado)",
     "Automatically adjust generation parameters to ensure free image generations.": "Ajuste automáticamente los parámetros de generación para garantizar generaciones de imágenes gratuitas.",

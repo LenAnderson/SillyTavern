@@ -34,6 +34,7 @@ const defaultSettings = {
     internal_language: 'en',
     provider: 'google',
     auto_mode: autoModeOptions.NONE,
+    deepl_endpoint: 'free',
 };
 
 const languageCodes = {
@@ -154,6 +155,7 @@ function showKeysButton() {
     $('#translate_key_button').toggleClass('success', Boolean(secret_state[extension_settings.translate.provider]));
     $('#translate_url_button').toggle(providerOptionalUrl);
     $('#translate_url_button').toggleClass('success', Boolean(secret_state[extension_settings.translate.provider + '_url']));
+    $('#deepl_api_endpoint').toggle(extension_settings.translate.provider === 'deepl');
 }
 
 function loadSettings() {
@@ -163,9 +165,10 @@ function loadSettings() {
         }
     }
 
-    $(`#translation_provider option[value="${extension_settings.translate.provider}"]`).attr('selected', true);
-    $(`#translation_target_language option[value="${extension_settings.translate.target_language}"]`).attr('selected', true);
-    $(`#translation_auto_mode option[value="${extension_settings.translate.auto_mode}"]`).attr('selected', true);
+    $(`#translation_provider option[value="${extension_settings.translate.provider}"]`).attr('selected', 'true');
+    $(`#translation_target_language option[value="${extension_settings.translate.target_language}"]`).attr('selected', 'true');
+    $(`#translation_auto_mode option[value="${extension_settings.translate.auto_mode}"]`).attr('selected', 'true');
+    $('#deepl_api_endpoint').val(extension_settings.translate.deepl_endpoint).toggle(extension_settings.translate.provider === 'deepl');
     showKeysButton();
 }
 
@@ -287,10 +290,11 @@ async function translateProviderDeepl(text, lang) {
         throw new Error('No DeepL API key');
     }
 
+    const endpoint = extension_settings.translate.deepl_endpoint || 'free';
     const response = await fetch('/api/translate/deepl', {
         method: 'POST',
         headers: getRequestHeaders(),
-        body: JSON.stringify({ text: text, lang: lang }),
+        body: JSON.stringify({ text: text, lang: lang, endpoint: endpoint }),
     });
 
     if (response.ok) {
@@ -618,16 +622,32 @@ jQuery(async () => {
     }
 
     $('#translation_auto_mode').on('change', (event) => {
+        if (!(event.target instanceof HTMLSelectElement)) {
+            return;
+        }
         extension_settings.translate.auto_mode = event.target.value;
         saveSettingsDebounced();
     });
     $('#translation_provider').on('change', (event) => {
+        if (!(event.target instanceof HTMLSelectElement)) {
+            return;
+        }
         extension_settings.translate.provider = event.target.value;
         showKeysButton();
         saveSettingsDebounced();
     });
     $('#translation_target_language').on('change', (event) => {
+        if (!(event.target instanceof HTMLSelectElement)) {
+            return;
+        }
         extension_settings.translate.target_language = event.target.value;
+        saveSettingsDebounced();
+    });
+    $('#deepl_api_endpoint').on('change', (event) => {
+        if (!(event.target instanceof HTMLSelectElement)) {
+            return;
+        }
+        extension_settings.translate.deepl_endpoint = event.target.value;
         saveSettingsDebounced();
     });
     $(document).on('click', '.mes_translate', onMessageTranslateClick);

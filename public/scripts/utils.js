@@ -665,9 +665,10 @@ export function trimToEndSentence(input) {
     const characters = Array.from(input);
     for (let i = characters.length - 1; i >= 0; i--) {
         const char = characters[i];
+        const emoji = isEmoji(char);
 
-        if (punctuation.has(char) || isEmoji(char)) {
-            if (i > 0 && /[\s\n]/.test(characters[i - 1])) {
+        if (punctuation.has(char) || emoji) {
+            if (!emoji && i > 0 && /[\s\n]/.test(characters[i - 1])) {
                 last = i - 1;
             } else {
                 last = i;

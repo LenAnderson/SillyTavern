@@ -1299,7 +1299,7 @@
     "sd_drawthings_auth_txt": "執行 DrawThings 應用程式並在介面中啟用 HTTP API 開關！伺服器必須能夠被 SillyTavern 主機存取。",
     "sd_vlad_url": "範例: {{vlad_url}}",
     "The server must be accessible from the SillyTavern host machine.": "伺服器必須能夠被 SillyTavern 主機存取。",
-    "Hint: Save an API key in Horde KoboldAI API settings to use it here.": "提示訊息：在 Horde KoboldAI API 設定中儲存一個 API 金鑰，以便在此使用。",
+    "Hint: Save an API key in AI Horde API settings to use it here.": "提示訊息：在 AI Horde API 設定中儲存一個 API 金鑰，以便在此使用。",
     "Allow NSFW images from Horde": "允許來自 Horde 的 NSFW 圖片",
     "Sanitize prompts (recommended)": "清理提示詞（建議）",
     "Automatically adjust generation parameters to ensure free image generations.": "自動調整生成參數以確保生成免費的圖片。",

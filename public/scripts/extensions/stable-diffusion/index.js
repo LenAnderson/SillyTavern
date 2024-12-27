@@ -1613,17 +1613,12 @@ async function loadVladSamplers() {
 }
 
 async function loadNovelSamplers() {
-    if (!secret_state[SECRET_KEYS.NOVEL]) {
-        console.debug('NovelAI API key is not set.');
-        return [];
-    }
-
     return [
+        'k_euler_ancestral',
+        'k_euler',
         'k_dpmpp_2m',
         'k_dpmpp_sde',
         'k_dpmpp_2s_ancestral',
-        'k_euler',
-        'k_euler_ancestral',
         'k_dpm_fast',
         'ddim',
     ];
@@ -1979,11 +1974,6 @@ async function loadVladModels() {
 }
 
 async function loadNovelModels() {
-    if (!secret_state[SECRET_KEYS.NOVEL]) {
-        console.debug('NovelAI API key is not set.');
-        return [];
-    }
-
     return [
         {
             value: 'nai-diffusion-4-curated-preview',
@@ -1998,20 +1988,8 @@ async function loadNovelModels() {
             text: 'NAI Diffusion Anime V2',
         },
         {
-            value: 'nai-diffusion',
-            text: 'NAI Diffusion Anime V1 (Full)',
-        },
-        {
-            value: 'safe-diffusion',
-            text: 'NAI Diffusion Anime V1 (Curated)',
-        },
-        {
             value: 'nai-diffusion-furry-3',
             text: 'NAI Diffusion Furry V3',
-        },
-        {
-            value: 'nai-diffusion-furry',
-            text: 'NAI Diffusion Furry',
         },
     ];
 }
@@ -3190,13 +3168,18 @@ async function generateNovelImage(prompt, negativePrompt, signal) {
  * @returns {{steps: number, width: number, height: number, sm: boolean, sm_dyn: boolean}} - A tuple of parameters for NovelAI API.
  */
 function getNovelParams() {
-    let steps = extension_settings.sd.steps;
+    let steps = Math.min(extension_settings.sd.steps, 50);
     let width = extension_settings.sd.width;
     let height = extension_settings.sd.height;
     let sm = extension_settings.sd.novel_sm;
     let sm_dyn = extension_settings.sd.novel_sm_dyn;
 
-    if (extension_settings.sd.sampler === 'ddim') {
+    // If a source was never changed after the scheduler setting was added, we need to set it to 'karras' for compatibility.
+    if (!extension_settings.sd.scheduler || extension_settings.sd.scheduler === 'normal') {
+        extension_settings.sd.scheduler = 'karras';
+    }
+
+    if (extension_settings.sd.sampler === 'ddim' || extension_settings.sd.model === 'nai-diffusion-4-curated-preview') {
         sm = false;
         sm_dyn = false;
     }

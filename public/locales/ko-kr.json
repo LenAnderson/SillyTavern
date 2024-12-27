@@ -1312,7 +1312,7 @@
     "sd_drawthings_auth_txt": "UI에서 HTTP API 스위치가 활성화된 상태에서 DrawThings 앱을 실행하세요! SillyTavern 호스트 시스템에서 서버에 액세스할 수 있어야 합니다.",
     "sd_vlad_url": "예: {{vlad_url}}",
     "The server must be accessible from the SillyTavern host machine.": "SillyTavern 호스트 시스템에서 서버에 액세스할 수 있어야 합니다.",
-    "Hint: Save an API key in Horde KoboldAI API settings to use it here.": "힌트: 여기에서 사용하려면 Horde KoboldAI API 설정에 API 키를 저장하세요.",
+    "Hint: Save an API key in AI Horde API settings to use it here.": "힌트: 여기에서 사용하려면 AI Horde API 설정에 API 키를 저장하세요.",
     "Allow NSFW images from Horde": "Horde의 NSFW 이미지 허용",
     "Sanitize prompts (recommended)": "프롬프트 삭제(권장)",
     "Automatically adjust generation parameters to ensure free image generations.": "무료 이미지 생성을 보장하기 위해 생성 매개변수를 자동으로 조정합니다.",

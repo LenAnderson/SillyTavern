@@ -9805,9 +9805,11 @@ jQuery(async function () {
          * @param {HTMLTextAreaElement} e Textarea element to auto-fit
          */
         function autoFitEditTextArea(e) {
+            const scrollTop = chatElement.scrollTop();
             e.style.height = '0px';
             const newHeight = e.scrollHeight + 4;
             e.style.height = `${newHeight}px`;
+            chatElement.scrollTop(scrollTop);
         }
         const autoFitEditTextAreaDebounced = debounce(autoFitEditTextArea, debounce_timeout.short);
         document.addEventListener('input', e => {

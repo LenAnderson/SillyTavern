@@ -1295,7 +1295,7 @@
     "sd_drawthings_auth_txt": "запустіть програму DrawThings із увімкненим перемикачем HTTP API в інтерфейсі користувача! Сервер має бути доступним із хост-машини SillyTavern.",
     "sd_vlad_url": "Приклад: {{vlad_url}}",
     "The server must be accessible from the SillyTavern host machine.": "Сервер має бути доступним із хост-машини SillyTavern.",
-    "Hint: Save an API key in Horde KoboldAI API settings to use it here.": "Підказка: збережіть ключ API в налаштуваннях Horde KoboldAI API, щоб використовувати його тут.",
+    "Hint: Save an API key in AI Horde API settings to use it here.": "Підказка: збережіть ключ API в налаштуваннях AI Horde API, щоб використовувати його тут.",
     "Allow NSFW images from Horde": "Дозволити зображення NSFW від Horde",
     "Sanitize prompts (recommended)": "Очистити підказки (рекомендовано)",
     "Automatically adjust generation parameters to ensure free image generations.": "Автоматично налаштовуйте параметри генерації, щоб забезпечити вільне створення зображень.",

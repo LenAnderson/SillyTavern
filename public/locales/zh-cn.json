@@ -1455,7 +1455,7 @@
     "sd_drawthings_auth_txt": "运行 DrawThings 应用程序并在 UI 中启用 HTTP API 开关！必须可以从 SillyTavern 主机访问服务器。",
     "sd_vlad_url": "例如：{{vlad_url}}",
     "The server must be accessible from the SillyTavern host machine.": "必须能够从 SillyTavern 主机访问该服务器。",
-    "Hint: Save an API key in Horde KoboldAI API settings to use it here.": "提示：在 Horde KoboldAI API 设置中保存一个 API 密钥以便在此处使用它。",
+    "Hint: Save an API key in AI Horde API settings to use it here.": "提示：在 AI Horde API 设置中保存一个 API 密钥以便在此处使用它。",
     "Allow NSFW images from Horde": "允许 Horde 的 NSFW 图片",
     "Sanitize prompts (recommended)": "净化提示词（推荐）",
     "Automatically adjust generation parameters to ensure free image generations.": "自动调整生成参数，确保图像生成自由。",
