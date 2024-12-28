@@ -294,6 +294,7 @@ async function sendMakerSuiteRequest(request, response) {
         }
 
         const should_use_system_prompt = (
+            model.includes('gemini-2.0-flash-thinking-exp') ||
             model.includes('gemini-2.0-flash-exp') ||
             model.includes('gemini-1.5-flash') ||
             model.includes('gemini-1.5-pro') ||
@@ -366,14 +367,14 @@ async function sendMakerSuiteRequest(request, response) {
             }
 
             const responseContent = candidates[0].content ?? candidates[0].output;
-            const responseText = typeof responseContent === 'string' ? responseContent : responseContent?.parts?.[0]?.text;
+            console.log('Google AI Studio response:', responseContent);
+
+            const responseText = typeof responseContent === 'string' ? responseContent : responseContent?.parts?.map(part => part.text)?.join('\n\n');
             if (!responseText) {
                 let message = 'Google AI Studio Candidate text empty';
                 console.log(message, generateResponseJson);
                 return response.send({ error: { message } });
             }
-
-            console.log('Google AI Studio response:', responseText);
 
             // Wrap it back to OAI format
             const reply = { choices: [{ 'message': { 'content': responseText } }] };

@@ -92,8 +92,6 @@
     /* base variable for shadow width slider calculations */
     --shadowWidth: 2;
 
-    color-scheme: only light;
-
     /* Send form variables */
     --bottomFormBlockPadding: calc(var(--mainFontSize) / 2.5);
     --bottomFormIconSize: calc(var(--mainFontSize) * 1.9);
@@ -149,6 +147,7 @@ body {
     font-size: var(--mainFontSize);
     color: var(--SmartThemeBodyColor);
     overflow: hidden;
+    color-scheme: only light;
 }
 
 ::-webkit-scrollbar {
@@ -3671,7 +3670,9 @@ body #toast-container {
 }
 
 body #toast-container>div {
-    opacity: 0.95;
+    opacity: 1;
+    filter: unset;
+    -ms-filter: unset;
 }
 
 #dialogue_del_mes {

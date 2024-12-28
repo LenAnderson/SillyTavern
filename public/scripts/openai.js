@@ -2098,7 +2098,7 @@ function getStreamingReply(data) {
     if (oai_settings.chat_completion_source === chat_completion_sources.CLAUDE) {
         return data?.delta?.text || '';
     } else if (oai_settings.chat_completion_source === chat_completion_sources.MAKERSUITE) {
-        return data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
+        return data?.candidates?.[0]?.content?.parts?.map(x => x.text)?.join('\n\n') || '';
     } else if (oai_settings.chat_completion_source === chat_completion_sources.COHERE) {
         return data?.delta?.message?.content?.text || data?.delta?.message?.tool_plan || '';
     } else {
@@ -2110,7 +2110,7 @@ function getStreamingReply(data) {
  * parseChatCompletionLogprobs converts the response data returned from a chat
  * completions-like source into an array of TokenLogprobs found in the response.
  * @param {Object} data - response data from a chat completions-like source
- * @returns {import('logprobs.js').TokenLogprobs[] | null} converted logprobs
+ * @returns {import('./logprobs.js').TokenLogprobs[] | null} converted logprobs
  */
 function parseChatCompletionLogprobs(data) {
     if (!data) {
@@ -2139,7 +2139,7 @@ function parseChatCompletionLogprobs(data) {
  * completion API and converts into the structure used by the Token Probabilities
  * view.
  * @param {{content: { token: string, logprob: number, top_logprobs: { token: string, logprob: number }[] }[]}} logprobs
- * @returns {import('logprobs.js').TokenLogprobs[] | null} converted logprobs
+ * @returns {import('./logprobs.js').TokenLogprobs[] | null} converted logprobs
  */
 function parseOpenAIChatLogprobs(logprobs) {
     const { content } = logprobs ?? {};
@@ -2167,7 +2167,7 @@ function parseOpenAIChatLogprobs(logprobs) {
  * completion API and converts into the structure used by the Token Probabilities
  * view.
  * @param {{tokens: string[], token_logprobs: number[], top_logprobs: { token: string, logprob: number }[][]}} logprobs
- * @returns {import('logprobs.js').TokenLogprobs[] | null} converted logprobs
+ * @returns {import('./logprobs.js').TokenLogprobs[] | null} converted logprobs
  */
 function parseOpenAITextLogprobs(logprobs) {
     const { tokens, token_logprobs, top_logprobs } = logprobs ?? {};
@@ -4144,7 +4144,7 @@ async function onModelChange() {
     if (oai_settings.chat_completion_source == chat_completion_sources.MAKERSUITE) {
         if (oai_settings.max_context_unlocked) {
             $('#openai_max_context').attr('max', max_2mil);
-        } else if (value.includes('gemini-exp-1114') || value.includes('gemini-exp-1121')) {
+        } else if (value.includes('gemini-exp-1114') || value.includes('gemini-exp-1121') || value.includes('gemini-2.0-flash-thinking-exp-1219')) {
             $('#openai_max_context').attr('max', max_32k);
         } else if (value.includes('gemini-1.5-pro') || value.includes('gemini-exp-1206')) {
             $('#openai_max_context').attr('max', max_2mil);
@@ -4812,6 +4812,7 @@ export function isImageInliningSupported() {
     // gultra just isn't being offered as multimodal, thanks google.
     const visionSupportedModels = [
         'gpt-4-vision',
+        'gemini-2.0-flash-thinking-exp-1219',
         'gemini-2.0-flash-exp',
         'gemini-1.5-flash',
         'gemini-1.5-flash-latest',
