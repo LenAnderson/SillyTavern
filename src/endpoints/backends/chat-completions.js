@@ -278,6 +278,7 @@ async function sendMakerSuiteRequest(request, response) {
 
     const model = String(request.body.model);
     const stream = Boolean(request.body.stream);
+    const showThoughts = Boolean(request.body.show_thoughts);
 
     const generationConfig = {
         stopSequences: request.body.stop,
@@ -325,7 +326,8 @@ async function sendMakerSuiteRequest(request, response) {
             controller.abort();
         });
 
-        const apiVersion = 'v1beta';
+        const isThinking = model.includes('thinking');
+        const apiVersion = isThinking ? 'v1alpha' : 'v1beta';
         const responseType = (stream ? 'streamGenerateContent' : 'generateContent');
 
         const generateResponse = await fetch(`${apiUrl.toString().replace(/\/$/, '')}/${apiVersion}/models/${model}:${responseType}?key=${apiKey}${stream ? '&alt=sse' : ''}`, {
@@ -368,6 +370,10 @@ async function sendMakerSuiteRequest(request, response) {
 
             const responseContent = candidates[0].content ?? candidates[0].output;
             console.log('Google AI Studio response:', responseContent);
+
+            if (Array.isArray(responseContent?.parts) && isThinking && !showThoughts) {
+                responseContent.parts = responseContent.parts.filter(part => !part.thought);
+            }
 
             const responseText = typeof responseContent === 'string' ? responseContent : responseContent?.parts?.map(part => part.text)?.join('\n\n');
             if (!responseText) {
