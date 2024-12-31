@@ -175,6 +175,7 @@ export const CHAT_COMPLETION_SOURCES = {
     ZEROONEAI: '01ai',
     BLOCKENTROPY: 'blockentropy',
     NANOGPT: 'nanogpt',
+    DEEPSEEK: 'deepseek',
 };
 
 /**

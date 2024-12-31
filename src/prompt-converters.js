@@ -639,9 +639,10 @@ export function convertMistralMessages(messages, names) {
  * @param {any[]} messages Messages to merge
  * @param {PromptNames} names Prompt names
  * @param {boolean} strict Enable strict mode: only allow one system message at the start, force user first message
+ * @param {boolean} placeholders Add user placeholders to the messages in strict mode
  * @returns {any[]} Merged messages
  */
-export function mergeMessages(messages, names, strict) {
+export function mergeMessages(messages, names, strict, placeholders) {
     let mergedMessages = [];
 
     /** @type {Map<string,object>} */
@@ -700,9 +701,9 @@ export function mergeMessages(messages, names, strict) {
         }
     });
 
-    // Prevent erroring out if the messages array is empty.
-    if (messages.length === 0) {
-        messages.unshift({
+    // Prevent erroring out if the mergedMessages array is empty.
+    if (mergedMessages.length === 0) {
+        mergedMessages.unshift({
             role: 'user',
             content: PROMPT_PLACEHOLDER,
         });
@@ -741,7 +742,7 @@ export function mergeMessages(messages, names, strict) {
                 mergedMessages[i].role = 'user';
             }
         }
-        if (mergedMessages.length) {
+        if (mergedMessages.length && placeholders) {
             if (mergedMessages[0].role === 'system' && (mergedMessages.length === 1 || mergedMessages[1].role !== 'user')) {
                 mergedMessages.splice(1, 0, { role: 'user', content: PROMPT_PLACEHOLDER });
             }
@@ -749,7 +750,7 @@ export function mergeMessages(messages, names, strict) {
                 mergedMessages.unshift({ role: 'user', content: PROMPT_PLACEHOLDER });
             }
         }
-        return mergeMessages(mergedMessages, names, false);
+        return mergeMessages(mergedMessages, names, false, placeholders);
     }
 
     return mergedMessages;

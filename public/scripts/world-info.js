@@ -4681,7 +4681,7 @@ function convertCharacterBook(characterBook) {
             preventRecursion: entry.extensions?.prevent_recursion ?? false,
             delayUntilRecursion: entry.extensions?.delay_until_recursion ?? false,
             disable: !entry.enabled,
-            addMemo: entry.comment ? true : false,
+            addMemo: !!entry.comment,
             displayIndex: entry.extensions?.display_index ?? index,
             probability: entry.extensions?.probability ?? 100,
             useProbability: entry.extensions?.useProbability ?? true,

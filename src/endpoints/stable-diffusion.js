@@ -7,6 +7,7 @@ import sanitize from 'sanitize-filename';
 import { sync as writeFileAtomicSync } from 'write-file-atomic';
 import FormData from 'form-data';
 import urlJoin from 'url-join';
+import _ from 'lodash';
 
 import { delay, getBasicAuthHeader, tryParse } from '../util.js';
 import { jsonParser } from '../express-common.js';
@@ -105,22 +106,26 @@ router.post('/upscalers', jsonParser, async (request, response) => {
 
 router.post('/vaes', jsonParser, async (request, response) => {
     try {
-        const url = new URL(request.body.url);
-        url.pathname = '/sdapi/v1/sd-vae';
+        const autoUrl = urlJoin(request.body.url, '/sdapi/v1/sd-vae');
+        const forgeUrl = urlJoin(request.body.url, '/sdapi/v1/sd-modules');
 
-        const result = await fetch(url, {
+        const requestInit = {
             method: 'GET',
             headers: {
                 'Authorization': getBasicAuthHeader(request.body.auth),
             },
-        });
+        };
+        const results = await Promise.allSettled([
+            fetch(autoUrl, requestInit).then(r => r.ok ? r.json() : Promise.reject(r.statusText)),
+            fetch(forgeUrl, requestInit).then(r => r.ok ? r.json() : Promise.reject(r.statusText)),
+        ]);
 
-        if (!result.ok) {
+        const data = results.find(r => r.status === 'fulfilled')?.value;
+
+        if (!Array.isArray(data)) {
             throw new Error('SD WebUI returned an error.');
         }
 
-        /** @type {any} */
-        const data = await result.json();
         const names = data.map(x => x.model_name);
         return response.send(names);
     } catch (error) {
@@ -289,23 +294,34 @@ router.post('/set-model', jsonParser, async (request, response) => {
 
 router.post('/generate', jsonParser, async (request, response) => {
     try {
-        console.log('SD WebUI request:', request.body);
+        try {
+            const optionsUrl = urlJoin(request.body.url, '/sdapi/v1/options');
+            const optionsResult = await fetch(optionsUrl, { headers: { 'Authorization': getBasicAuthHeader(request.body.auth) } });
+            if (optionsResult.ok) {
+                const optionsData = /** @type {any} */ (await optionsResult.json());
+                const isForge = 'forge_preset' in optionsData;
 
-        const url = new URL(request.body.url);
-        url.pathname = '/sdapi/v1/txt2img';
+                if (!isForge) {
+                    _.unset(request.body, 'override_settings.forge_additional_modules');
+                }
+            }
+        } catch (error) {
+            console.log('SD WebUI failed to get options:', error);
+        }
 
         const controller = new AbortController();
         request.socket.removeAllListeners('close');
         request.socket.on('close', function () {
             if (!response.writableEnded) {
-                const url = new URL(request.body.url);
-                url.pathname = '/sdapi/v1/interrupt';
-                fetch(url, { method: 'POST', headers: { 'Authorization': getBasicAuthHeader(request.body.auth) } });
+                const interruptUrl = urlJoin(request.body.url, '/sdapi/v1/interrupt');
+                fetch(interruptUrl, { method: 'POST', headers: { 'Authorization': getBasicAuthHeader(request.body.auth) } });
             }
             controller.abort();
         });
 
-        const result = await fetch(url, {
+        console.log('SD WebUI request:', request.body);
+        const txt2imgUrl = urlJoin(request.body.url, '/sdapi/v1/txt2img');
+        const result = await fetch(txt2imgUrl, {
             method: 'POST',
             body: JSON.stringify(request.body),
             headers: {

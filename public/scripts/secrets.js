@@ -39,6 +39,7 @@ export const SECRET_KEYS = {
     TAVILY: 'api_key_tavily',
     BFL: 'api_key_bfl',
     GENERIC: 'api_key_generic',
+    DEEPSEEK: 'api_key_deepseek',
 };
 
 const INPUT_MAP = {
@@ -73,6 +74,7 @@ const INPUT_MAP = {
     [SECRET_KEYS.BLOCKENTROPY]: '#api_key_blockentropy',
     [SECRET_KEYS.NANOGPT]: '#api_key_nanogpt',
     [SECRET_KEYS.GENERIC]: '#api_key_generic',
+    [SECRET_KEYS.DEEPSEEK]: '#api_key_deepseek',
 };
 
 async function clearSecret() {

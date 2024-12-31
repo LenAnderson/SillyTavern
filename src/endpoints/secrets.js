@@ -51,6 +51,7 @@ export const SECRET_KEYS = {
     NANOGPT: 'api_key_nanogpt',
     BFL: 'api_key_bfl',
     GENERIC: 'api_key_generic',
+    DEEPSEEK: 'api_key_deepseek',
 };
 
 // These are the keys that are safe to expose, even if allowKeysExposure is false

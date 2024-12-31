@@ -51,6 +51,7 @@ const API_01AI = 'https://api.01.ai/v1';
 const API_BLOCKENTROPY = 'https://api.blockentropy.ai/v1';
 const API_AI21 = 'https://api.ai21.com/studio/v1';
 const API_NANOGPT = 'https://nano-gpt.com/api/v1';
+const API_DEEPSEEK = 'https://api.deepseek.com/beta';
 
 /**
  * Applies a post-processing step to the generated messages.
@@ -63,9 +64,13 @@ function postProcessPrompt(messages, type, names) {
     switch (type) {
         case 'merge':
         case 'claude':
-            return mergeMessages(messages, names, false);
+            return mergeMessages(messages, names, false, false);
+        case 'semi':
+            return mergeMessages(messages, names, true, false);
         case 'strict':
-            return mergeMessages(messages, names, true);
+            return mergeMessages(messages, names, true, true);
+        case 'deepseek':
+            return (x => x.length && (x[x.length - 1].role !== 'assistant' || (x[x.length - 1].prefix = true)) ? x : x)(mergeMessages(messages, names, true, false));
         default:
             return messages;
     }
@@ -668,6 +673,10 @@ router.post('/status', jsonParser, async function (request, response_getstatus_o
         api_url = API_NANOGPT;
         api_key_openai = readSecret(request.user.directories, SECRET_KEYS.NANOGPT);
         headers = {};
+    } else if (request.body.chat_completion_source === CHAT_COMPLETION_SOURCES.DEEPSEEK) {
+        api_url = API_DEEPSEEK.replace('/beta', '');
+        api_key_openai = readSecret(request.user.directories, SECRET_KEYS.DEEPSEEK);
+        headers = {};
     } else {
         console.log('This chat completion source is not supported yet.');
         return response_getstatus_openai.status(400).send({ error: true });
@@ -939,6 +948,18 @@ router.post('/generate', jsonParser, function (request, response) {
         apiKey = readSecret(request.user.directories, SECRET_KEYS.BLOCKENTROPY);
         headers = {};
         bodyParams = {};
+    } else if (request.body.chat_completion_source === CHAT_COMPLETION_SOURCES.DEEPSEEK) {
+        apiUrl = API_DEEPSEEK;
+        apiKey = readSecret(request.user.directories, SECRET_KEYS.DEEPSEEK);
+        headers = {};
+        bodyParams = {};
+
+        if (request.body.logprobs > 0) {
+            bodyParams['top_logprobs'] = request.body.logprobs;
+            bodyParams['logprobs'] = true;
+        }
+
+        request.body.messages = postProcessPrompt(request.body.messages, 'deepseek', getPromptNames(request));
     } else {
         console.log('This chat completion source is not supported yet.');
         return response.status(400).send({ error: true });
