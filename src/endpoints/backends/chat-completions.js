@@ -683,7 +683,7 @@ router.post('/status', jsonParser, async function (request, response_getstatus_o
     }
 
     if (!api_key_openai && !request.body.reverse_proxy && request.body.chat_completion_source !== CHAT_COMPLETION_SOURCES.CUSTOM) {
-        console.log('OpenAI API key is missing.');
+        console.log('Chat Completion API key is missing.');
         return response_getstatus_openai.status(400).send({ error: true });
     }
 
@@ -727,14 +727,14 @@ router.post('/status', jsonParser, async function (request, response_getstatus_o
 
                 if (Array.isArray(models)) {
                     const modelIds = models.filter(x => x && typeof x === 'object').map(x => x.id).sort();
-                    console.log('Available OpenAI models:', modelIds);
+                    console.log('Available models:', modelIds);
                 } else {
-                    console.log('OpenAI endpoint did not return a list of models.');
+                    console.log('Chat Completion endpoint did not return a list of models.');
                 }
             }
         }
         else {
-            console.log('OpenAI status check failed. Either Access Token is incorrect or API endpoint is down.');
+            console.log('Chat Completion status check failed. Either Access Token is incorrect or API endpoint is down.');
             response_getstatus_openai.send({ error: true, can_bypass: true, data: { data: [] } });
         }
     } catch (e) {

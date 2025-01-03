@@ -669,12 +669,12 @@ router.post('/search', jsonParser, function (request, response) {
                 .map(line => { try { return JSON.parse(line); } catch (_) { return null; } })
                 .filter(x => x && typeof x.mes === 'string');
 
-            if (messages.length === 0) {
+            if (query && messages.length === 0) {
                 continue;
             }
 
             const lastMessage = messages[messages.length - 1];
-            const lastMesDate = lastMessage?.send_date || new Date().toISOString();
+            const lastMesDate = lastMessage?.send_date || Math.round(fs.statSync(chatFile.path).mtimeMs);
 
             // If no search query, just return metadata
             if (!query) {

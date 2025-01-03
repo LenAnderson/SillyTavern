@@ -36,7 +36,9 @@ export default function getWebpackServeMiddleware() {
                     console.log(output);
                     console.log();
                 }
-                resolve();
+                compiler.close(() => {
+                    resolve();
+                });
             });
         });
     };

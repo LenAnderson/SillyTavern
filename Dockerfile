@@ -27,6 +27,11 @@ RUN \
   ln -s "./config/config.yaml" "config.yaml" || true && \
   mkdir "config" || true
 
+# Pre-compile public libraries
+RUN \
+  echo "*** Run Webpack ***" && \
+  node "./docker/build-lib.js"
+
 # Cleanup unnecessary files
 RUN \
   echo "*** Cleanup ***" && \
@@ -36,6 +41,9 @@ RUN \
   chmod +x "./docker-entrypoint.sh" && \
   echo "*** Convert line endings to Unix format ***" && \
   dos2unix "./docker-entrypoint.sh"
+
+# Fix extension repos permissions
+RUN git config --global --add safe.directory "*"
 
 EXPOSE 8000
 

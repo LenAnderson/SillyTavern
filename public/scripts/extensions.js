@@ -1213,9 +1213,10 @@ async function autoUpdateExtensions(forceAll) {
  * Runs the generate interceptors for all extensions.
  * @param {any[]} chat Chat array
  * @param {number} contextSize Context size
+ * @param {string} type Generation type
  * @returns {Promise<boolean>} True if generation should be aborted
  */
-export async function runGenerationInterceptors(chat, contextSize) {
+export async function runGenerationInterceptors(chat, contextSize, type) {
     let aborted = false;
     let exitImmediately = false;
 
@@ -1228,7 +1229,7 @@ export async function runGenerationInterceptors(chat, contextSize) {
         const interceptorKey = manifest.generate_interceptor;
         if (typeof globalThis[interceptorKey] === 'function') {
             try {
-                await globalThis[interceptorKey](chat, contextSize, abort);
+                await globalThis[interceptorKey](chat, contextSize, abort, type);
             } catch (e) {
                 console.error(`Failed running interceptor for ${manifest.display_name}`, e);
             }

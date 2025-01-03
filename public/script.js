@@ -3827,9 +3827,9 @@ export async function Generate(type, { automatic_trigger, force_name2, quiet_pro
     // Determine token limit
     let this_max_context = getMaxContextSize();
 
-    if (!dryRun && type !== 'quiet') {
+    if (!dryRun) {
         console.debug('Running extension interceptors');
-        const aborted = await runGenerationInterceptors(coreChat, this_max_context);
+        const aborted = await runGenerationInterceptors(coreChat, this_max_context, type);
 
         if (aborted) {
             console.debug('Generation aborted by extension interceptors');
@@ -9424,6 +9424,11 @@ function addDebugFunctions() {
     registerDebugFunction('toggleEventTracing', 'Toggle event tracing', 'Useful to see what triggered a certain event.', () => {
         localStorage.setItem('eventTracing', localStorage.getItem('eventTracing') === 'true' ? 'false' : 'true');
         toastr.info('Event tracing is now ' + (localStorage.getItem('eventTracing') === 'true' ? 'enabled' : 'disabled'));
+    });
+
+    registerDebugFunction('toggleRegenerateWarning', 'Toggle Ctrl+Enter regeneration confirmation', 'Toggle the warning when regenerating a message with a Ctrl+Enter hotkey.', () => {
+        localStorage.setItem('RegenerateWithCtrlEnter', localStorage.getItem('RegenerateWithCtrlEnter') === 'true' ? 'false' : 'true');
+        toastr.info('Regenerate warning is now ' + (localStorage.getItem('RegenerateWithCtrlEnter') === 'true' ? 'disabled' : 'enabled'));
     });
 
     registerDebugFunction('copySetup', 'Copy ST setup to clipboard [WIP]', 'Useful data when reporting bugs', async () => {

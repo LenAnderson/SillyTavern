@@ -32,6 +32,10 @@ export async function setUserControls(isEnabled) {
  * @returns {boolean} True if the current user is an admin
  */
 export function isAdmin() {
+    if (!accountsEnabled) {
+        return true;
+    }
+
     if (!currentUser) {
         return false;
     }

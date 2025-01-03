@@ -37,6 +37,7 @@ import { generateWebLlmChatPrompt, isWebLlmSupported } from '../shared.js';
  * @typedef {object} HashedMessage
  * @property {string} text - The hashed message text
  * @property {number} hash - The hash used as the vector key
+ * @property {number} index - The index of the message in the chat
  */
 
 const MODULE_NAME = 'vectors';
@@ -594,9 +595,17 @@ async function vectorizeFile(fileText, fileName, collectionId, chunkSize, overla
 /**
  * Removes the most relevant messages from the chat and displays them in the extension prompt
  * @param {object[]} chat Array of chat messages
+ * @param {number} _contextSize Context size (unused)
+ * @param {function} _abort Abort function (unused)
+ * @param {string} type Generation type
  */
-async function rearrangeChat(chat) {
+async function rearrangeChat(chat, _contextSize, _abort, type) {
     try {
+        if (type === 'quiet') {
+            console.debug('Vectors: Skipping quiet prompt');
+            return;
+        }
+
         // Clear the extension prompt
         setExtensionPrompt(EXTENSION_PROMPT_TAG, '', settings.position, settings.depth, settings.include_wi);
         setExtensionPrompt(EXTENSION_PROMPT_TAG_DB, '', settings.file_position_db, settings.file_depth_db, settings.include_wi, settings.file_depth_role_db);
@@ -717,7 +726,7 @@ const onChatEvent = debounce(async () => await moduleWorker.update(), debounce_t
  */
 async function getQueryText(chat, initiator) {
     let hashedMessages = chat
-        .map(x => ({ text: String(substituteParams(x.mes)), hash: getStringHash(substituteParams(x.mes)) }))
+        .map(x => ({ text: String(substituteParams(x.mes)), hash: getStringHash(substituteParams(x.mes)), index: chat.indexOf(x) }))
         .filter(x => x.text)
         .reverse()
         .slice(0, settings.query);

@@ -28,6 +28,11 @@
     color: var(--white50a);
 }
 
+#completion_prompt_manager #completion_prompt_manager_list .completion_prompt_manager_prompt .completion_prompt_manager_prompt_name .fa-solid[data-role] {
+    vertical-align: unset;
+    margin-left: 3px;
+}
+
 #completion_prompt_manager #completion_prompt_manager_list .completion_prompt_manager_prompt_invisible {
     display: none;
 }
@@ -260,7 +265,7 @@
 }
 
 #completion_prompt_manager #completion_prompt_manager_list .completion_prompt_manager_prompt .completion_prompt_manager_prompt_name .fa-solid.prompt-manager-overridden {
-    margin-left: 5px;
+    margin-left: 3px;
     color: var(--SmartThemeQuoteColor);
     cursor: pointer;
     opacity: 0.8;

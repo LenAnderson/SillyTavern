@@ -330,7 +330,18 @@ const defaultSettings = {
 
 const writePromptFieldsDebounced = debounce(writePromptFields, debounce_timeout.relaxed);
 
-function processTriggers(chat, _, abort) {
+/**
+ * Generate interceptor for interactive mode triggers.
+ * @param {any[]} chat Chat messages
+ * @param {number} _ Context size (unused)
+ * @param {function(boolean): void} abort Abort generation function
+ * @param {string} type Type of the generation
+ */
+function processTriggers(chat, _, abort, type) {
+    if (type === 'quiet') {
+        return;
+    }
+
     if (extension_settings.sd.function_tool && ToolManager.isToolCallingSupported()) {
         return;
     }
@@ -1994,6 +2005,10 @@ async function loadNovelModels() {
     ];
 }
 
+function loadNovelSchedulers() {
+    return ['karras', 'native', 'exponential', 'polyexponential'];
+}
+
 async function loadComfyModels() {
     if (!extension_settings.sd.comfy_url) {
         return [];
@@ -2031,7 +2046,7 @@ async function loadSchedulers() {
             schedulers = await getAutoRemoteSchedulers();
             break;
         case sources.novel:
-            schedulers = ['karras', 'native', 'exponential', 'polyexponential'];
+            schedulers = loadNovelSchedulers();
             break;
         case sources.vlad:
             schedulers = ['N/A'];
@@ -3177,7 +3192,8 @@ function getNovelParams() {
     let sm_dyn = extension_settings.sd.novel_sm_dyn;
 
     // If a source was never changed after the scheduler setting was added, we need to set it to 'karras' for compatibility.
-    if (!extension_settings.sd.scheduler || extension_settings.sd.scheduler === 'normal') {
+    const schedulers = loadNovelSchedulers();
+    if (!schedulers.includes(extension_settings.sd.scheduler)) {
         extension_settings.sd.scheduler = 'karras';
     }
 
