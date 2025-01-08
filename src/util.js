@@ -389,10 +389,10 @@ export function generateTimestamp() {
  * Remove old backups with the given prefix from a specified directory.
  * @param {string} directory The root directory to remove backups from.
  * @param {string} prefix File prefix to filter backups by.
- * @param {number?} limit Maximum number of backups to keep. If null, the limit is determined by the `numberOfBackups` config value.
+ * @param {number?} limit Maximum number of backups to keep. If null, the limit is determined by the `backups.common.numberOfBackups` config value.
  */
 export function removeOldBackups(directory, prefix, limit = null) {
-    const MAX_BACKUPS = limit ?? Number(getConfigValue('numberOfBackups', 50));
+    const MAX_BACKUPS = limit ?? Number(getConfigValue('backups.common.numberOfBackups', 50));
 
     let files = fs.readdirSync(directory).filter(f => f.startsWith(prefix));
     if (files.length > MAX_BACKUPS) {

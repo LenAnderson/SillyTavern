@@ -18,9 +18,9 @@ import {
     formatBytes,
 } from '../util.js';
 
-const isBackupDisabled = getConfigValue('disableChatBackup', false);
-const maxTotalChatBackups = Number(getConfigValue('maxTotalChatBackups', -1));
-const throttleInterval = getConfigValue('chatBackupThrottleInterval', 10_000);
+const isBackupEnabled = !!getConfigValue('backups.chat.enabled', true);
+const maxTotalChatBackups = Number(getConfigValue('backups.chat.maxTotalBackups', -1));
+const throttleInterval = Number(getConfigValue('backups.chat.throttleInterval', 10_000));
 
 /**
  * Saves a chat to the backups directory.
@@ -31,7 +31,7 @@ const throttleInterval = getConfigValue('chatBackupThrottleInterval', 10_000);
 function backupChat(directory, name, chat) {
     try {
 
-        if (isBackupDisabled) {
+        if (!isBackupEnabled) {
             return;
         }
 

@@ -388,7 +388,7 @@ class AllTalkTtsProvider {
     }
 
     async fetchRvcVoiceObjects() {
-        if (this.settings.server_version !== 'v2') {
+        if (this.settings.server_version == 'v2') {
             console.log('Skipping RVC voices fetch for V1 server');
             return [];
         }

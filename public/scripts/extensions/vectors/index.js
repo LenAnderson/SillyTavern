@@ -82,6 +82,7 @@ const settings = {
     chunk_size: 5000,
     chunk_count: 2,
     overlap_percent: 0,
+    only_custom_boundary: false,
 
     // For Data Bank
     size_threshold_db: 5,
@@ -571,7 +572,9 @@ async function vectorizeFile(fileText, fileName, collectionId, chunkSize, overla
         const delimiters = getChunkDelimiters();
         // Overlap should not be included in chunk size. It will be later compensated by overlapChunks
         chunkSize = overlapSize > 0 ? (chunkSize - overlapSize) : chunkSize;
-        const chunks = splitRecursive(fileText, chunkSize, delimiters).map((x, y, z) => overlapSize > 0 ? overlapChunks(x, y, z, overlapSize) : x);
+        const chunks = settings.only_custom_boundary && settings.force_chunk_delimiter
+            ? fileText.split(settings.force_chunk_delimiter)
+            : splitRecursive(fileText, chunkSize, delimiters).map((x, y, z) => overlapSize > 0 ? overlapChunks(x, y, z, overlapSize) : x);
         console.debug(`Vectors: Split file ${fileName} into ${chunks.length} chunks with ${overlapPercent}% overlap`, chunks);
 
         const items = chunks.map((chunk, index) => ({ hash: getStringHash(chunk), text: chunk, index: index }));
@@ -1551,6 +1554,12 @@ jQuery(async () => {
 
     $('#vectors_force_chunk_delimiter').val(settings.force_chunk_delimiter).on('input', () => {
         settings.force_chunk_delimiter = String($('#vectors_force_chunk_delimiter').val());
+        Object.assign(extension_settings.vectors, settings);
+        saveSettingsDebounced();
+    });
+
+    $('#vectors_only_custom_boundary').prop('checked', settings.only_custom_boundary).on('input', () => {
+        settings.only_custom_boundary = !!$('#vectors_only_custom_boundary').prop('checked');
         Object.assign(extension_settings.vectors, settings);
         saveSettingsDebounced();
     });
