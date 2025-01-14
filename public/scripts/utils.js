@@ -67,6 +67,16 @@ export function escapeHtml(str) {
     return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
 
+/**
+ * Make string safe for use as a CSS selector.
+ * @param {string} str String to sanitize
+ * @param {string} replacement Replacement for invalid characters
+ * @returns {string} Sanitized string
+ */
+export function sanitizeSelector(str, replacement = '_') {
+    return String(str).replace(/[^a-z0-9_-]/ig, replacement);
+}
+
 export function isValidUrl(value) {
     try {
         new URL(value);

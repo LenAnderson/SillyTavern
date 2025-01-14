@@ -4,7 +4,7 @@ import { eventSource, event_types, saveSettings, saveSettingsDebounced, getReque
 import { showLoader, updateLoaderStatus } from './loader.js';
 import { POPUP_RESULT, POPUP_TYPE, Popup, callGenericPopup } from './popup.js';
 import { renderTemplate, renderTemplateAsync } from './templates.js';
-import { delay, isSubsetOf, setValueByPath } from './utils.js';
+import { delay, isSubsetOf, sanitizeSelector, setValueByPath } from './utils.js';
 import { getContext } from './st-context.js';
 import { isAdmin } from './user.js';
 import { t } from './i18n.js';
@@ -513,10 +513,11 @@ function addExtensionStyle(name, manifest) {
 
     return new Promise((resolve, reject) => {
         const url = `/scripts/extensions/${name}/${manifest.css}`;
+        const id = sanitizeSelector(`${name}-css`);
 
-        if ($(`link[id="${name}"]`).length === 0) {
+        if ($(`link[id="${id}"]`).length === 0) {
             const link = document.createElement('link');
-            link.id = name;
+            link.id = id;
             link.rel = 'stylesheet';
             link.type = 'text/css';
             link.href = url;
@@ -544,11 +545,12 @@ function addExtensionScript(name, manifest) {
 
     return new Promise((resolve, reject) => {
         const url = `/scripts/extensions/${name}/${manifest.js}`;
+        const id = sanitizeSelector(`${name}-js`);
         let ready = false;
 
-        if ($(`script[id="${name}"]`).length === 0) {
+        if ($(`script[id="${id}"]`).length === 0) {
             const script = document.createElement('script');
-            script.id = name;
+            script.id = id;
             script.type = 'module';
             script.src = url;
             script.async = true;
@@ -684,9 +686,9 @@ function getExtensionData(extension) {
  * @return {string} - The HTML string for the module information.
  */
 function getModuleInformation() {
-    let moduleInfo = modules.length ? `<p>${DOMPurify.sanitize(modules.join(', '))}</p>` : '<p class="failure">Not connected to the API!</p>';
+    let moduleInfo = modules.length ? `<p>${DOMPurify.sanitize(modules.join(', '))}</p>` : '<p class="failure">' + t`Not connected to the API!` + '</p>';
     return `
-        <h3>Modules provided by your Extras API:</h3>
+        <h3>` + t`Modules provided by your Extras API:` + `</h3>
         ${moduleInfo}
     `;
 }
@@ -705,11 +707,11 @@ async function showExtensionsDetails() {
             initialScrollTop = oldPopup.content.scrollTop;
             await oldPopup.completeCancelled();
         }
-        const htmlDefault = $('<div class="marginBot10"><h3 class="textAlignCenter">Built-in Extensions:</h3></div>');
-        const htmlExternal = $('<div class="marginBot10"><h3 class="textAlignCenter">Installed Extensions:</h3></div>');
+        const htmlDefault = $('<div class="marginBot10"><h3 class="textAlignCenter">' + t`Built-in Extensions:` + '</h3></div>');
+        const htmlExternal = $('<div class="marginBot10"><h3 class="textAlignCenter">' + t`Installed Extensions:` + '</h3></div>');
         const htmlLoading = $(`<div class="flex-container alignItemsCenter justifyCenter marginTop10 marginBot5">
             <i class="fa-solid fa-spinner fa-spin"></i>
-            <span>Loading third-party extensions... Please wait...</span>
+            <span>` + t`Loading third-party extensions... Please wait...` + `</span>
         </div>`);
 
         htmlExternal.append(htmlLoading);
@@ -730,7 +732,7 @@ async function showExtensionsDetails() {
 
         /** @type {import('./popup.js').CustomPopupButton} */
         const updateAllButton = {
-            text: 'Update all',
+            text: t`Update all`,
             appendAtEnd: true,
             action: async () => {
                 requiresReload = true;
@@ -742,7 +744,7 @@ async function showExtensionsDetails() {
         let waitingForSave = false;
 
         const popup = new Popup(html, POPUP_TYPE.TEXT, '', {
-            okButton: 'Close',
+            okButton: t`Close`,
             wide: true,
             large: true,
             customButtons: [updateAllButton],
@@ -835,7 +837,7 @@ async function updateExtension(extensionName, quiet) {
                 toastr.success('Extension is already up to date');
             }
         } else {
-            toastr.success(`Extension ${extensionName} updated to ${data.shortCommitHash}`, 'Reload the page to apply updates');
+            toastr.success(t`Extension ${extensionName} updated to ${data.shortCommitHash}`, t`Reload the page to apply updates`);
         }
     } catch (error) {
         console.error('Error:', error);
@@ -1003,7 +1005,7 @@ export async function installExtension(url, global) {
     }
 
     const response = await request.json();
-    toastr.success(`Extension "${response.display_name}" by ${response.author} (version ${response.version}) has been installed successfully!`, 'Extension installation successful');
+    toastr.success(t`Extension '${response.display_name}' by ${response.author} (version ${response.version}) has been installed successfully!`, t`Extension installation successful`);
     console.debug(`Extension "${response.display_name}" has been installed successfully at ${response.extensionPath}`);
     await loadExtensionSettings({}, false, false);
     await eventSource.emit(event_types.EXTENSION_SETTINGS_LOADED);
@@ -1177,7 +1179,7 @@ async function checkForExtensionUpdates(force) {
     await Promise.allSettled(promises);
 
     if (updatesAvailable.length > 0) {
-        toastr.info(`${updatesAvailable.map(x => `• ${x}`).join('\n')}`, 'Extension updates available');
+        toastr.info(`${updatesAvailable.map(x => `• ${x}`).join('\n')}`, t`Extension updates available`);
     }
 }
 
@@ -1191,7 +1193,7 @@ async function autoUpdateExtensions(forceAll) {
         return;
     }
 
-    const banner = toastr.info('Auto-updating extensions. This may take several minutes.', 'Please wait...', { timeOut: 10000, extendedTimeOut: 10000 });
+    const banner = toastr.info(t`Auto-updating extensions. This may take several minutes.`, t`Please wait...`, { timeOut: 10000, extendedTimeOut: 10000 });
     const isCurrentUserAdmin = isAdmin();
     const promises = [];
     for (const [id, manifest] of Object.entries(manifests)) {

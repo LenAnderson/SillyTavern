@@ -4799,7 +4799,7 @@ body:not(.sd) .mes_img_swipes {
 
 .img_enlarged {
     object-fit: contain;
-    width: 100%;
+    max-width: 100%;
     height: 100%;
     cursor: zoom-in
 }
@@ -5734,4 +5734,16 @@ body:not(.movingUI) .drawer-content.maximized {
         flex-basis: 100%;
     }
 
+}
+
+/* Constrict the scroll of alternate greetings to only the dynamic form section */
+.alternate_grettings {
+    display: grid;
+    grid-template-rows: auto auto auto 1fr;
+    max-height: 100%;
+    overflow: hidden;
+}
+
+.alternate_greetings_list {
+    overflow-y: scroll;
 }

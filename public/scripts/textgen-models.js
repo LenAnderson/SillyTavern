@@ -5,6 +5,7 @@ import { textgenerationwebui_settings as textgen_settings, textgen_types } from 
 import { tokenizers } from './tokenizers.js';
 import { renderTemplateAsync } from './templates.js';
 import { POPUP_TYPE, callGenericPopup } from './popup.js';
+import { t } from './i18n.js';
 
 let mancerModels = [];
 let togetherModels = [];
@@ -936,71 +937,71 @@ export function initTextGenModels() {
 
     if (!isMobile()) {
         $('#mancer_model').select2({
-            placeholder: 'Select a model',
-            searchInputPlaceholder: 'Search models...',
+            placeholder: t`Select a model`,
+            searchInputPlaceholder: t`Search models...`,
             searchInputCssClass: 'text_pole',
             width: '100%',
             templateResult: getMancerModelTemplate,
         });
         $('#model_togetherai_select').select2({
-            placeholder: 'Select a model',
-            searchInputPlaceholder: 'Search models...',
+            placeholder: t`Select a model`,
+            searchInputPlaceholder: t`Search models...`,
             searchInputCssClass: 'text_pole',
             width: '100%',
             templateResult: getTogetherModelTemplate,
         });
         $('#ollama_model').select2({
-            placeholder: 'Select a model',
-            searchInputPlaceholder: 'Search models...',
+            placeholder: t`Select a model`,
+            searchInputPlaceholder: t`Search models...`,
             searchInputCssClass: 'text_pole',
             width: '100%',
         });
         $('#tabby_model').select2({
-            placeholder: '[Currently loaded]',
-            searchInputPlaceholder: 'Search models...',
+            placeholder: t`[Currently loaded]`,
+            searchInputPlaceholder: t`Search models...`,
             searchInputCssClass: 'text_pole',
             width: '100%',
             allowClear: true,
         });
         $('#model_infermaticai_select').select2({
-            placeholder: 'Select a model',
-            searchInputPlaceholder: 'Search models...',
+            placeholder: t`Select a model`,
+            searchInputPlaceholder: t`Search models...`,
             searchInputCssClass: 'text_pole',
             width: '100%',
             templateResult: getInfermaticAIModelTemplate,
         });
         $('#model_dreamgen_select').select2({
-            placeholder: 'Select a model',
-            searchInputPlaceholder: 'Search models...',
+            placeholder: t`Select a model`,
+            searchInputPlaceholder: t`Search models...`,
             searchInputCssClass: 'text_pole',
             width: '100%',
             templateResult: getDreamGenModelTemplate,
         });
         $('#openrouter_model').select2({
-            placeholder: 'Select a model',
-            searchInputPlaceholder: 'Search models...',
+            placeholder: t`Select a model`,
+            searchInputPlaceholder: t`Search models...`,
             searchInputCssClass: 'text_pole',
             width: '100%',
             templateResult: getOpenRouterModelTemplate,
         });
         $('#vllm_model').select2({
-            placeholder: 'Select a model',
-            searchInputPlaceholder: 'Search models...',
+            placeholder: t`Select a model`,
+            searchInputPlaceholder: t`Search models...`,
             searchInputCssClass: 'text_pole',
             width: '100%',
             templateResult: getVllmModelTemplate,
         });
         $('#aphrodite_model').select2({
-            placeholder: 'Select a model',
-            searchInputPlaceholder: 'Search models...',
+            placeholder: t`Select a model`,
+            searchInputPlaceholder: t`Search models...`,
             searchInputCssClass: 'text_pole',
             width: '100%',
             templateResult: getAphroditeModelTemplate,
         });
         providersSelect.select2({
             sorter: data => data.sort((a, b) => a.text.localeCompare(b.text)),
-            placeholder: 'Select providers. No selection = all providers.',
-            searchInputPlaceholder: 'Search providers...',
+            placeholder: t`Select providers. No selection = all providers.`,
+            searchInputPlaceholder: t`Search providers...`,
             searchInputCssClass: 'text_pole',
             width: '100%',
             closeOnSelect: false,

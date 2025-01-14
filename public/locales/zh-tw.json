@@ -1454,7 +1454,7 @@
     "Any contents here will replace the default Post-History Instructions used for this character. (v2 specpost_history_instructions)": "此處填入的內容將取代該角色的默認聊天歷史後指示（Post-History Instructions）。\n（v2 格式：specpost_history_instructions）",
     "comma delimited,no spaces between": "逗號分割，無需空格",
     "e.g. black-forest-labs/FLUX.1-dev": "例如：black-forest-labs/FLUX.1-dev",
-    "Example: gpt-3.5-turbo": "例如：gpt-3.5-turbo",
+    "Example: gpt-4o": "例如：gpt-4o",
     "Example: http://localhost:1234/v1": "例如：http://localhost:1234/v1",
     "popup-button-crop": "裁剪",
     "(disabled when max recursion steps are used)": "（當最大遞歸步驟數使用時將停用）",

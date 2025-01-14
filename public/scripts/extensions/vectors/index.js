@@ -30,6 +30,8 @@ import { textgen_types, textgenerationwebui_settings } from '../../textgen-setti
 import { SlashCommandParser } from '../../slash-commands/SlashCommandParser.js';
 import { SlashCommand } from '../../slash-commands/SlashCommand.js';
 import { ARGUMENT_TYPE, SlashCommandArgument, SlashCommandNamedArgument } from '../../slash-commands/SlashCommandArgument.js';
+import { SlashCommandEnumValue, enumTypes } from '../../slash-commands/SlashCommandEnumValue.js';
+import { slashCommandReturnHelper } from '../../slash-commands/SlashCommandReturnHelper.js';
 import { callGenericPopup, POPUP_RESULT, POPUP_TYPE } from '../../popup.js';
 import { generateWebLlmChatPrompt, isWebLlmSupported } from '../shared.js';
 
@@ -1613,25 +1615,55 @@ jQuery(async () => {
         callback: async (args, query) => {
             const clamp = (v) => Number.isNaN(v) ? null : Math.min(1, Math.max(0, v));
             const threshold = clamp(Number(args?.threshold ?? settings.score_threshold));
+            const validateCount = (v) => Number.isNaN(v) || !Number.isInteger(v) || v < 1 ? null : v;
+            const count = validateCount(Number(args?.count)) ?? settings.chunk_count_db;
             const source = String(args?.source ?? '');
             const attachments = source ? getDataBankAttachmentsForSource(source, false) : getDataBankAttachments(false);
             const collectionIds = await ingestDataBankAttachments(String(source));
-            const queryResults = await queryMultipleCollections(collectionIds, String(query), settings.chunk_count_db, threshold);
-
-            // Map collection IDs to file URLs
+            const queryResults = await queryMultipleCollections(collectionIds, String(query), count, threshold);
+    
+            // Get URLs
             const urls = Object
                 .keys(queryResults)
                 .map(x => attachments.find(y => getFileCollectionId(y.url) === x))
                 .filter(x => x)
                 .map(x => x.url);
+    
+            // Gets the actual text content of chunks
+            const getChunksText = () => {
+                let textResult = '';
+                for (const collectionId in queryResults) {
+                    const metadata = queryResults[collectionId].metadata?.filter(x => x.text)?.sort((a, b) => a.index - b.index)?.map(x => x.text)?.filter(onlyUnique) || [];
+                    textResult += metadata.join('\n') + '\n\n';
+                }
+                return textResult;
+            };
+            
+            if (args.return === 'chunks') {
+                return getChunksText();
+            }
 
-            return JSON.stringify(urls);
+            // @ts-ignore
+            return slashCommandReturnHelper.doReturn(args.return ?? 'object', urls, { objectToStringFunc: list => list.join('\n') });
+            
         },
         aliases: ['databank-search', 'data-bank-search'],
         helpString: 'Search the Data Bank for a specific query using vector similarity. Returns a list of file URLs with the most relevant content.',
         namedArgumentList: [
             new SlashCommandNamedArgument('threshold', 'Threshold for the similarity score in the [0, 1] range. Uses the global config value if not set.', ARGUMENT_TYPE.NUMBER, false, false, ''),
+            new SlashCommandNamedArgument('count', 'Maximum number of query results to return.', ARGUMENT_TYPE.NUMBER, false, false, ''),
             new SlashCommandNamedArgument('source', 'Optional filter for the attachments by source.', ARGUMENT_TYPE.STRING, false, false, '', ['global', 'character', 'chat']),
+            SlashCommandNamedArgument.fromProps({
+                name: 'return',
+                description: 'How you want the return value to be provided',
+                typeList: [ARGUMENT_TYPE.STRING],
+                defaultValue: 'object',
+                enumList: [
+                    new SlashCommandEnumValue('chunks', 'Return the actual content chunks', enumTypes.enum, '{}'),
+                    ...slashCommandReturnHelper.enumList({ allowObject: true })
+                ],
+                forceEnum: true,
+            })
         ],
         unnamedArgumentList: [
             new SlashCommandArgument('Query to search by.', ARGUMENT_TYPE.STRING, true, false),

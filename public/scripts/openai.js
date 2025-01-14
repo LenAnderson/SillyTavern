@@ -5491,8 +5491,8 @@ export function initOpenAI() {
 
     if (!isMobile()) {
         $('#model_openrouter_select').select2({
-            placeholder: 'Select a model',
-            searchInputPlaceholder: 'Search models...',
+            placeholder: t`Select a model`,
+            searchInputPlaceholder: t`Search models...`,
             searchInputCssClass: 'text_pole',
             width: '100%',
             templateResult: getOpenRouterModelTemplate,
