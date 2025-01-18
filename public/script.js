@@ -3965,7 +3965,7 @@ export async function Generate(type, { automatic_trigger, force_name2, quiet_pro
      * @returns {string[]} Examples array with block heading
      */
     function parseMesExamples(examplesStr) {
-        if (examplesStr.length === 0 || examplesStr === '<START>') {
+        if (!examplesStr || examplesStr.length === 0 || examplesStr === '<START>') {
             return [];
         }
 
