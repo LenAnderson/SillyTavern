@@ -997,7 +997,7 @@
     "popup-button-import": "导入",
     "popup-button-crop": "裁剪",
     "Close popup": "关闭弹出窗口",
-    "Advanced Defininitions": "高级定义",
+    "Advanced Definitions": "高级定义",
     "Prompt Overrides": "提示词覆盖",
     "(For Chat Completion and Instruct Mode)": "（用于聊天补全和指导模式）",
     "Insert {{original}} into either box to include the respective default prompt from system settings.": "将{{original}}插入到任一框中，以包含系统设置中的相应默认提示词。",

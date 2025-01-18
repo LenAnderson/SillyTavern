@@ -879,7 +879,7 @@
     "popup-button-no": "No",
     "popup-button-cancel": "Cancelar",
     "popup-button-import": "Importar",
-    "Advanced Defininitions": "Definiciones avanzadas",
+    "Advanced Definitions": "Definiciones avanzadas",
     "Prompt Overrides": "Anulaciones rápidas",
     "(For Chat Completion and Instruct Mode)": "(Para completar el chat y el modo de instrucción)",
     "Insert {{original}} into either box to include the respective default prompt from system settings.": "Inserte {{original}} en cualquiera de las casillas para incluir las indicaciones predeterminadas respectivas de la configuración del sistema.",

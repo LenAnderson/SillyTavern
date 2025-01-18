@@ -1318,6 +1318,10 @@ button {
     transition: clip-path 200ms;
 }
 
+#send_textarea:placeholder-shown {
+    overflow: hidden;
+}
+
 #send_textarea:focus-visible {
     /* Disable outline for the chat bar itself, we add it to the outer div */
     outline: none;
@@ -3257,6 +3261,18 @@ grammarly-extension {
 #first_message_div {
     display: flex;
     align-items: center;
+}
+
+#creators_notes_div {
+    align-items: baseline;
+}
+
+#creators_note_desc_hidden {
+    display: none;
+}
+
+#creators_notes_div:has(#spoiler_free_desc_button.fa-eye-slash) #creators_note_desc_hidden {
+    display: initial;
 }
 
 .alternate_greeting details {
