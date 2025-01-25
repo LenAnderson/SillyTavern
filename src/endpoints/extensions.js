@@ -322,7 +322,7 @@ router.get('/discover', jsonParser, function (request, response) {
         .filter(f => !userExtensions.some(e => e.name === f.name));
 
     // Combine all extensions
-    const allExtensions = [...builtInExtensions, ...userExtensions, ...globalExtensions];
+    const allExtensions = [...builtInExtensions, ...userExtensions];
     console.log('Extensions available for', request.user.profile.handle, allExtensions);
 
     return response.send(allExtensions);
