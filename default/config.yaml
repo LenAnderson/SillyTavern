@@ -70,7 +70,7 @@ perUserBasicAuth: false
 ## Set to a positive number to expire session after a certain time of inactivity
 ## Set to 0 to expire session when the browser is closed
 ## Set to a negative number to disable session expiration
-sessionTimeout: 86400
+sessionTimeout: -1
 # Used to sign session cookies. Will be auto-generated if not set
 cookieSecret: ''
 # Disable CSRF protection - NOT RECOMMENDED

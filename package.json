@@ -16,7 +16,7 @@
         "cookie-parser": "^1.4.6",
         "cookie-session": "^2.1.0",
         "cors": "^2.8.5",
-        "csrf-csrf": "^2.2.3",
+        "csrf-sync": "^4.0.3",
         "diff-match-patch": "^1.0.5",
         "dompurify": "^3.1.7",
         "droll": "^0.2.1",

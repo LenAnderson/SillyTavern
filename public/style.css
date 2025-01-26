@@ -2921,7 +2921,7 @@ input[type=search]:focus::-webkit-search-cancel-button {
     position: relative;
 }
 
-#rm_print_characters_block .ch_name,
+.character_name_block .ch_name,
 .avatar-container .ch_name {
     flex: 1 1 auto;
     white-space: nowrap;
@@ -2929,6 +2929,13 @@ input[type=search]:focus::-webkit-search-cancel-button {
     text-wrap: nowrap;
     text-overflow: ellipsis;
     display: block;
+}
+
+.character_name_block .character_version {
+    text-overflow: ellipsis;
+    overflow: hidden;
+    text-wrap: nowrap;
+    max-width: 50%;
 }
 
 #rm_print_characters_block .character_name_block> :last-child {

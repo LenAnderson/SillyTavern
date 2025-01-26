@@ -238,6 +238,15 @@ export const sentencepieceTokenizers = [
     'jamba',
 ];
 
+export const webTokenizers = [
+    'claude',
+    'llama3',
+    'command-r',
+    'qwen2',
+    'nemo',
+    'deepseek',
+];
+
 /**
  * Gets the Sentencepiece tokenizer by the model name.
  * @param {string} model Sentencepiece model name
@@ -270,6 +279,39 @@ export function getSentencepiceTokenizer(model) {
 
     if (model.includes('jamba')) {
         return spp_jamba;
+    }
+
+    return null;
+}
+
+/**
+ * Gets the Web tokenizer by the model name.
+ * @param {string} model Web tokenizer model name
+ * @returns {WebTokenizer|null} Web tokenizer
+ */
+export function getWebTokenizer(model) {
+    if (model.includes('llama3')) {
+        return llama3_tokenizer;
+    }
+
+    if (model.includes('claude')) {
+        return claude_tokenizer;
+    }
+
+    if (model.includes('command-r')) {
+        return commandTokenizer;
+    }
+
+    if (model.includes('qwen2')) {
+        return qwen2Tokenizer;
+    }
+
+    if (model.includes('nemo')) {
+        return nemoTokenizer;
+    }
+
+    if (model.includes('deepseek')) {
+        return deepseekTokenizer;
     }
 
     return null;

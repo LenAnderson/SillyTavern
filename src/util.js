@@ -871,3 +871,14 @@ export class MemoryLimitedMap {
         return this.map[Symbol.iterator]();
     }
 }
+
+/**
+ * A 'safe' version of `fs.readFileSync()`. Returns the contents of a file if it exists, falling back to a default value if not.
+ * @param {string} filePath Path of the file to be read.
+ * @param {Parameters<typeof fs.readFileSync>[1]} options Options object to pass through to `fs.readFileSync()` (default: `{ encoding: 'utf-8' }`).
+ * @returns The contents at `filePath` if it exists, or `null` if not.
+ */
+export function safeReadFileSync(filePath, options = { encoding: 'utf-8' }) {
+    if (fs.existsSync(filePath)) return fs.readFileSync(filePath, options);
+    return null;
+}

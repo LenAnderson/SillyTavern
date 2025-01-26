@@ -37,6 +37,8 @@ import {
     getTiktokenTokenizer,
     sentencepieceTokenizers,
     TEXT_COMPLETION_MODELS,
+    webTokenizers,
+    getWebTokenizer,
 } from '../tokenizers.js';
 
 const API_OPENAI = 'https://api.openai.com/v1';
@@ -863,6 +865,14 @@ router.post('/bias', jsonParser, async function (request, response) {
                 return response.send({});
             }
             encodeFunction = (text) => new Uint32Array(instance.encodeIds(text));
+        } else if (webTokenizers.includes(model)) {
+            const tokenizer = getWebTokenizer(model);
+            const instance = await tokenizer?.get();
+            if (!instance) {
+                console.warn('Tokenizer not initialized:', model);
+                return response.send({});
+            }
+            encodeFunction = (text) => new Uint32Array(instance.encode(text));
         } else {
             const tokenizer = getTiktokenTokenizer(model);
             encodeFunction = (tokenizer.encode.bind(tokenizer));

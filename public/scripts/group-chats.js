@@ -1368,6 +1368,15 @@ function getGroupCharacterBlock(character) {
     template.find('.ch_fav').val(isFav);
     template.toggleClass('is_fav', isFav);
 
+    const auxFieldName = power_user.aux_field || 'character_version';
+    const auxFieldValue = (character.data && character.data[auxFieldName]) || '';
+    if (auxFieldValue) {
+        template.find('.character_version').text(auxFieldValue);
+    }
+    else {
+        template.find('.character_version').hide();
+    }
+
     let queuePosition = groupChatQueueOrder.get(character.avatar);
     if (queuePosition) {
         template.find('.queue_position').text(queuePosition);

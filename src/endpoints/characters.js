@@ -74,12 +74,18 @@ async function writeCharacterData(inputFile, data, outputFile, request, crop = u
          * Read the image, resize, and save it as a PNG into the buffer.
          * @returns {Promise<Buffer>} Image buffer
          */
-        function getInputImage() {
-            if (Buffer.isBuffer(inputFile)) {
-                return parseImageBuffer(inputFile, crop);
-            }
+        async function getInputImage() {
+            try {
+                if (Buffer.isBuffer(inputFile)) {
+                    return await parseImageBuffer(inputFile, crop);
+                }
 
-            return tryReadImage(inputFile, crop);
+                return await tryReadImage(inputFile, crop);
+            } catch (error) {
+                const message = Buffer.isBuffer(inputFile) ? 'Failed to read image buffer.' : `Failed to read image: ${inputFile}.`;
+                console.warn(message, 'Using a fallback image.', error);
+                return await fs.promises.readFile(defaultAvatarPath);
+            }
         }
 
         const inputImage = await getInputImage();
