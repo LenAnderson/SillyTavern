@@ -482,10 +482,10 @@ function highlightNewBackground(bg) {
  */
 function setFittingClass(fitting) {
     const backgrounds = $('#bg1, #bg_custom');
-    backgrounds.toggleClass('cover', fitting === 'cover');
-    backgrounds.toggleClass('contain', fitting === 'contain');
-    backgrounds.toggleClass('stretch', fitting === 'stretch');
-    backgrounds.toggleClass('center', fitting === 'center');
+    for (const option of ['cover', 'contain', 'stretch', 'center']) {
+        backgrounds.toggleClass(option, option === fitting);
+    }
+    background_settings.fitting = fitting;
 }
 
 function onBackgroundFilterInput() {
