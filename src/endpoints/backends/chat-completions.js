@@ -289,6 +289,7 @@ async function sendMakerSuiteRequest(request, response) {
     const model = String(request.body.model);
     const stream = Boolean(request.body.stream);
     const showThoughts = Boolean(request.body.show_thoughts);
+    const isThinking = model.includes('thinking');
 
     const generationConfig = {
         stopSequences: request.body.stop,
@@ -329,6 +330,12 @@ async function sendMakerSuiteRequest(request, response) {
             body.systemInstruction = prompt.system_instruction;
         }
 
+        if (isThinking && showThoughts) {
+            generationConfig.thinkingConfig = {
+                includeThoughts: true,
+            };
+        }
+
         return body;
     }
 
@@ -342,7 +349,6 @@ async function sendMakerSuiteRequest(request, response) {
             controller.abort();
         });
 
-        const isThinking = model.includes('thinking');
         const apiVersion = isThinking ? 'v1alpha' : 'v1beta';
         const responseType = (stream ? 'streamGenerateContent' : 'generateContent');
 
@@ -387,11 +393,7 @@ async function sendMakerSuiteRequest(request, response) {
             const responseContent = candidates[0].content ?? candidates[0].output;
             console.log('Google AI Studio response:', responseContent);
 
-            if (Array.isArray(responseContent?.parts) && isThinking && !showThoughts) {
-                responseContent.parts = responseContent.parts.filter(part => !part.thought);
-            }
-
-            const responseText = typeof responseContent === 'string' ? responseContent : responseContent?.parts?.map(part => part.text)?.join('\n\n');
+            const responseText = typeof responseContent === 'string' ? responseContent : responseContent?.parts?.filter(part => !part.thought)?.map(part => part.text)?.join('\n\n');
             if (!responseText) {
                 let message = 'Google AI Studio Candidate text empty';
                 console.log(message, generateResponseJson);
@@ -399,7 +401,7 @@ async function sendMakerSuiteRequest(request, response) {
             }
 
             // Wrap it back to OAI format
-            const reply = { choices: [{ 'message': { 'content': responseText } }] };
+            const reply = { choices: [{ 'message': { 'content': responseText } }], responseContent };
             return response.send(reply);
         }
     } catch (error) {
@@ -994,6 +996,10 @@ router.post('/generate', jsonParser, function (request, response) {
 
         if (request.body.use_fallback) {
             bodyParams['route'] = 'fallback';
+        }
+
+        if (request.body.show_thoughts) {
+            bodyParams['include_reasoning'] = true;
         }
 
         let cachingAtDepth = getConfigValue('claude.cachingAtDepth', -1);

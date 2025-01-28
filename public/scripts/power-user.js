@@ -253,6 +253,14 @@ let power_user = {
         content: 'Write {{char}}\'s next reply in a fictional chat between {{char}} and {{user}}.',
     },
 
+    reasoning: {
+        add_to_prompts: false,
+        prefix: '<think>\n',
+        suffix: '\n</think>',
+        separator: '\n\n',
+        max_additions: 1,
+    },
+
     personas: {},
     default_persona: null,
     persona_descriptions: {},

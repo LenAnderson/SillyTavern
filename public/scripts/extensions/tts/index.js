@@ -466,7 +466,7 @@ async function processTtsQueue() {
     }
 
     if (extension_settings.tts.skip_tags) {
-        text = text.replace(/<.*?>.*?<\/.*?>/g, '').trim();
+        text = text.replace(/<.*?>[\s\S]*?<\/.*?>/g, '').trim();
     }
 
     if (!extension_settings.tts.pass_asterisks) {

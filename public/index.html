@@ -1977,11 +1977,11 @@
                                             </span>
                                         </div>
                                     </div>
-                                    <div class="range-block" data-source="makersuite,deepseek">
+                                    <div class="range-block" data-source="makersuite,deepseek,openrouter">
                                         <label for="openai_show_thoughts" class="checkbox_label widthFreeExpand">
                                             <input id="openai_show_thoughts" type="checkbox" />
                                             <span>
-                                                <span data-i18n="Show model thoughts">Show model thoughts</span>
+                                                <span data-i18n="Show model reasoning">Show model reasoning</span>
                                                 <i class="opacity50p fa-solid fa-circle-info" title="Gemini 2.0 Thinking / DeepSeek Reasoner"></i>
                                             </span>
                                         </label>
@@ -3797,6 +3797,39 @@
                                     </small>
                                 </div>
                                 <input id="token_padding" class="text_pole textarea_compact" type="number" min="-2048" max="2048" />
+                            </div>
+                        </div>
+                        <div>
+                            <h4 class="standoutHeader">
+                                <span data-i18n="Reasoning">Reasoning</span>
+                            </h4>
+                            <div>
+                                <label class="checkbox_label" for="reasoning_add_to_prompts" title="Add existing reasoning blocks to prompts. To add a new reasoning block, use the message edit menu." data-i18n="[title]reasoning_add_to_prompts">
+                                    <input id="reasoning_add_to_prompts" type="checkbox" />
+                                    <small data-i18n="Add Reasoning to Prompts">
+                                        Add Reasoning to Prompts
+                                    </small>
+                                </label>
+                                <div class="flex-container">
+                                    <div class="flex1" title="Inserted before the reasoning content." data-i18n="[title]reasoning_prefix">
+                                        <small data-i18n="Prefix">Prefix</small>
+                                        <textarea id="reasoning_prefix" class="text_pole textarea_compact autoSetHeight"></textarea>
+                                    </div>
+                                    <div class="flex1" title="Inserted after the reasoning content." data-i18n="[title]reasoning_suffix">
+                                        <small data-i18n="Suffix">Suffix</small>
+                                        <textarea id="reasoning_suffix" class="text_pole textarea_compact autoSetHeight"></textarea>
+                                    </div>
+                                </div>
+                                <div class="flex-container">
+                                    <div class="flex1" title="Inserted between the reasoning and the message content." data-i18n="[title]reasoning_separator">
+                                        <small data-i18n="Separator">Separator</small>
+                                        <textarea id="reasoning_separator" class="text_pole textarea_compact autoSetHeight"></textarea>
+                                    </div>
+                                    <div class="flex1" title="Maximum number of reasoning blocks to be added per prompt, counting from the last message." data-i18n="[title]reasoning_max_additions">
+                                        <small data-i18n="Max Additions">Max Additions</small>
+                                        <input id="reasoning_max_additions" class="text_pole textarea_compact" type="number" min="0" max="999"></textarea>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                         <div>
@@ -6221,14 +6254,26 @@
                         <div class="mes_edit_buttons">
                             <div class="mes_edit_done menu_button  fa-solid fa-check" title="Confirm" data-i18n="[title]Confirm"></div>
                             <div class="mes_edit_copy menu_button  fa-solid fa-copy" title="Copy this message" data-i18n="[title]Copy this message"></div>
-                            <div class="mes_edit_delete menu_button  fa-solid fa-trash-can" title="Delete this message" data-i18n="[title]Delete this message">
-                            </div>
+                            <div class="mes_edit_add_reasoning menu_button fa-solid fa-lightbulb" title="Add a reasoning block" data-i18n="[title]Add a reasoning block"></div>
+                            <div class="mes_edit_delete menu_button  fa-solid fa-trash-can" title="Delete this message" data-i18n="[title]Delete this message"></div>
                             <div class="mes_edit_up menu_button  fa-solid fa-chevron-up " title="Move message up" data-i18n="[title]Move message up"></div>
-                            <div class="mes_edit_down menu_button  fa-solid fa-chevron-down" title="Move message down" data-i18n="[title]Move message down">
-                            </div>
+                            <div class="mes_edit_down menu_button  fa-solid fa-chevron-down" title="Move message down" data-i18n="[title]Move message down"></div>
                             <div class="mes_edit_cancel menu_button  fa-solid fa-xmark" title="Cancel" data-i18n="[title]Cancel"></div>
                         </div>
                     </div>
+                    <details class="mes_reasoning_details">
+                        <summary class="mes_reasoning_summary">
+                            <span data-i18n="Reasoning">Reasoning</span>
+                            <div class="mes_reasoning_actions">
+                                <div class="mes_reasoning_edit_done mes_button fa-solid fa-check" title="Confirm" data-i18n="[title]Confirmedit"></div>
+                                <div class="mes_reasoning_edit_cancel mes_button fa-solid fa-xmark" title="Cancel edit" data-i18n="[title]Cancel edit"></div>
+                                <div class="mes_reasoning_edit mes_button fa-solid fa-pencil" title="Edit reasoning" data-i18n="[title]Edit reasoning"></div>
+                                <div class="mes_reasoning_copy mes_button fa-solid fa-copy" title="Copy reasoning" data-i18n="[title]Copy reasoning"></div>
+                                <div class="mes_reasoning_delete mes_button fa-solid fa-trash-can" title="Remove reasoning" data-i18n="[title]Remove reasoning"></div>
+                            </div>
+                        </summary>
+                        <div class="mes_reasoning"></div>
+                    </details>
                     <div class="mes_text"></div>
                     <div class="mes_img_container">
                         <div class="mes_img_controls">

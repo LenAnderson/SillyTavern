@@ -1385,7 +1385,7 @@
     "enable_functions_desc_1": "Autorise l'utilisation",
     "enable_functions_desc_2": "outils de fonction",
     "enable_functions_desc_3": "Peut être utilisé par diverses extensions pour fournir des fonctionnalités supplémentaires.",
-    "Show model thoughts": "Afficher les pensées du modèle",
+    "Show model reasoning": "Afficher les pensées du modèle",
     "Display the model's internal thoughts in the response.": "Afficher les pensées internes du modèle dans la réponse.",
     "Confirm token parsing with": "Confirmer l'analyse des tokens avec",
     "openai_logit_bias_no_items": "Aucun élément",

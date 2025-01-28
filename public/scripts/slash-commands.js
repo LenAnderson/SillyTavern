@@ -42,6 +42,7 @@ import {
     showMoreMessages,
     stopGeneration,
     substituteParams,
+    syncCurrentSwipeInfoExtras,
     system_avatar,
     system_message_types,
     this_chid,
@@ -2814,8 +2815,11 @@ async function addSwipeCallback(args, value) {
     const newSwipeId = lastMessage.swipes.length - 1;
 
     if (isTrueBoolean(args.switch)) {
+        // Make sure ad-hoc changes to extras are saved before swiping away
+        syncCurrentSwipeInfoExtras();
         lastMessage.swipe_id = newSwipeId;
         lastMessage.mes = lastMessage.swipes[newSwipeId];
+        lastMessage.extra = structuredClone(lastMessage.swipe_info?.[newSwipeId]?.extra ?? lastMessage.extra ?? {});
     }
 
     await saveChatConditional();
