@@ -15,6 +15,7 @@ import {
     extension_prompt_types,
     Generate,
     getExtensionPrompt,
+    getExtensionPromptList,
     getNextMessageId,
     getRequestHeaders,
     getStoppingStrings,
@@ -655,17 +656,36 @@ async function populationInjectionPrompts(prompts, messages) {
         const separator = '\n';
         const wrap = false;
 
-        for (const role of roles) {
-            // Get prompts for current role
-            const rolePrompts = depthPrompts.filter(prompt => prompt.role === role).map(x => x.content).join(separator);
-            // Get extension prompt
-            const extensionPrompt = await getExtensionPrompt(extension_prompt_types.IN_CHAT, i, separator, roleTypes[role], wrap);
 
-            const jointPrompt = [rolePrompts, extensionPrompt].filter(x => x).map(x => x.trim()).join(separator);
+        const extensionPrompts = await getExtensionPromptList(extension_prompt_types.IN_CHAT, i, undefined);
 
-            if (jointPrompt && jointPrompt.length) {
-                roleMessages.push({ 'role': role, 'content': jointPrompt, injected: true });
+        let roleList = [];
+        let promptList = [];
+        for (const prompt of depthPrompts) {
+            if (roleList.at(-1) != prompt.role) {
+                roleList.push(prompt.role);
+                promptList.push('');
             }
+            const content = prompt.content;
+            if (content) {
+                promptList[promptList.length - 1] += `${content}\n`;
+            }
+        }
+        for (const prompt of extensionPrompts) {
+            const role = Object.entries(roleTypes).find(([k,v])=>v == prompt.role)[0];
+            if (roleList.at(-1) != role) {
+                roleList.push(role);
+                promptList.push('');
+            }
+            const content = substituteParams(prompt.value.trim());
+            if (content) {
+                promptList[promptList.length - 1] += `${content}\n`;
+            }
+        }
+        for (let idx = 0; idx < promptList.length; idx++) {
+            const jointPrompt = promptList[idx].trim();
+            const role = roleList[idx];
+            roleMessages.push({ 'role': role, 'content': jointPrompt, injected: true });
         }
 
         if (roleMessages.length) {

@@ -3050,6 +3050,26 @@ export async function getExtensionPrompt(position = extension_prompt_types.IN_PR
     return values;
 }
 
+export async function getExtensionPromptList(position = extension_prompt_types.IN_PROMPT, depth = undefined, role = undefined) {
+    const filterByFunction = async (prompt) => {
+        const hasFilter = typeof prompt.filter === 'function';
+        if (hasFilter && !await prompt.filter()) {
+            return false;
+        }
+        return true;
+    };
+    const promptPromises = Object.keys(extension_prompts)
+        .sort()
+        .map((x) => extension_prompts[x])
+        .filter(x => x.position == position && x.value)
+        .filter(x => depth === undefined || x.depth === undefined || x.depth === depth)
+        .filter(x => role === undefined || x.role === undefined || x.role === role)
+        .filter(filterByFunction);
+    const prompts = await Promise.all(promptPromises);
+
+    return prompts;
+}
+
 export function baseChatReplace(value, name1, name2) {
     if (value !== undefined && value.length > 0) {
         const _ = undefined;
@@ -4031,9 +4051,9 @@ export async function Generate(type, { automatic_trigger, force_name2, quiet_pro
         // Add all depth WI entries to prompt
         flushWIDepthInjections();
         if (Array.isArray(worldInfoDepth)) {
-            worldInfoDepth.forEach((e) => {
+            worldInfoDepth.forEach((e,i) => {
                 const joinedEntries = e.entries.join('\n');
-                setExtensionPrompt(`customDepthWI-${e.depth}-${e.role}`, joinedEntries, extension_prompt_types.IN_CHAT, e.depth, false, e.role);
+                setExtensionPrompt(`customDepthWI-${e.depth}-${i}`, joinedEntries, extension_prompt_types.IN_CHAT, e.depth, false, e.role);
             });
         }
     } else {

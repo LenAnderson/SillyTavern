@@ -4298,7 +4298,7 @@ export async function checkWorldInfo(chat, maxContext, isDryRun) {
                 ANBottomEntries.unshift(content);
                 break;
             case world_info_position.atDepth: {
-                const existingDepthIndex = WIDepthEntries.findIndex((e) => e.depth === (entry.depth ?? DEFAULT_DEPTH) && e.role === (entry.role ?? extension_prompt_roles.SYSTEM));
+                const existingDepthIndex = -1;//WIDepthEntries.findIndex((e) => e.depth === (entry.depth ?? DEFAULT_DEPTH) && e.role === (entry.role ?? extension_prompt_roles.SYSTEM));
                 if (existingDepthIndex !== -1) {
                     WIDepthEntries[existingDepthIndex].entries.unshift(content);
                 } else {
