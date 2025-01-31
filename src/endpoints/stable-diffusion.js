@@ -533,6 +533,7 @@ comfy.post('/delete-workflow', jsonParser, async (request, response) => {
 
 comfy.post('/generate', jsonParser, async (request, response) => {
     try {
+        let item;
         const url = new URL(urlJoin(request.body.url, '/prompt'));
 
         const controller = new AbortController();
@@ -557,7 +558,6 @@ comfy.post('/generate', jsonParser, async (request, response) => {
         /** @type {any} */
         const data = await promptResult.json();
         const id = data.prompt_id;
-        let item;
         const historyUrl = new URL(urlJoin(request.body.url, '/history'));
         while (true) {
             const result = await fetch(historyUrl);

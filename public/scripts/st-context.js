@@ -69,6 +69,7 @@ import { textgenerationwebui_settings } from './textgen-settings.js';
 import { tokenizers, getTextTokens, getTokenCount, getTokenCountAsync, getTokenizerModel } from './tokenizers.js';
 import { ToolManager } from './tool-calling.js';
 import { timestampToMoment, uuidv4 } from './utils.js';
+import { getGlobalVariable, getLocalVariable, setGlobalVariable, setLocalVariable } from './variables.js';
 
 export function getContext() {
     return {
@@ -175,6 +176,16 @@ export function getContext() {
         humanizedDateTime,
         updateMessageBlock,
         appendMediaToMessage,
+        variables: {
+            local: {
+                get: getLocalVariable,
+                set: setLocalVariable,
+            },
+            global: {
+                get: getGlobalVariable,
+                set: setGlobalVariable,
+            },
+        },
     };
 }
 

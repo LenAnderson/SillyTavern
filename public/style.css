@@ -399,6 +399,11 @@ input[type='checkbox']:focus-visible {
     color: var(--SmartThemeEmColor);
 }
 
+.mes_text q i,
+.mes_text q em {
+    color: inherit;
+}
+
 .mes_text u,
 .mes_reasoning u {
     color: var(--SmartThemeUnderlineColor);

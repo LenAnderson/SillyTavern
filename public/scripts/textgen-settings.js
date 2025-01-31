@@ -172,6 +172,7 @@ const settings = {
     //truncation_length: 2048,
     ban_eos_token: false,
     skip_special_tokens: true,
+    include_reasoning: true,
     streaming: false,
     mirostat_mode: 0,
     mirostat_tau: 5,
@@ -263,6 +264,7 @@ export const setting_names = [
     'add_bos_token',
     'ban_eos_token',
     'skip_special_tokens',
+    'include_reasoning',
     'streaming',
     'mirostat_mode',
     'mirostat_tau',
@@ -501,7 +503,7 @@ export function loadTextGenSettings(data, loadedSettings) {
     for (const [type, selector] of Object.entries(SERVER_INPUTS)) {
         const control = $(selector);
         control.val(settings.server_urls[type] ?? '').on('input', function () {
-            settings.server_urls[type] = String($(this).val());
+            settings.server_urls[type] = String($(this).val()).trim();
             saveSettingsDebounced();
         });
     }
@@ -740,6 +742,7 @@ jQuery(function () {
             'add_bos_token_textgenerationwebui': true,
             'temperature_last_textgenerationwebui': true,
             'skip_special_tokens_textgenerationwebui': true,
+            'include_reasoning_textgenerationwebui': true,
             'top_a_textgenerationwebui': 0,
             'top_a_counter_textgenerationwebui': 0,
             'mirostat_mode_textgenerationwebui': 0,
@@ -986,7 +989,7 @@ export async function generateTextGenWithStreaming(generate_data, signal) {
         let logprobs = null;
         const swipes = [];
         const toolCalls = [];
-        const state = {};
+        const state = { reasoning: '' };
         while (true) {
             const { done, value } = await reader.read();
             if (done) return;
@@ -1003,6 +1006,7 @@ export async function generateTextGenWithStreaming(generate_data, signal) {
                 const newText = data?.choices?.[0]?.text || data?.content || '';
                 text += newText;
                 logprobs = parseTextgenLogprobs(newText, data.choices?.[0]?.logprobs || data?.completion_probabilities);
+                state.reasoning += data?.choices?.[0]?.reasoning ?? '';
             }
 
             yield { text, swipes, logprobs, toolCalls, state };
@@ -1266,6 +1270,7 @@ export function getTextGenGenerationData(finalPrompt, maxTokens, isImpersonate, 
         'truncation_length': max_context,
         'ban_eos_token': settings.ban_eos_token,
         'skip_special_tokens': settings.skip_special_tokens,
+        'include_reasoning': settings.include_reasoning,
         'top_a': settings.top_a,
         'tfs': settings.tfs,
         'epsilon_cutoff': [OOBA, MANCER].includes(settings.type) ? settings.epsilon_cutoff : undefined,

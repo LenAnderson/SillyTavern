@@ -1733,17 +1733,17 @@ export function hasAnimation(control) {
 
 /**
  * Run an action once an animation on a control ends. If the control has no animation, the action will be executed immediately.
- *
+ * The action will be executed after the animation ends or after the timeout, whichever comes first.
  * @param {HTMLElement} control - The control element to listen for animation end event
  * @param {(control:*?) => void} callback - The callback function to be executed when the animation ends
+ * @param {number} [timeout=500] - The timeout in milliseconds to wait for the animation to end before executing the callback
  */
-export function runAfterAnimation(control, callback) {
+export function runAfterAnimation(control, callback, timeout = 500) {
     if (hasAnimation(control)) {
-        const onAnimationEnd = () => {
-            control.removeEventListener('animationend', onAnimationEnd);
-            callback(control);
-        };
-        control.addEventListener('animationend', onAnimationEnd);
+        Promise.race([
+            new Promise((r) => setTimeout(r, timeout)), // Fallback timeout
+            new Promise((r) => control.addEventListener('animationend', r, { once: true })),
+        ]).finally(() => callback(control));
     } else {
         callback(control);
     }

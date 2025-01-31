@@ -1587,6 +1587,10 @@
                                                 <input type="checkbox" id="skip_special_tokens_textgenerationwebui" />
                                                 <small data-i18n="Skip Special Tokens">Skip Special Tokens</small>
                                             </label>
+                                            <label data-tg-type="openrouter" class="checkbox_label flexGrow flexShrink" for="include_reasoning_textgenerationwebui">
+                                                <input type="checkbox" id="include_reasoning_textgenerationwebui" />
+                                                <small data-i18n="Request Model Reasoning">Request Model Reasoning</small>
+                                            </label>
                                             <label data-tg-type="ooba, aphrodite, tabby" class="checkbox_label  flexGrow flexShrink" for="temperature_last_textgenerationwebui">
                                                 <input type="checkbox" id="temperature_last_textgenerationwebui" />
                                                 <label>
@@ -1981,13 +1985,13 @@
                                         <label for="openai_show_thoughts" class="checkbox_label widthFreeExpand">
                                             <input id="openai_show_thoughts" type="checkbox" />
                                             <span>
-                                                <span data-i18n="Show model reasoning">Show model reasoning</span>
+                                                <span data-i18n="Request model reasoning">Request model reasoning</span>
                                                 <i class="opacity50p fa-solid fa-circle-info" title="Gemini 2.0 Thinking / DeepSeek Reasoner"></i>
                                             </span>
                                         </label>
                                         <div class="toggle-description justifyLeft marginBot5">
-                                            <span data-i18n="Display the model's internal thoughts in the response.">
-                                                Display the model's internal thoughts in the response.
+                                            <span data-i18n="Allows the model to return its thinking process.">
+                                                Allows the model to return its thinking process.
                                             </span>
                                         </div>
                                     </div>
@@ -3227,31 +3231,18 @@
                             <h4 data-i18n="Perplexity Model">Perplexity Model</h4>
                             <select id="model_perplexity_select">
                                 <optgroup label="Perplexity Sonar Models">
+                                    <option value="sonar">sonar</option>
+                                    <option value="sonar-pro">sonar-pro</option>
+                                    <option value="sonar-reasoning">sonar-reasoning</option>
+                                </optgroup>
+                                <optgroup label="Deprecated Models">
+                                    <!-- These are scheduled for deprecation after 2/22/2025 -->
                                     <option value="llama-3.1-sonar-small-128k-online">llama-3.1-sonar-small-128k-online</option>
                                     <option value="llama-3.1-sonar-large-128k-online">llama-3.1-sonar-large-128k-online</option>
                                     <option value="llama-3.1-sonar-huge-128k-online">llama-3.1-sonar-huge-128k-online</option>
-                                </optgroup>
-                                <optgroup label="Perplexity Chat Models">
+                                    <!-- These are not listed on the site anymore -->
                                     <option value="llama-3.1-sonar-small-128k-chat">llama-3.1-sonar-small-128k-chat</option>
                                     <option value="llama-3.1-sonar-large-128k-chat">llama-3.1-sonar-large-128k-chat</option>
-                                </optgroup>
-                                <optgroup label="Open-Source Models">
-                                    <option value="llama-3.1-8b-instruct">llama-3.1-8b-instruct</option>
-                                    <option value="llama-3.1-70b-instruct">llama-3.1-70b-instruct</option>
-                                </optgroup>
-                                <optgroup label="Deprecated Models">
-                                    <option value="llama-3-sonar-small-32k-chat">llama-3-sonar-small-32k-chat</option>
-                                    <option value="llama-3-sonar-small-32k-online">llama-3-sonar-small-32k-online</option>
-                                    <option value="llama-3-sonar-large-32k-chat">llama-3-sonar-large-32k-chat</option>
-                                    <option value="llama-3-sonar-large-32k-online">llama-3-sonar-large-32k-online</option>
-                                    <option value="sonar-small-chat">sonar-small-chat</option>
-                                    <option value="sonar-small-online">sonar-small-online</option>
-                                    <option value="sonar-medium-chat">sonar-medium-chat</option>
-                                    <option value="sonar-medium-online">sonar-medium-online</option>
-                                    <option value="llama-3-8b-instruct">llama-3-8b-instruct</option>
-                                    <option value="llama-3-70b-instruct">llama-3-70b-instruct</option>
-                                    <option value="mistral-7b-instruct">mistral-7b-instruct (v0.2)</option>
-                                    <option value="mixtral-8x7b-instruct">mixtral-8x7b-instruct</option>
                                 </optgroup>
                             </select>
                         </div>
@@ -3804,6 +3795,12 @@
                                 <span data-i18n="Reasoning">Reasoning</span>
                             </h4>
                             <div>
+                                <label class="checkbox_label" for="reasoning_auto_parse" title="Automatically parse reasoning blocks from main content between the reasoning prefix/suffix. Both fields must be defined and non-empty." data-i18n="[title]reasoning_auto_parse">
+                                    <input id="reasoning_auto_parse" type="checkbox" />
+                                    <small data-i18n="Auto-Parse Reasoning">
+                                        Auto-Parse Reasoning
+                                    </small>
+                                </label>
                                 <label class="checkbox_label" for="reasoning_add_to_prompts" title="Add existing reasoning blocks to prompts. To add a new reasoning block, use the message edit menu." data-i18n="[title]reasoning_add_to_prompts">
                                     <input id="reasoning_add_to_prompts" type="checkbox" />
                                     <small data-i18n="Add Reasoning to Prompts">

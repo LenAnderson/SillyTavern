@@ -288,7 +288,7 @@ async function sendMakerSuiteRequest(request, response) {
 
     const model = String(request.body.model);
     const stream = Boolean(request.body.stream);
-    const showThoughts = Boolean(request.body.show_thoughts);
+    const showThoughts = Boolean(request.body.include_reasoning);
     const isThinking = model.includes('thinking');
 
     const generationConfig = {
@@ -998,7 +998,7 @@ router.post('/generate', jsonParser, function (request, response) {
             bodyParams['route'] = 'fallback';
         }
 
-        if (request.body.show_thoughts) {
+        if (request.body.include_reasoning) {
             bodyParams['include_reasoning'] = true;
         }
 

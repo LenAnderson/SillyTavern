@@ -95,6 +95,7 @@ import {
     resetMovableStyles,
     forceCharacterEditorTokenize,
     applyPowerUserSettings,
+    generatedTextFiltered,
 } from './scripts/power-user.js';
 
 import {
@@ -169,6 +170,7 @@ import {
     toggleDrawer,
     isElementInViewport,
     copyText,
+    escapeHtml,
 } from './scripts/utils.js';
 import { debounce_timeout } from './scripts/constants.js';
 
@@ -2056,14 +2058,15 @@ export async function sendTextareaMessage() {
  * @param {boolean} isUser If the message was sent by the user
  * @param {number} messageId Message index in chat array
  * @param {object} [sanitizerOverrides] DOMPurify sanitizer option overrides
+ * @param {boolean} [isReasoning] If the message is reasoning output
  * @returns {string} HTML string
  */
-export function messageFormatting(mes, ch_name, isSystem, isUser, messageId, sanitizerOverrides = {}) {
+export function messageFormatting(mes, ch_name, isSystem, isUser, messageId, sanitizerOverrides = {}, isReasoning = false) {
     if (!mes) {
         return '';
     }
 
-    if (Number(messageId) === 0 && !isSystem && !isUser) {
+    if (Number(messageId) === 0 && !isSystem && !isUser && !isReasoning) {
         const mesBeforeReplace = mes;
         const chatMessage = chat[messageId];
         mes = substituteParams(mes, undefined, ch_name);
@@ -2092,6 +2095,9 @@ export function messageFormatting(mes, ch_name, isSystem, isUser, messageId, san
     if (!isSystem) {
         function getRegexPlacement() {
             try {
+                if (isReasoning) {
+                    return regex_placement.REASONING;
+                }
                 if (isUser) {
                     return regex_placement.USER_INPUT;
                 } else if (chat[messageId]?.extra?.type === 'narrator') {
@@ -2124,6 +2130,17 @@ export function messageFormatting(mes, ch_name, isSystem, isUser, messageId, san
     if (!isSystem && power_user.encode_tags) {
         mes = mes.replaceAll('<', '&lt;').replaceAll('>', '&gt;');
     }
+
+    // Make sure reasoning strings are always shown, even if they include "<" or ">"
+    [power_user.reasoning.prefix, power_user.reasoning.suffix].forEach((reasoningString) => {
+        if (!reasoningString || !reasoningString.trim().length) {
+            return;
+        }
+        // Only replace the first occurrence of the reasoning string
+        if (mes.includes(reasoningString)) {
+            mes = mes.replace(reasoningString, escapeHtml(reasoningString));
+        }
+    });
 
     if (!isSystem) {
         // Save double quotes in tags as a special character to prevent them from being encoded
@@ -2313,8 +2330,8 @@ function getMessageFromTemplate({
 export function updateMessageBlock(messageId, message) {
     const messageElement = $(`#chat [mesid="${messageId}"]`);
     const text = message?.extra?.display_text ?? message.mes;
-    messageElement.find('.mes_text').html(messageFormatting(text, message.name, message.is_system, message.is_user, messageId));
-    messageElement.find('.mes_reasoning').html(messageFormatting(message.extra?.reasoning ?? '', '', false, false, -1));
+    messageElement.find('.mes_text').html(messageFormatting(text, message.name, message.is_system, message.is_user, messageId, {}, false));
+    messageElement.find('.mes_reasoning').html(messageFormatting(message.extra?.reasoning ?? '', '', false, false, messageId, {}, true));
     addCopyToCodeBlocks(messageElement);
     appendMediaToMessage(message, messageElement);
 }
@@ -2471,9 +2488,10 @@ export function addOneMessage(mes, { type = 'normal', insertAfter = null, scroll
         mes.is_user,
         chat.indexOf(mes),
         sanitizerOverrides,
+        false,
     );
-    const bias = messageFormatting(mes.extra?.bias ?? '', '', false, false, -1);
-    const reasoning = messageFormatting(mes.extra?.reasoning ?? '', '', false, false, -1);
+    const bias = messageFormatting(mes.extra?.bias ?? '', '', false, false, -1, {}, false);
+    const reasoning = messageFormatting(mes.extra?.reasoning ?? '', '', false, false, chat.indexOf(mes), {}, true);
     let bookmarkLink = mes?.extra?.bookmark_link ?? '';
 
     let params = {
@@ -3236,7 +3254,7 @@ class StreamingProcessor {
             this.sendTextarea.dispatchEvent(new Event('input', { bubbles: true }));
         }
         else {
-            await saveReply(this.type, text, true);
+            await saveReply(this.type, text, true, '', [], '');
             messageId = chat.length - 1;
             this.#checkDomElements(messageId);
             this.showMessageButtons(messageId);
@@ -3286,9 +3304,9 @@ class StreamingProcessor {
             }
 
             if (this.reasoning) {
-                chat[messageId]['extra']['reasoning'] = this.reasoning;
+                chat[messageId]['extra']['reasoning'] = power_user.trim_spaces ? this.reasoning.trim() : this.reasoning;
                 if (this.messageReasoningDom instanceof HTMLElement) {
-                    const formattedReasoning = messageFormatting(this.reasoning, '', false, false, -1);
+                    const formattedReasoning = messageFormatting(this.reasoning, '', false, false, messageId, {}, true);
                     this.messageReasoningDom.innerHTML = formattedReasoning;
                 }
             }
@@ -3315,6 +3333,8 @@ class StreamingProcessor {
                 chat[messageId].is_system,
                 chat[messageId].is_user,
                 messageId,
+                {},
+                false,
             );
             if (this.messageTextDom instanceof HTMLElement) {
                 this.messageTextDom.innerHTML = formattedText;
@@ -3366,39 +3386,11 @@ class StreamingProcessor {
         unblockGeneration();
         generatedPromptCache = '';
 
-        //console.log("Generated text size:", text.length, text)
-
         const isAborted = this.abortController.signal.aborted;
-        if (power_user.auto_swipe && !isAborted) {
-            function containsBlacklistedWords(str, blacklist, threshold) {
-                const regex = new RegExp(`\\b(${blacklist.join('|')})\\b`, 'gi');
-                const matches = str.match(regex) || [];
-                return matches.length >= threshold;
-            }
-
-            const generatedTextFiltered = (text) => {
-                if (text) {
-                    if (power_user.auto_swipe_minimum_length) {
-                        if (text.length < power_user.auto_swipe_minimum_length && text.length !== 0) {
-                            console.log('Generated text size too small');
-                            return true;
-                        }
-                    }
-                    if (power_user.auto_swipe_blacklist_threshold) {
-                        if (containsBlacklistedWords(text, power_user.auto_swipe_blacklist, power_user.auto_swipe_blacklist_threshold)) {
-                            console.log('Generated text has blacklisted words');
-                            return true;
-                        }
-                    }
-                }
-                return false;
-            };
-
-            if (generatedTextFiltered(text)) {
-                swipe_right();
-                return;
-            }
+        if (!isAborted && power_user.auto_swipe && generatedTextFiltered(text)) {
+            return swipe_right();
         }
+
         playMessageSound();
     }
 
@@ -3456,7 +3448,7 @@ class StreamingProcessor {
             const timestamps = [];
             for await (const { text, swipes, logprobs, toolCalls, state } of this.generator()) {
                 timestamps.push(Date.now());
-                if (this.isStopped) {
+                if (this.isStopped || this.abortController.signal.aborted) {
                     return;
                 }
 
@@ -3466,7 +3458,7 @@ class StreamingProcessor {
                 if (logprobs) {
                     this.messageLogprobs.push(...(Array.isArray(logprobs) ? logprobs : [logprobs]));
                 }
-                this.reasoning = state?.reasoning ?? '';
+                this.reasoning = getRegexedString(state?.reasoning ?? '', regex_placement.REASONING);
                 await eventSource.emit(event_types.STREAM_TOKEN_RECEIVED, text);
                 await sw.tick(() => this.onProgressStreaming(this.messageId, this.continueMessage + text));
             }
@@ -3933,14 +3925,6 @@ export async function Generate(type, { automatic_trigger, force_name2, quiet_pro
         coreChat.pop();
     }
 
-    const reasoning = new PromptReasoning();
-    for (let i = coreChat.length - 1; i >= 0; i--) {
-        if (reasoning.isLimitReached()) {
-            break;
-        }
-        coreChat[i] = { ...coreChat[i], mes: reasoning.addToMessage(coreChat[i].mes, coreChat[i].extra?.reasoning) };
-    }
-
     coreChat = await Promise.all(coreChat.map(async (chatItem, index) => {
         let message = chatItem.mes;
         let regexType = chatItem.is_user ? regex_placement.USER_INPUT : regex_placement.AI_OUTPUT;
@@ -3959,6 +3943,27 @@ export async function Generate(type, { automatic_trigger, force_name2, quiet_pro
             index,
         };
     }));
+
+    const reasoning = new PromptReasoning();
+    for (let i = coreChat.length - 1; i >= 0; i--) {
+        const depth = coreChat.length - i - 1;
+        const isPrefix = isContinue && i === coreChat.length - 1;
+        coreChat[i] = {
+            ...coreChat[i],
+            mes: reasoning.addToMessage(
+                coreChat[i].mes,
+                getRegexedString(
+                    String(coreChat[i].extra?.reasoning ?? ''),
+                    regex_placement.REASONING,
+                    { isPrompt: true, depth: depth },
+                ),
+                isPrefix,
+            ),
+        };
+        if (reasoning.isLimitReached()) {
+            break;
+        }
+    }
 
     // Determine token limit
     let this_max_context = getMaxContextSize();
@@ -4868,6 +4873,11 @@ export async function Generate(type, { automatic_trigger, force_name2, quiet_pro
         const swipes = extractMultiSwipes(data, type);
 
         messageChunk = cleanUpMessage(getMessage, isImpersonate, isContinue, false);
+        reasoning = getRegexedString(reasoning, regex_placement.REASONING);
+
+        if (power_user.trim_spaces) {
+            reasoning = reasoning.trim();
+        }
 
         if (isContinue) {
             getMessage = continue_mag + getMessage;
@@ -4926,32 +4936,9 @@ export async function Generate(type, { automatic_trigger, force_name2, quiet_pro
         }
 
         const isAborted = abortController && abortController.signal.aborted;
-        if (power_user.auto_swipe && !isAborted) {
-            console.debug('checking for autoswipeblacklist on non-streaming message');
-            function containsBlacklistedWords(getMessage, blacklist, threshold) {
-                console.debug('checking blacklisted words');
-                const regex = new RegExp(`\\b(${blacklist.join('|')})\\b`, 'gi');
-                const matches = getMessage.match(regex) || [];
-                return matches.length >= threshold;
-            }
-
-            const generatedTextFiltered = (getMessage) => {
-                if (power_user.auto_swipe_blacklist_threshold) {
-                    if (containsBlacklistedWords(getMessage, power_user.auto_swipe_blacklist, power_user.auto_swipe_blacklist_threshold)) {
-                        console.debug('Generated text has blacklisted words');
-                        return true;
-                    }
-                }
-
-                return false;
-            };
-            if (generatedTextFiltered(getMessage)) {
-                console.debug('swiping right automatically');
-                is_send_press = false;
-                swipe_right();
-                // TODO: do we want to resolve after an auto-swipe?
-                return;
-            }
+        if (!isAborted && power_user.auto_swipe && generatedTextFiltered(getMessage)) {
+            is_send_press = false;
+            return swipe_right();
         }
 
         console.debug('/api/chats/save called by /Generate');
@@ -5802,15 +5789,26 @@ function extractMessageFromData(data) {
  * @returns {string} Extracted reasoning
  */
 function extractReasoningFromData(data) {
-    if (main_api === 'openai' && oai_settings.show_thoughts) {
-        switch (oai_settings.chat_completion_source) {
-            case chat_completion_sources.DEEPSEEK:
-                return data?.choices?.[0]?.message?.reasoning_content ?? '';
-            case chat_completion_sources.OPENROUTER:
-                return data?.choices?.[0]?.message?.reasoning ?? '';
-            case chat_completion_sources.MAKERSUITE:
-                return data?.responseContent?.parts?.filter(part => part.thought)?.map(part => part.text)?.join('\n\n') ?? '';
-        }
+    switch (main_api) {
+        case 'textgenerationwebui':
+            switch (textgen_settings.type) {
+                case textgen_types.OPENROUTER:
+                    return data?.choices?.[0]?.reasoning ?? '';
+            }
+            break;
+
+        case 'openai':
+            if (!oai_settings.show_thoughts) break;
+
+            switch (oai_settings.chat_completion_source) {
+                case chat_completion_sources.DEEPSEEK:
+                    return data?.choices?.[0]?.message?.reasoning_content ?? '';
+                case chat_completion_sources.OPENROUTER:
+                    return data?.choices?.[0]?.message?.reasoning ?? '';
+                case chat_completion_sources.MAKERSUITE:
+                    return data?.responseContent?.parts?.filter(part => part.thought)?.map(part => part.text)?.join('\n\n') ?? '';
+            }
+            break;
     }
 
     return '';
@@ -7276,9 +7274,11 @@ function messageEditAuto(div) {
         mes.is_system,
         mes.is_user,
         this_edit_mes_id,
+        {},
+        false,
     ));
     mesBlock.find('.mes_bias').empty();
-    mesBlock.find('.mes_bias').append(messageFormatting(bias, '', false, false, -1));
+    mesBlock.find('.mes_bias').append(messageFormatting(bias, '', false, false, -1, {}, false));
     saveChatDebounced();
 }
 
@@ -7300,10 +7300,12 @@ async function messageEditDone(div) {
             mes.is_system,
             mes.is_user,
             this_edit_mes_id,
+            {},
+            false,
         ),
     );
     mesBlock.find('.mes_bias').empty();
-    mesBlock.find('.mes_bias').append(messageFormatting(bias, '', false, false, -1));
+    mesBlock.find('.mes_bias').append(messageFormatting(bias, '', false, false, -1, {}, false));
     appendMediaToMessage(mes, div.closest('.mes'));
     addCopyToCodeBlocks(div.closest('.mes'));
 
@@ -10953,6 +10955,8 @@ jQuery(async function () {
                 chat[this_edit_mes_id].is_system,
                 chat[this_edit_mes_id].is_user,
                 this_edit_mes_id,
+                {},
+                false,
             ));
         appendMediaToMessage(chat[this_edit_mes_id], $(this).closest('.mes'));
         addCopyToCodeBlocks($(this).closest('.mes'));
