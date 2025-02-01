@@ -2002,16 +2002,16 @@ export function initDefaultSlashCommands() {
     SlashCommandParser.addCommandObject(SlashCommand.fromProps({
         name: 'replace',
         aliases: ['re'],
-        callback: (async ({mode = 'literal', pattern, replacer = ''}, text) => {
+        callback: (async ({ mode = 'literal', pattern, replacer = '' }, text) => {
             if (pattern === '')
-                throw new Error("Argument of 'pattern=' cannot be empty");
+                throw new Error('Argument of \'pattern=\' cannot be empty');
             switch (mode) {
                 case 'literal':
                     return text.replaceAll(pattern, replacer);
                 case 'regex':
                     return text.replace(regexFromString(pattern), replacer);
                 default:
-                    throw new Error("Invalid '/replace mode=' argument specified!");
+                    throw new Error('Invalid \'/replace mode=\' argument specified!');
             }
         }),
         returns: 'replaced text',
@@ -3141,11 +3141,6 @@ async function removeGroupMemberCallback(_, arg) {
         return '';
     }
 
-    if (is_group_generating) {
-        toastr.warning('Cannot run /memberremove command while the group reply is generating.');
-        return '';
-    }
-
     const chid = findGroupMemberId(arg);
 
     if (chid === undefined) {
@@ -3250,12 +3245,7 @@ function findPersonaByName(name) {
 }
 
 async function sendUserMessageCallback(args, text) {
-    if (!text) {
-        toastr.warning('You must specify text to send');
-        return;
-    }
-
-    text = text.trim();
+    text = String(text ?? '').trim();
     const compact = isTrueBoolean(args?.compact);
     const bias = extractMessageBias(text);
 
@@ -3564,13 +3554,7 @@ export function getNameAndAvatarForMessage(character, name = null) {
 }
 
 export async function sendMessageAs(args, text) {
-    if (!text) {
-        toastr.warning('You must specify text to send as');
-        return '';
-    }
-
     let name = args.name?.trim();
-    let mesText;
 
     if (!name) {
         const namelessWarningKey = 'sendAsNamelessWarningShown';
@@ -3581,7 +3565,7 @@ export async function sendMessageAs(args, text) {
         name = name2;
     }
 
-    mesText = text.trim();
+    let mesText = String(text ?? '').trim();
 
     // Requires a regex check after the slash command is pushed to output
     mesText = getRegexedString(mesText, regex_placement.SLASH_COMMAND, { characterOverride: name });
@@ -3659,11 +3643,7 @@ export async function sendMessageAs(args, text) {
 }
 
 export async function sendNarratorMessage(args, text) {
-    if (!text) {
-        toastr.warning('You must specify text to send');
-        return '';
-    }
-
+    text = String(text ?? '');
     const name = chat_metadata[NARRATOR_NAME_KEY] || NARRATOR_NAME_DEFAULT;
     // Messages that do nothing but set bias will be hidden from the context
     const bias = extractMessageBias(text);
@@ -3754,18 +3734,13 @@ export async function promptQuietForLoudResponse(who, text) {
 }
 
 async function sendCommentMessage(args, text) {
-    if (!text) {
-        toastr.warning('You must specify text to send');
-        return '';
-    }
-
     const compact = isTrueBoolean(args?.compact);
     const message = {
         name: COMMENT_NAME_DEFAULT,
         is_user: false,
         is_system: true,
         send_date: getMessageTimeStamp(),
-        mes: substituteParams(text.trim()),
+        mes: substituteParams(String(text ?? '').trim()),
         force_avatar: comment_avatar,
         extra: {
             type: system_message_types.COMMENT,
