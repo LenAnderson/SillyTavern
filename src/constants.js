@@ -414,3 +414,10 @@ export const VLLM_KEYS = [
     'guided_decoding_backend',
     'guided_whitespace_pattern',
 ];
+
+export const LOG_LEVELS = {
+    DEBUG: 0,
+    INFO: 1,
+    WARN: 2,
+    ERROR: 3,
+};

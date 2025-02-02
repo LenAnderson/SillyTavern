@@ -13,6 +13,7 @@ import _ from 'lodash';
 import yauzl from 'yauzl';
 import mime from 'mime-types';
 import { default as simpleGit } from 'simple-git';
+import { LOG_LEVELS } from './constants.js';
 
 /**
  * Parsed config object.
@@ -149,6 +150,7 @@ export function getHexString(length) {
  */
 export function formatBytes(bytes) {
     if (bytes === 0) return '0 B';
+
     const k = 1024;
     const sizes = ['B', 'KB', 'MB', 'GB'];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
@@ -163,14 +165,12 @@ export function formatBytes(bytes) {
  */
 export async function extractFileFromZipBuffer(archiveBuffer, fileExtension) {
     return await new Promise((resolve, reject) => yauzl.fromBuffer(Buffer.from(archiveBuffer), { lazyEntries: true }, (err, zipfile) => {
-        if (err) {
-            reject(err);
-        }
+        if (err) reject(err);
 
         zipfile.readEntry();
         zipfile.on('entry', (entry) => {
             if (entry.fileName.endsWith(fileExtension) && !entry.fileName.startsWith('__MACOSX')) {
-                console.log(`Extracting ${entry.fileName}`);
+                console.info(`Extracting ${entry.fileName}`);
                 zipfile.openReadStream(entry, (err, readStream) => {
                     if (err) {
                         reject(err);
@@ -218,7 +218,7 @@ export async function getImageBuffers(zipFilePath) {
                 zipfile.on('entry', (entry) => {
                     const mimeType = mime.lookup(entry.fileName);
                     if (mimeType && mimeType.startsWith('image/') && !entry.fileName.startsWith('__MACOSX')) {
-                        console.log(`Extracting ${entry.fileName}`);
+                        console.info(`Extracting ${entry.fileName}`);
                         zipfile.openReadStream(entry, (err, readStream) => {
                             if (err) {
                                 reject(err);
@@ -285,10 +285,11 @@ export function deepMerge(target, source) {
     if (isObject(target) && isObject(source)) {
         Object.keys(source).forEach(key => {
             if (isObject(source[key])) {
-                if (!(key in target))
+                if (!(key in target)) {
                     Object.assign(output, { [key]: source[key] });
-                else
+                } else {
                     output[key] = deepMerge(target[key], source[key]);
+                }
             } else {
                 Object.assign(output, { [key]: source[key] });
             }
@@ -447,7 +448,7 @@ export function forwardFetchResponse(from, to) {
     let statusText = from.statusText;
 
     if (!from.ok) {
-        console.log(`Streaming request failed with status ${statusCode} ${statusText}`);
+        console.warn(`Streaming request failed with status ${statusCode} ${statusText}`);
     }
 
     // Avoid sending 401 responses as they reset the client Basic auth.
@@ -467,11 +468,12 @@ export function forwardFetchResponse(from, to) {
 
         to.socket.on('close', function () {
             if (from.body instanceof Readable) from.body.destroy(); // Close the remote stream
+
             to.end(); // End the Express response
         });
 
         from.body.on('end', function () {
-            console.log('Streaming request finished');
+            console.info('Streaming request finished');
             to.end();
         });
     } else {
@@ -516,7 +518,7 @@ export function makeHttp2Request(endpoint, method, body, headers) {
                 });
 
                 req.on('end', () => {
-                    console.log(data);
+                    console.debug(data);
                     resolve(data);
                 });
             });
@@ -690,6 +692,18 @@ export function isValidUrl(url) {
     } catch (error) {
         return false;
     }
+}
+
+/**
+ * Setup the minimum log level
+ */
+export function setupLogLevel() {
+    const logLevel = getConfigValue('minLogLevel', LOG_LEVELS.DEBUG);
+
+    globalThis.console.debug = logLevel <= LOG_LEVELS.DEBUG ? console.debug : () => {};
+    globalThis.console.info = logLevel <= LOG_LEVELS.INFO ? console.info : () => {};
+    globalThis.console.warn = logLevel <= LOG_LEVELS.WARN ? console.warn : () => {};
+    globalThis.console.error = logLevel <= LOG_LEVELS.ERROR ? console.error : () => {};
 }
 
 /**

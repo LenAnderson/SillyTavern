@@ -4602,23 +4602,6 @@ body .ui-widget-content li:hover {
     opacity: 1;
 }
 
-.typing_indicator {
-    position: sticky;
-    bottom: 10px;
-    margin: 10px;
-    opacity: 0.85;
-    text-shadow: 0px 0px calc(var(--shadowWidth) * 1px) var(--SmartThemeShadowColor);
-    order: 9999;
-}
-
-.typing_indicator:after {
-    display: inline-block;
-    vertical-align: bottom;
-    animation: ellipsis steps(4, end) 1500ms infinite;
-    content: "";
-    width: 0px;
-}
-
 #group_avatar_preview .missing-avatar {
     display: inline;
     vertical-align: middle;

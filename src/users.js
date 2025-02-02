@@ -840,7 +840,7 @@ export function requireAdminMiddleware(request, response, next) {
 export async function createBackupArchive(handle, response) {
     const directories = getUserDirectories(handle);
 
-    console.log('Backup requested for', handle);
+    console.info('Backup requested for', handle);
     const archive = archiver('zip');
 
     archive.on('error', function (err) {
@@ -849,7 +849,7 @@ export async function createBackupArchive(handle, response) {
 
     // On stream closed we can end the request
     archive.on('end', function () {
-        console.log('Archive wrote %d bytes', archive.pointer());
+        console.info('Archive wrote %d bytes', archive.pointer());
         response.end(); // End the Express response
     });
 

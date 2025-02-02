@@ -50,7 +50,7 @@ function backupChat(directory, name, chat) {
 
         removeOldBackups(directory, 'chat_', maxTotalChatBackups);
     } catch (err) {
-        console.log(`Could not backup chat for ${name}`, err);
+        console.error(`Could not backup chat for ${name}`, err);
     }
 }
 
@@ -306,8 +306,8 @@ router.post('/save', jsonParser, validateAvatarUrlMiddleware, function (request,
         getBackupFunction(request.user.profile.handle)(request.user.directories.backups, directoryName, jsonlData);
         return response.send({ result: 'ok' });
     } catch (error) {
-        response.send(error);
-        return console.log(error);
+        console.error(error);
+        return response.send(error);
     }
 });
 
@@ -359,17 +359,17 @@ router.post('/rename', jsonParser, validateAvatarUrlMiddleware, async function (
     const pathToOriginalFile = path.join(pathToFolder, sanitize(request.body.original_file));
     const pathToRenamedFile = path.join(pathToFolder, sanitize(request.body.renamed_file));
     const sanitizedFileName = path.parse(pathToRenamedFile).name;
-    console.log('Old chat name', pathToOriginalFile);
-    console.log('New chat name', pathToRenamedFile);
+    console.info('Old chat name', pathToOriginalFile);
+    console.info('New chat name', pathToRenamedFile);
 
     if (!fs.existsSync(pathToOriginalFile) || fs.existsSync(pathToRenamedFile)) {
-        console.log('Either Source or Destination files are not available');
+        console.error('Either Source or Destination files are not available');
         return response.status(400).send({ error: true });
     }
 
     fs.copyFileSync(pathToOriginalFile, pathToRenamedFile);
     fs.rmSync(pathToOriginalFile);
-    console.log('Successfully renamed.');
+    console.info('Successfully renamed.');
     return response.send({ ok: true, sanitizedFileName });
 });
 
@@ -380,12 +380,12 @@ router.post('/delete', jsonParser, validateAvatarUrlMiddleware, function (reques
     const chatFileExists = fs.existsSync(filePath);
 
     if (!chatFileExists) {
-        console.log(`Chat file not found '${filePath}'`);
+        console.error(`Chat file not found '${filePath}'`);
         return response.sendStatus(400);
     }
 
     fs.rmSync(filePath);
-    console.log('Deleted chat file: ' + filePath);
+    console.info(`Deleted chat file: ${filePath}`);
     return response.send('ok');
 });
 
@@ -402,7 +402,7 @@ router.post('/export', jsonParser, validateAvatarUrlMiddleware, async function (
         const errorMessage = {
             message: `Could not find JSONL file to export. Source chat file: ${filename}.`,
         };
-        console.log(errorMessage.message);
+        console.error(errorMessage.message);
         return response.status(404).json(errorMessage);
     }
     try {
@@ -415,14 +415,14 @@ router.post('/export', jsonParser, validateAvatarUrlMiddleware, async function (
                     result: rawFile,
                 };
 
-                console.log(`Chat exported as ${exportfilename}`);
+                console.info(`Chat exported as ${exportfilename}`);
                 return response.status(200).json(successMessage);
             } catch (err) {
                 console.error(err);
                 const errorMessage = {
                     message: `Could not read JSONL file to export. Source chat file: ${filename}.`,
                 };
-                console.log(errorMessage.message);
+                console.error(errorMessage.message);
                 return response.status(500).json(errorMessage);
             }
         }
@@ -449,12 +449,11 @@ router.post('/export', jsonParser, validateAvatarUrlMiddleware, async function (
                 message: `Chat saved to ${exportfilename}`,
                 result: buffer,
             };
-            console.log(`Chat exported as ${exportfilename}`);
+            console.info(`Chat exported as ${exportfilename}`);
             return response.status(200).json(successMessage);
         });
     } catch (err) {
-        console.log('chat export failed.');
-        console.log(err);
+        console.error('chat export failed.', err);
         return response.sendStatus(400);
     }
 });
@@ -513,7 +512,7 @@ router.post('/import', urlencodedParser, validateAvatarUrlMiddleware, function (
             } else if (jsonData.type === 'risuChat') { // RisuAI format
                 importFunc = importRisuChat;
             } else { // Unknown format
-                console.log('Incorrect chat format .json');
+                console.error('Incorrect chat format .json');
                 return response.send({ error: true });
             }
 
@@ -541,7 +540,7 @@ router.post('/import', urlencodedParser, validateAvatarUrlMiddleware, function (
             const jsonData = JSON.parse(header);
 
             if (!(jsonData.user_name !== undefined || jsonData.name !== undefined)) {
-                console.log('Incorrect chat format .jsonl');
+                console.error('Incorrect chat format .jsonl');
                 return response.send({ error: true });
             }
 
@@ -647,7 +646,7 @@ router.post('/search', jsonParser, validateAvatarUrlMiddleware, function (reques
                         break;
                     }
                 } catch (error) {
-                    console.error(groupFile, 'group file is corrupted:', error);
+                    console.warn(groupFile, 'group file is corrupted:', error);
                 }
             }
 

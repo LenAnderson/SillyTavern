@@ -260,7 +260,7 @@ const default_settings = {
     mistralai_model: 'mistral-large-latest',
     cohere_model: 'command-r-plus',
     perplexity_model: 'sonar-pro',
-    groq_model: 'llama-3.1-70b-versatile',
+    groq_model: 'llama-3.3-70b-versatile',
     nanogpt_model: 'gpt-4o-mini',
     zerooneai_model: 'yi-large',
     blockentropy_model: 'be-70b-base-llama3.1',
@@ -1463,9 +1463,7 @@ async function sendWindowAIRequest(messages, signal, stream) {
     }
 
     const onStreamResult = (res, err) => {
-        if (err) {
-            return;
-        }
+        if (err) return;
 
         const thisContent = res?.message?.content;
 
@@ -4423,24 +4421,30 @@ async function onModelChange() {
     if (oai_settings.chat_completion_source == chat_completion_sources.GROQ) {
         if (oai_settings.max_context_unlocked) {
             $('#openai_max_context').attr('max', unlocked_max);
-        }
-        else if (oai_settings.groq_model.includes('llama-3.2') && oai_settings.groq_model.includes('-preview')) {
+        } else if (oai_settings.groq_model.includes('gemma2-9b-it')) {
             $('#openai_max_context').attr('max', max_8k);
-        }
-        else if (oai_settings.groq_model.includes('llama-3.3') || oai_settings.groq_model.includes('llama-3.2') || oai_settings.groq_model.includes('llama-3.1')) {
+        } else if (oai_settings.groq_model.includes('llama-3.3-70b-versatile')) {
             $('#openai_max_context').attr('max', max_128k);
-        }
-        else if (oai_settings.groq_model.includes('llama3-groq')) {
+        } else if (oai_settings.groq_model.includes('llama-3.1-8b-instant')) {
+            $('#openai_max_context').attr('max', max_128k);
+        } else if (oai_settings.groq_model.includes('llama3-70b-8192')) {
             $('#openai_max_context').attr('max', max_8k);
-        }
-        else if (['llama3-8b-8192', 'llama3-70b-8192', 'gemma-7b-it', 'gemma2-9b-it'].includes(oai_settings.groq_model)) {
+        } else if (oai_settings.groq_model.includes('llama3-8b-8192')) {
             $('#openai_max_context').attr('max', max_8k);
-        }
-        else if (['mixtral-8x7b-32768'].includes(oai_settings.groq_model)) {
+        } else if (oai_settings.groq_model.includes('mixtral-8x7b-32768')) {
             $('#openai_max_context').attr('max', max_32k);
-        }
-        else {
-            $('#openai_max_context').attr('max', max_4k);
+        } else if (oai_settings.groq_model.includes('deepseek-r1-distill-llama-70b')) {
+            $('#openai_max_context').attr('max', max_128k);
+        } else if (oai_settings.groq_model.includes('llama-3.3-70b-specdec')) {
+            $('#openai_max_context').attr('max', max_8k);
+        } else if (oai_settings.groq_model.includes('llama-3.2-1b-preview')) {
+            $('#openai_max_context').attr('max', max_128k);
+        } else if (oai_settings.groq_model.includes('llama-3.2-3b-preview')) {
+            $('#openai_max_context').attr('max', max_128k);
+        } else if (oai_settings.groq_model.includes('llama-3.2-11b-vision-preview')) {
+            $('#openai_max_context').attr('max', max_128k);
+        } else if (oai_settings.groq_model.includes('llama-3.2-90b-vision-preview')) {
+            $('#openai_max_context').attr('max', max_128k);
         }
         oai_settings.openai_max_context = Math.min(Number($('#openai_max_context').attr('max')), oai_settings.openai_max_context);
         $('#openai_max_context').val(oai_settings.openai_max_context).trigger('input');

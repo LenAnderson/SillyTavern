@@ -1708,7 +1708,7 @@ export async function loadWorldInfo(name) {
     return null;
 }
 
-async function updateWorldInfoList() {
+export async function updateWorldInfoList() {
     const result = await fetch('/api/settings/get', {
         method: 'POST',
         headers: getRequestHeaders(),
@@ -4658,7 +4658,7 @@ function convertNovelLorebook(inputObj) {
     return outputObj;
 }
 
-function convertCharacterBook(characterBook) {
+export function convertCharacterBook(characterBook) {
     const result = { entries: {}, originalData: characterBook };
 
     characterBook.entries.forEach((entry, index) => {

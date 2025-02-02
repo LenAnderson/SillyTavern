@@ -66,6 +66,7 @@ import {
     removeColorFormatting,
     getSeparator,
     safeReadFileSync,
+    setupLogLevel,
 } from './src/util.js';
 import { UPLOADS_DIRECTORY } from './src/constants.js';
 import { ensureThumbnailCache } from './src/endpoints/thumbnails.js';
@@ -698,8 +699,9 @@ const preSetupTasks = async function () {
 function getAutorunHostname() {
     if (autorunHostname === 'auto') {
         if (enableIPv6 && enableIPv4) {
-            if (avoidLocalhost) return '[::1]';
-            return 'localhost';
+            return avoidLocalhost
+                ? '[::1]'
+                : 'localhost';
         }
 
         if (enableIPv6) {
@@ -765,6 +767,8 @@ const postSetupTasks = async function (v6Failed, v4Failed) {
             }
         }
     }
+
+    setupLogLevel();
 };
 
 /**

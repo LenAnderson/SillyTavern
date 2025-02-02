@@ -8824,11 +8824,6 @@ const swipe_right = () => {
             easing: animation_easing,
             queue: false,
             complete: async function () {
-                /*if (!selected_group) {
-                    var typingIndicator = $("#typing_indicator_template .typing_indicator").clone();
-                    typingIndicator.find(".typing_indicator_name").text(characters[this_chid].name);
-                } */
-                /* $("#chat").append(typingIndicator); */
                 const is_animation_scroll = ($('#chat').scrollTop() >= ($('#chat').prop('scrollHeight') - $('#chat').outerHeight()) - 10);
                 //console.log(parseInt(chat[chat.length-1]['swipe_id']));
                 //console.log(chat[chat.length-1]['swipes'].length);

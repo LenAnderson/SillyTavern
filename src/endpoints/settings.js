@@ -105,7 +105,7 @@ function readPresetsFromDirectory(directoryPath, options = {}) {
             fileNames.push(removeFileExtension ? item.replace(/\.[^/.]+$/, '') : item);
         } catch {
             // skip
-            console.log(`${item} is not a valid JSON`);
+            console.warn(`${item} is not a valid JSON`);
         }
     });
 
@@ -120,7 +120,7 @@ async function backupSettings() {
             backupUserSettings(handle, true);
         }
     } catch (err) {
-        console.log('Could not backup settings file', err);
+        console.error('Could not backup settings file', err);
     }
 }
 
@@ -202,7 +202,7 @@ router.post('/save', jsonParser, function (request, response) {
         triggerAutoSave(request.user.profile.handle);
         response.send({ result: 'ok' });
     } catch (err) {
-        console.log(err);
+        console.error(err);
         response.send(err);
     }
 });
@@ -292,7 +292,7 @@ router.post('/get-snapshots', jsonParser, async (request, response) => {
 
         response.json(result);
     } catch (error) {
-        console.log(error);
+        console.error(error);
         response.sendStatus(500);
     }
 });
@@ -316,7 +316,7 @@ router.post('/load-snapshot', jsonParser, getFileNameValidationFunction('name'),
 
         response.send(content);
     } catch (error) {
-        console.log(error);
+        console.error(error);
         response.sendStatus(500);
     }
 });
@@ -326,7 +326,7 @@ router.post('/make-snapshot', jsonParser, async (request, response) => {
         backupUserSettings(request.user.profile.handle, false);
         response.sendStatus(204);
     } catch (error) {
-        console.log(error);
+        console.error(error);
         response.sendStatus(500);
     }
 });
@@ -352,7 +352,7 @@ router.post('/restore-snapshot', jsonParser, getFileNameValidationFunction('name
 
         response.sendStatus(204);
     } catch (error) {
-        console.log(error);
+        console.error(error);
         response.sendStatus(500);
     }
 });

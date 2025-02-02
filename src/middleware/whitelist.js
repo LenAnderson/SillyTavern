@@ -63,7 +63,7 @@ export default function whitelistMiddleware(whitelistMode, listen) {
         const userAgent = req.headers['user-agent'];
 
         if (listen && !knownIPs.has(clientIp)) {
-            console.log(color.yellow(`New connection from ${clientIp}; User Agent: ${userAgent}\n`));
+            console.info(color.yellow(`New connection from ${clientIp}; User Agent: ${userAgent}\n`));
             knownIPs.add(clientIp);
 
             // Write access log
@@ -84,7 +84,7 @@ export default function whitelistMiddleware(whitelistMode, listen) {
             const ipDetails = forwardedIp
                 ? `${clientIp} (forwarded from ${forwardedIp})`
                 : clientIp;
-            console.log(
+            console.warn(
                 color.red(
                     `Blocked connection from ${clientIp}; User Agent: ${userAgent}\n\tTo allow this connection, add its IP address to the whitelist or disable whitelist mode by editing config.yaml in the root directory of your SillyTavern installation.\n`,
                 ),

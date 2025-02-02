@@ -70,6 +70,7 @@ import { tokenizers, getTextTokens, getTokenCount, getTokenCountAsync, getTokeni
 import { ToolManager } from './tool-calling.js';
 import { timestampToMoment, uuidv4 } from './utils.js';
 import { getGlobalVariable, getLocalVariable, setGlobalVariable, setLocalVariable } from './variables.js';
+import { convertCharacterBook, loadWorldInfo, saveWorldInfo, updateWorldInfoList } from './world-info.js';
 
 export function getContext() {
     return {
@@ -186,6 +187,10 @@ export function getContext() {
                 set: setGlobalVariable,
             },
         },
+        loadWorldInfo,
+        saveWorldInfo,
+        updateWorldInfoList,
+        convertCharacterBook,
     };
 }
 
