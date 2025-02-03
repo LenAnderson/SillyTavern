@@ -106,6 +106,8 @@
     --tool-cool-color-picker-btn-bg: transparent;
     --tool-cool-color-picker-btn-border-color: transparent;
 
+    --mes-right-spacing: 30px;
+
     --avatar-base-height: 50px;
     --avatar-base-width: 50px;
     --avatar-base-border-radius: 2px;
@@ -342,18 +344,59 @@ input[type='checkbox']:focus-visible {
 
 .mes_reasoning {
     display: block;
-    border: 1px solid var(--SmartThemeBorderColor);
-    background-color: var(--black30a);
-    border-radius: 5px;
+    border-left: 2px solid var(--SmartThemeEmColor);
+    border-radius: 2px;
     padding: 5px;
-    margin: 5px 0;
+    padding-left: 14px;
+    margin-bottom: 0.5em;
     overflow-y: auto;
+    color: var(--SmartThemeEmColor);
 }
 
-.mes_reasoning_summary {
+.mes_reasoning_details {
+    margin-right: var(--mes-right-spacing);
+}
+
+.mes_reasoning_details .mes_reasoning_summary {
+    margin-right: calc(var(--mes-right-spacing) * -1);
+}
+
+.mes_reasoning *:last-child {
+    margin-bottom: 0;
+}
+
+.mes_reasoning em,
+.mes_reasoning i,
+.mes_reasoning u,
+.mes_reasoning q,
+.mes_reasoning blockquote {
+    filter: saturate(0.5);
+}
+
+.mes_reasoning_details .mes_reasoning em {
+    color: color-mix(in srgb, var(--SmartThemeEmColor) 67%, var(--SmartThemeBlurTintColor) 33%)
+}
+
+.mes_reasoning_header_block {
+    flex-grow: 1;
+}
+
+.mes_reasoning_header {
     cursor: pointer;
     position: relative;
-    margin: 2px;
+    user-select: none;
+    margin: 0.5em 2px;
+    padding: 7px 14px;
+    padding-right: calc(0.7em + 14px);
+    border-radius: 10px;
+    background-color: var(--grey30);
+    font-size: calc(var(--mainFontSize) * 0.9);
+    align-items: baseline;
+}
+
+/* TWIMC: Remove with custom CSS to show the icon */
+.mes_reasoning_header > .icon-svg {
+    display: none;
 }
 
 @supports not selector(:has(*)) {
@@ -365,27 +408,27 @@ input[type='checkbox']:focus-visible {
 .mes_bias:empty,
 .mes_reasoning:empty,
 .mes_reasoning_details:has(.mes_reasoning:empty),
-.mes_block:has(.edit_textarea) .mes_reasoning_details,
 .mes_reasoning_details:not([open]) .mes_reasoning_actions,
 .mes_reasoning_details:has(.reasoning_edit_textarea) .mes_reasoning,
-.mes_reasoning_details:not(:has(.reasoning_edit_textarea)) .mes_reasoning_actions .mes_button.mes_reasoning_edit_done,
-.mes_reasoning_details:not(:has(.reasoning_edit_textarea)) .mes_reasoning_actions .mes_button.mes_reasoning_edit_cancel,
-.mes_reasoning_details:has(.reasoning_edit_textarea) .mes_reasoning_actions .mes_button:not(.mes_reasoning_edit_done, .mes_reasoning_edit_cancel) {
+.mes_reasoning_details:has(.reasoning_edit_textarea) .mes_reasoning_header,
+.mes_reasoning_details:not(:has(.reasoning_edit_textarea)) .mes_reasoning_actions .edit_button,
+.mes_reasoning_details:has(.reasoning_edit_textarea) .mes_reasoning_actions .mes_button:not(.edit_button),
+.mes_block:has(.edit_textarea):has(.reasoning_edit_textarea) .mes_reasoning_actions {
     display: none;
 }
 
-.mes_reasoning_actions {
+.mes_reasoning_details .mes_reasoning_arrow {
     position: absolute;
-    right: 0;
-    top: 0;
+    top: 50%;
+    right: 7px;
+    transform: translateY(-50%);
+    font-size: calc(var(--mainFontSize) * 0.7);
+    width: calc(var(--mainFontSize) * 0.7);
+    height: calc(var(--mainFontSize) * 0.7);
+}
 
-    display: flex;
-    gap: 4px;
-    flex-wrap: nowrap;
-    justify-content: flex-end;
-    transition: all 200ms;
-    overflow-x: hidden;
-    padding: 1px;
+.mes_reasoning_details:not([open]) .mes_reasoning_arrow {
+    transform: translateY(-50%) rotate(180deg);
 }
 
 .mes_reasoning_summary>span {
@@ -1100,13 +1143,8 @@ body .panelControlBar {
     /*only affects bubblechat to make it sit nicely at the bottom*/
 }
 
-.last_mes:has(.mes_text:empty):has(.mes_reasoning_details[open]) .mes_reasoning:not(:empty) {
-    margin-bottom: 30px;
-}
-
-.last_mes .mes_reasoning,
-.last_mes .mes_text {
-    padding-right: 30px;
+.last_mes:has(.mes_text:empty):has(.mes_reasoning_details) .mes_reasoning:not(:empty) {
+    margin-bottom: var(--mes-right-spacing);
 }
 
 /* SWIPE RELATED STYLES*/
@@ -1330,6 +1368,7 @@ body.swipeAllMessages .mes:not(.last_mes) .swipes-counter {
     padding-left: 0;
     padding-top: 5px;
     padding-bottom: 5px;
+    padding-right: var(--mes-right-spacing);
 }
 
 br {
@@ -3000,6 +3039,7 @@ input[type=search]:focus::-webkit-search-cancel-button {
 .mes_block .ch_name {
     max-width: 100%;
     min-height: 22px;
+    align-items: flex-start;
 }
 
 /*applies to both groups and solos chars in the char list*/
@@ -4224,7 +4264,13 @@ input[type="range"]::-webkit-slider-thumb {
     transition: 0.3s ease-in-out;
 }
 
-.mes_edit_buttons .menu_button {
+.mes_reasoning_actions {
+    margin: 0;
+    margin-top: 0.5em;
+}
+
+.mes_edit_buttons .menu_button,
+.mes_reasoning_actions .edit_button {
     opacity: 0.5;
     padding: 0px;
     font-size: 1rem;
@@ -4235,6 +4281,12 @@ input[type="range"]::-webkit-slider-thumb {
     display: flex;
     justify-content: center;
     align-items: center;
+}
+
+.mes_reasoning_actions .edit_button {
+    margin-bottom: 0.5em;
+    opacity: 1;
+    filter: brightness(0.7);
 }
 
 .mes_reasoning_edit_cancel,
@@ -4261,6 +4313,10 @@ input[type="range"]::-webkit-slider-thumb {
     max-height: 75vh;
     max-height: 75dvh;
     field-sizing: content;
+}
+
+.mes.reasoning .mes_edit_add_reasoning {
+    display: none;
 }
 
 #anchor_order {

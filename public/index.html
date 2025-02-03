@@ -2853,6 +2853,10 @@
                                         <option value="o1-preview">o1-preview</option>
                                         <option value="o1-mini">o1-mini</option>
                                     </optgroup>
+                                    <optgroup label="o3">
+                                        <option value="o3-mini">o3-mini</option>
+                                        <option value="o3-mini-2025-01-31">o3-mini-2025-01-31</option>
+                                    </optgroup>
                                     <optgroup label="Other">
                                         <option value="text-davinci-003">text-davinci-003</option>
                                         <option value="text-davinci-002">text-davinci-002</option>
@@ -3787,6 +3791,12 @@
                                     <input id="reasoning_auto_parse" type="checkbox" />
                                     <small data-i18n="Auto-Parse Reasoning">
                                         Auto-Parse Reasoning
+                                    </small>
+                                </label>
+                                <label class="checkbox_label" for="reasoning_auto_expand" title="Automatically expand reasoning blocks." data-i18n="[title]reasoning_auto_expand">
+                                    <input id="reasoning_auto_expand" type="checkbox" />
+                                    <small data-i18n="Auto-Expand Reasoning">
+                                        Auto-Expand Reasoning
                                     </small>
                                 </label>
                                 <label class="checkbox_label" for="reasoning_add_to_prompts" title="Add existing reasoning blocks to prompts. To add a new reasoning block, use the message edit menu." data-i18n="[title]reasoning_add_to_prompts">
@@ -6248,14 +6258,19 @@
                         </div>
                     </div>
                     <details class="mes_reasoning_details">
-                        <summary class="mes_reasoning_summary">
-                            <span data-i18n="Reasoning">Reasoning</span>
-                            <div class="mes_reasoning_actions">
-                                <div class="mes_reasoning_edit_done mes_button fa-solid fa-check" title="Confirm" data-i18n="[title]Confirmedit"></div>
-                                <div class="mes_reasoning_edit_cancel mes_button fa-solid fa-xmark" title="Cancel edit" data-i18n="[title]Cancel edit"></div>
-                                <div class="mes_reasoning_edit mes_button fa-solid fa-pencil" title="Edit reasoning" data-i18n="[title]Edit reasoning"></div>
+                        <summary class="mes_reasoning_summary flex-container">
+                            <div class="mes_reasoning_header_block flex-container">
+                                <div class="mes_reasoning_header flex-container">
+                                    <span class="mes_reasoning_header_title" data-i18n="Thought for some time">Thought for some time</span>
+                                    <div class="mes_reasoning_arrow fa-solid fa-chevron-up"></div>
+                                </div>
+                            </div>
+                            <div class="mes_reasoning_actions flex-container">
+                                <div class="mes_reasoning_edit_done menu_button edit_button fa-solid fa-check" title="Confirm" data-i18n="[title]Confirmedit"></div>
+                                <div class="mes_reasoning_delete menu_button edit_button fa-solid fa-trash-can" title="Remove reasoning" data-i18n="[title]Remove reasoning"></div>
+                                <div class="mes_reasoning_edit_cancel menu_button edit_button fa-solid fa-xmark" title="Cancel edit" data-i18n="[title]Cancel edit"></div>
                                 <div class="mes_reasoning_copy mes_button fa-solid fa-copy" title="Copy reasoning" data-i18n="[title]Copy reasoning"></div>
-                                <div class="mes_reasoning_delete mes_button fa-solid fa-trash-can" title="Remove reasoning" data-i18n="[title]Remove reasoning"></div>
+                                <div class="mes_reasoning_edit mes_button fa-solid fa-pencil" title="Edit reasoning" data-i18n="[title]Edit reasoning"></div>
                             </div>
                         </summary>
                         <div class="mes_reasoning"></div>

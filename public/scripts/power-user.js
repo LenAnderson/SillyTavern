@@ -256,6 +256,7 @@ let power_user = {
     reasoning: {
         auto_parse: false,
         add_to_prompts: false,
+        auto_expand: false,
         prefix: '<think>\n',
         suffix: '\n</think>',
         separator: '\n\n',

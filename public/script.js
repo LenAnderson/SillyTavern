@@ -225,7 +225,7 @@ import {
     instruct_presets,
     selectContextPreset,
 } from './scripts/instruct-mode.js';
-import { initLocales, t } from './scripts/i18n.js';
+import { getCurrentLocale, initLocales, t } from './scripts/i18n.js';
 import { getFriendlyTokenizerName, getTokenCount, getTokenCountAsync, initTokenizers, saveTokenCache, TOKENIZER_SUPPORTED_KEY } from './scripts/tokenizers.js';
 import {
     user_avatar,
@@ -497,6 +497,7 @@ export const event_types = {
     /** @deprecated The event is aliased to STREAM_TOKEN_RECEIVED. */
     SMOOTH_STREAM_TOKEN_RECEIVED: 'stream_token_received',
     STREAM_TOKEN_RECEIVED: 'stream_token_received',
+    STREAM_REASONING_DONE: 'stream_reasoning_done',
     FILE_ATTACHMENT_DELETED: 'file_attachment_deleted',
     WORLDINFO_FORCE_ACTIVATE: 'worldinfo_force_activate',
     OPEN_CHARACTER_LIBRARY: 'open_character_library',
@@ -2252,26 +2253,29 @@ function insertSVGIcon(mes, extra) {
         modelName = extra.api;
     }
 
-    const image = new Image();
-    // Add classes for styling and identification
-    image.classList.add('icon-svg', 'timestamp-icon');
-    image.src = `/img/${modelName}.svg`;
-    image.title = `${extra?.api ? extra.api + ' - ' : ''}${extra?.model ?? ''}`;
-
-    image.onload = async function () {
-        // Check if an SVG already exists adjacent to the timestamp
-        let existingSVG = mes.find('.timestamp').next('.timestamp-icon');
-
-        if (existingSVG.length) {
-            // Replace existing SVG
-            existingSVG.replaceWith(image);
-        } else {
-            // Append the new SVG if none exists
-            mes.find('.timestamp').after(image);
-        }
-
-        await SVGInject(image);
+    const insertOrReplaceSVG = (image, className, targetSelector, insertBefore) => {
+        image.onload = async function () {
+            let existingSVG = insertBefore ? mes.find(targetSelector).prev(`.${className}`) : mes.find(targetSelector).next(`.${className}`);
+            if (existingSVG.length) {
+                existingSVG.replaceWith(image);
+            } else {
+                if (insertBefore) mes.find(targetSelector).before(image);
+                else mes.find(targetSelector).after(image);
+            }
+            await SVGInject(image);
+        };
     };
+
+    const createModelImage = (className, targetSelector, insertBefore) => {
+        const image = new Image();
+        image.classList.add('icon-svg', className);
+        image.src = `/img/${modelName}.svg`;
+        image.title = `${extra?.api ? extra.api + ' - ' : ''}${extra?.model ?? ''}`;
+        insertOrReplaceSVG(image, className, targetSelector, insertBefore);
+    };
+
+    createModelImage('timestamp-icon', '.timestamp');
+    createModelImage('thinking-icon', '.mes_reasoning_header_title', true);
 }
 
 
@@ -2283,6 +2287,7 @@ function getMessageFromTemplate({
     avatarImg,
     bias,
     reasoning,
+    reasoningDuration,
     isSystem,
     title,
     timerValue,
@@ -2315,6 +2320,13 @@ function getMessageFromTemplate({
     timerValue && mes.find('.mes_timer').attr('title', timerTitle).text(timerValue);
     bookmarkLink && updateBookmarkDisplay(mes);
 
+    if (reasoning) {
+        mes.addClass('reasoning');
+    }
+    if (reasoningDuration) {
+        updateReasoningTimeUI(mes.find('.mes_reasoning_header_title')[0], reasoningDuration, { forceEnd: true });
+    }
+
     if (power_user.timestamp_model_icon && extra?.api) {
         insertSVGIcon(mes, extra);
     }
@@ -2332,6 +2344,7 @@ export function updateMessageBlock(messageId, message) {
     const text = message?.extra?.display_text ?? message.mes;
     messageElement.find('.mes_text').html(messageFormatting(text, message.name, message.is_system, message.is_user, messageId, {}, false));
     messageElement.find('.mes_reasoning').html(messageFormatting(message.extra?.reasoning ?? '', '', false, false, messageId, {}, true));
+    messageElement.toggleClass('reasoning', !!message.extra?.reasoning);
     addCopyToCodeBlocks(messageElement);
     appendMediaToMessage(message, messageElement);
 }
@@ -2502,6 +2515,7 @@ export function addOneMessage(mes, { type = 'normal', insertAfter = null, scroll
         avatarImg: avatarImg,
         bias: bias,
         reasoning: reasoning,
+        reasoningDuration: mes.extra?.reasoning_duration,
         isSystem: isSystem,
         title: title,
         bookmarkLink: bookmarkLink,
@@ -3191,8 +3205,12 @@ class StreamingProcessor {
         this.messageDom = null;
         this.messageTextDom = null;
         this.messageTimerDom = null;
+        /** @type {HTMLElement} */
         this.messageTokenCounterDom = null;
+        /** @type {HTMLElement} */
         this.messageReasoningDom = null;
+        /** @type {HTMLElement} */
+        this.messageReasoningHeaderDom = null;
         /** @type {HTMLTextAreaElement} */
         this.sendTextarea = document.querySelector('#send_textarea');
         this.type = type;
@@ -3209,6 +3227,15 @@ class StreamingProcessor {
         this.messageLogprobs = [];
         this.toolCalls = [];
         this.reasoning = '';
+        this.reasoningStartTime = null;
+        this.reasoningEndTime = null;
+    }
+
+    #reasoningDuration() {
+        if (this.reasoningStartTime && this.reasoningEndTime) {
+            return (this.reasoningEndTime - this.reasoningStartTime);
+        }
+        return null;
     }
 
     #checkDomElements(messageId) {
@@ -3218,6 +3245,7 @@ class StreamingProcessor {
             this.messageTimerDom = this.messageDom?.querySelector('.mes_timer');
             this.messageTokenCounterDom = this.messageDom?.querySelector('.tokenCounterDisplay');
             this.messageReasoningDom = this.messageDom?.querySelector('.mes_reasoning');
+            this.messageReasoningHeaderDom = this.messageDom?.querySelector('.mes_reasoning_header_title');
         }
     }
 
@@ -3265,7 +3293,7 @@ class StreamingProcessor {
         return messageId;
     }
 
-    onProgressStreaming(messageId, text, isFinal) {
+    async onProgressStreaming(messageId, text, isFinal) {
         const isImpersonate = this.type == 'impersonate';
         const isContinue = this.type == 'continue';
 
@@ -3292,6 +3320,8 @@ class StreamingProcessor {
             this.sendTextarea.dispatchEvent(new Event('input', { bubbles: true }));
         }
         else {
+            const mesChanged = chat[messageId]['mes'] !== processedText;
+
             this.#checkDomElements(messageId);
             this.#updateMessageBlockVisibility();
             const currentTime = new Date();
@@ -3304,10 +3334,24 @@ class StreamingProcessor {
             }
 
             if (this.reasoning) {
-                chat[messageId]['extra']['reasoning'] = power_user.trim_spaces ? this.reasoning.trim() : this.reasoning;
+                const reasoning = power_user.trim_spaces ? this.reasoning.trim() : this.reasoning;
+                const reasoningChanged = chat[messageId]['extra']['reasoning'] !== reasoning;
+                chat[messageId]['extra']['reasoning'] = reasoning;
+
+                if (reasoningChanged && this.reasoningStartTime === null) {
+                    this.reasoningStartTime = Date.now();
+                }
+                if (!reasoningChanged && mesChanged && this.reasoningStartTime !== null && this.reasoningEndTime === null) {
+                    this.reasoningEndTime = Date.now();
+                }
+                await this.#updateReasoningTime(messageId);
+
                 if (this.messageReasoningDom instanceof HTMLElement) {
                     const formattedReasoning = messageFormatting(this.reasoning, '', false, false, messageId, {}, true);
                     this.messageReasoningDom.innerHTML = formattedReasoning;
+                }
+                if (this.messageDom instanceof HTMLElement) {
+                    this.messageDom.classList.add('reasoning');
                 }
             }
 
@@ -3354,10 +3398,23 @@ class StreamingProcessor {
         }
     }
 
+    async #updateReasoningTime(messageId, { forceEnd = false } = {}) {
+        const duration = this.#reasoningDuration();
+        chat[messageId]['extra']['reasoning_duration'] = duration;
+        updateReasoningTimeUI(this.messageReasoningHeaderDom, duration, { forceEnd: forceEnd });
+        await eventSource.emit(event_types.STREAM_REASONING_DONE, this.reasoning, duration);
+    }
+
     async onFinishStreaming(messageId, text) {
         this.hideMessageButtons(this.messageId);
-        this.onProgressStreaming(messageId, text, true);
+        await this.onProgressStreaming(messageId, text, true);
         addCopyToCodeBlocks($(`#chat .mes[mesid="${messageId}"]`));
+
+        // Ensure reasoning finish time is recorded if not already
+        if (this.reasoningStartTime !== null && this.reasoningEndTime === null) {
+            this.reasoningEndTime = Date.now();
+            await this.#updateReasoningTime(messageId, { forceEnd: true });
+        }
 
         if (Array.isArray(this.swipes) && this.swipes.length > 0) {
             const message = chat[messageId];
@@ -3460,7 +3517,7 @@ class StreamingProcessor {
                 }
                 this.reasoning = getRegexedString(state?.reasoning ?? '', regex_placement.REASONING);
                 await eventSource.emit(event_types.STREAM_TOKEN_RECEIVED, text);
-                await sw.tick(() => this.onProgressStreaming(this.messageId, this.continueMessage + text));
+                await sw.tick(async () => await this.onProgressStreaming(this.messageId, this.continueMessage + text));
             }
             const seconds = (timestamps[timestamps.length - 1] - timestamps[0]) / 1000;
             console.warn(`Stream stats: ${timestamps.length} tokens, ${seconds.toFixed(2)} seconds, rate: ${Number(timestamps.length / seconds).toFixed(2)} TPS`);
@@ -5821,6 +5878,25 @@ function extractReasoningFromData(data) {
 }
 
 /**
+ * Updates the Reasoning controls
+ * @param {HTMLElement} element The element to update
+ * @param {number?} duration The duration of the reasoning in milliseconds
+ * @param {object} [options={}] Options for the function
+ * @param {boolean} [options.forceEnd=false] If true, there will be no "Thinking..." when no duration exists
+ */
+function updateReasoningTimeUI(element, duration, { forceEnd = false } = {}) {
+    if (duration) {
+        const durationStr = moment.duration(duration).locale(getCurrentLocale()).humanize({ s: 50, ss: 9 });
+        element.textContent = t`Thought for ${durationStr}`;
+    } else if (forceEnd) {
+        element.textContent = t`Thought for some time`;
+    } else {
+        element.textContent = t`Thinking...`;
+    }
+}
+
+
+/**
  * Extracts multiswipe swipes from the response data.
  * @param {Object} data Response data
  * @param {string} type Type of generation
@@ -7204,8 +7280,10 @@ export function setGenerationParamsFromPreset(preset) {
 // Common code for message editor done and auto-save
 function updateMessage(div) {
     const mesBlock = div.closest('.mes_block');
-    let text = mesBlock.find('.edit_textarea').val();
-    const mes = chat[this_edit_mes_id];
+    let text = mesBlock.find('.edit_textarea').val()
+        ?? mesBlock.find('.mes_text').text();
+    const mesElement = div.closest('.mes');
+    const mes = chat[mesElement.attr('mesid')];
 
     let regexPlacement;
     if (mes.is_user) {
@@ -7323,6 +7401,11 @@ async function messageEditDone(div) {
     mesBlock.find('.mes_bias').append(messageFormatting(bias, '', false, false, -1, {}, false));
     appendMediaToMessage(mes, div.closest('.mes'));
     addCopyToCodeBlocks(div.closest('.mes'));
+
+    const reasoningEditDone = mesBlock.find('.mes_reasoning_edit_done:visible');
+    if (reasoningEditDone.length > 0) {
+        reasoningEditDone.trigger('click');
+    }
 
     await eventSource.emit(event_types.MESSAGE_UPDATED, this_edit_mes_id);
     this_edit_mes_id = undefined;
@@ -10838,6 +10921,12 @@ jQuery(async function () {
             var edit_mes_id = $(this).closest('.mes').attr('mesid');
             this_edit_mes_id = edit_mes_id;
 
+            // Also edit reasoning, if it exists
+            const reasoningEdit = $(this).closest('.mes_block').find('.mes_reasoning_edit:visible');
+            if (reasoningEdit.length > 0) {
+                reasoningEdit.trigger('click');
+            }
+
             var text = chat[edit_mes_id]['mes'];
             if (chat[edit_mes_id]['is_user']) {
                 this_edit_mes_chname = name1;
@@ -10873,6 +10962,18 @@ jQuery(async function () {
             }
 
             updateEditArrowClasses();
+        }
+    });
+
+    $(document).on('click', '.mes_reasoning_header', function () {
+        // If we are in message edit mode and reasoning area is closed, a click opens and edits it
+        const mes = $(this).closest('.mes');
+        const mesEditArea = mes.find('#curEditTextarea');
+        if (mesEditArea.length) {
+            const summary = $(mes).find('.mes_reasoning_summary');
+            if (!summary.attr('open')) {
+                summary.find('.mes_reasoning_edit').trigger('click');
+            }
         }
     });
 
@@ -10970,6 +11071,11 @@ jQuery(async function () {
             ));
         appendMediaToMessage(chat[this_edit_mes_id], $(this).closest('.mes'));
         addCopyToCodeBlocks($(this).closest('.mes'));
+
+        const reasoningEditDone = $(this).closest('.mes_block').find('.mes_reasoning_edit_cancel:visible');
+        if (reasoningEditDone.length > 0) {
+            reasoningEditDone.trigger('click');
+        }
 
         await eventSource.emit(event_types.MESSAGE_UPDATED, this_edit_mes_id);
         this_edit_mes_id = undefined;
@@ -11422,6 +11528,17 @@ jQuery(async function () {
         if (control instanceof HTMLInputElement || control instanceof HTMLTextAreaElement) {
             control.select();
             console.debug('Auto-selecting content of input control', control);
+        }
+    });
+
+    $(document).on('click', '.mes_reasoning_summary', function () {
+        // If you toggle summary header while editing reasoning, yup - we just cancel it
+        $(this).closest('.mes').find('.mes_reasoning_edit_cancel:visible').trigger('click');
+    });
+
+    $(document).on('click', '.mes_reasoning_details', function (e) {
+        if (!e.target.closest('.mes_reasoning_actions') && !e.target.closest('.mes_reasoning_header')) {
+            e.preventDefault();
         }
     });
 
