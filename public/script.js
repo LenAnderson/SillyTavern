@@ -3506,7 +3506,7 @@ class StreamingProcessor {
             for await (const { text, swipes, logprobs, toolCalls, state } of this.generator()) {
                 timestamps.push(Date.now());
                 if (this.isStopped || this.abortController.signal.aborted) {
-                    return;
+                    return this.result;
                 }
 
                 this.toolCalls = toolCalls;
@@ -6087,7 +6087,7 @@ export async function saveReply(type, getMessage, fromStreaming, title, swipes, 
     }
 
     // Coerce null/undefined to empty string
-    if (!chat[chat.length - 1]['extra']['reasoning']) {
+    if (chat.length && !chat[chat.length - 1]['extra']['reasoning']) {
         chat[chat.length - 1]['extra']['reasoning'] = '';
     }
 
@@ -6132,7 +6132,7 @@ export async function saveReply(type, getMessage, fromStreaming, title, swipes, 
         chat[chat.length - 1]['send_date'] = getMessageTimeStamp();
         chat[chat.length - 1]['extra']['api'] = getGeneratingApi();
         chat[chat.length - 1]['extra']['model'] = getGeneratingModel();
-        chat[chat.length - 1]['extra']['reasoning'] += reasoning;
+        chat[chat.length - 1]['extra']['reasoning'] = reasoning;
         if (power_user.message_token_count_enabled) {
             const tokenCountText = (reasoning || '') + chat[chat.length - 1]['mes'];
             chat[chat.length - 1]['extra']['token_count'] = await getTokenCountAsync(tokenCountText, 0);

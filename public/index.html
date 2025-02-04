@@ -1957,14 +1957,16 @@
                                             <span data-i18n="image_inlining_hint_3">menu to attach an image file to the chat.</span>
                                         </div>
                                         <div class="flex-container flexFlowColumn wide100p textAlignCenter marginTop10" data-source="openai,custom">
-                                            <label for="openai_inline_image_quality" data-i18n="Inline Image Quality">
-                                                Inline Image Quality
-                                            </label>
-                                            <select id="openai_inline_image_quality">
-                                                <option data-i18n="openai_inline_image_quality_auto" value="auto">Auto</option>
-                                                <option data-i18n="openai_inline_image_quality_low" value="low">Low</option>
-                                                <option data-i18n="openai_inline_image_quality_high" value="high">High</option>
-                                            </select>
+                                            <div class="flex-container oneline-dropdown">
+                                                <label for="openai_inline_image_quality" data-i18n="Inline Image Quality">
+                                                    Inline Image Quality
+                                                </label>
+                                                <select id="openai_inline_image_quality">
+                                                    <option data-i18n="openai_inline_image_quality_auto" value="auto">Auto</option>
+                                                    <option data-i18n="openai_inline_image_quality_low" value="low">Low</option>
+                                                    <option data-i18n="openai_inline_image_quality_high" value="high">High</option>
+                                                </select>
+                                            </div>
                                         </div>
                                     </div>
                                     <div class="range-block" data-source="makersuite">
@@ -1993,6 +1995,18 @@
                                             <span data-i18n="Allows the model to return its thinking process.">
                                                 Allows the model to return its thinking process.
                                             </span>
+                                        </div>
+                                    </div>
+                                    <div class="flex-container flexFlowColumn wide100p textAlignCenter marginTop10" data-source="openai,custom">
+                                        <div class="flex-container oneline-dropdown" title="Constrains effort on reasoning for reasoning models.&#10;Currently supported values are low, medium, and high.&#10;Reducing reasoning effort can result in faster responses and fewer tokens used on reasoning in a response.">
+                                            <label for="openai_reasoning_effort" data-i18n="Reasoning Effort">
+                                                Reasoning Effort
+                                            </label>
+                                            <select id="openai_reasoning_effort">
+                                                <option data-i18n="openai_reasoning_effort_low" value="low">Low</option>
+                                                <option data-i18n="openai_reasoning_effort_medium" value="medium">Medium</option>
+                                                <option data-i18n="openai_reasoning_effort_high" value="high">High</option>
+                                            </select>
                                         </div>
                                     </div>
                                     <div class="range-block" data-source="claude">
@@ -2809,27 +2823,6 @@
                             <div>
                                 <h4 data-i18n="OpenAI Model">OpenAI Model</h4>
                                 <select id="model_openai_select">
-                                    <optgroup label="GPT-3.5 Turbo">
-                                        <option value="gpt-3.5-turbo">gpt-3.5-turbo</option>
-                                        <option value="gpt-3.5-turbo-0125">gpt-3.5-turbo-0125 (2024)</option>
-                                        <option value="gpt-3.5-turbo-1106">gpt-3.5-turbo-1106 (2023)</option>
-                                        <option value="gpt-3.5-turbo-0613">gpt-3.5-turbo-0613 (2023)</option>
-                                        <option value="gpt-3.5-turbo-0301">gpt-3.5-turbo-0301 (2023)</option>
-                                        <option value="gpt-3.5-turbo-16k">gpt-3.5-turbo-16k</option>
-                                        <option value="gpt-3.5-turbo-16k-0613">gpt-3.5-turbo-16k-0613 (2023)</option>
-                                    </optgroup>
-                                    <optgroup label="GPT-3.5 Turbo Instruct">
-                                        <option value="gpt-3.5-turbo-instruct">gpt-3.5-turbo-instruct</option>
-                                        <option value="gpt-3.5-turbo-instruct-0914">gpt-3.5-turbo-instruct-0914</option>
-                                    </optgroup>
-                                    <optgroup label="GPT-4">
-                                        <option value="gpt-4">gpt-4</option>
-                                        <option value="gpt-4-0613">gpt-4-0613 (2023)</option>
-                                        <option value="gpt-4-0314">gpt-4-0314 (2023)</option>
-                                        <option value="gpt-4-32k">gpt-4-32k</option>
-                                        <option value="gpt-4-32k-0613">gpt-4-32k-0613 (2023)</option>
-                                        <option value="gpt-4-32k-0314">gpt-4-32k-0314 (2023)</option>
-                                    </optgroup>
                                     <optgroup label="GPT-4o">
                                         <option value="gpt-4o">gpt-4o</option>
                                         <option value="gpt-4o-2024-11-20">gpt-4o-2024-11-20</option>
@@ -2837,33 +2830,44 @@
                                         <option value="gpt-4o-2024-05-13">gpt-4o-2024-05-13</option>
                                         <option value="chatgpt-4o-latest">chatgpt-4o-latest</option>
                                     </optgroup>
-                                    <optgroup label="gpt-4o-mini">
+                                    <optgroup label="GPT-4o mini">
                                         <option value="gpt-4o-mini">gpt-4o-mini</option>
-                                        <option value="gpt-4o-mini-2024-07-18">gpt-4o-mini-2024-07-18</option>
+                                        <option value="gpt-4o-2024-11-20">gpt-4o-2024-11-20</option>
+                                        <option value="gpt-4o-2024-08-06">gpt-4o-2024-08-06</option>
+                                        <option value="gpt-4o-2024-05-13">gpt-4o-2024-05-13</option>
+                                        <option value="chatgpt-4o-latest">chatgpt-4o-latest</option>
                                     </optgroup>
-                                    <optgroup label="GPT-4 Turbo">
-                                        <option value="gpt-4-turbo">gpt-4-turbo</option>
-                                        <option value="gpt-4-turbo-2024-04-09">gpt-4-turbo-2024-04-09</option>
-                                        <option value="gpt-4-turbo-preview">gpt-4-turbo-preview</option>
-                                        <option value="gpt-4-vision-preview">gpt-4-vision-preview</option>
-                                        <option value="gpt-4-0125-preview">gpt-4-0125-preview (2024)</option>
-                                        <option value="gpt-4-1106-preview">gpt-4-1106-preview (2023)</option>
-                                    </optgroup>
-                                    <optgroup label="o1">
-                                        <option value="o1-preview">o1-preview</option>
+                                    <optgroup label="o1 and o1-mini">
+                                        <option value="o1">o1</option>
+                                        <option value="o1-2024-12-17">o1-2024-12-17</option>
                                         <option value="o1-mini">o1-mini</option>
+                                        <option value="o1-mini-2024-09-12">o1-mini-2024-09-12</option>
+                                        <option value="o1-preview">o1-preview</option>
+                                        <option value="o1-preview-2024-09-12">o1-preview-2024-09-12</option>
                                     </optgroup>
                                     <optgroup label="o3">
                                         <option value="o3-mini">o3-mini</option>
                                         <option value="o3-mini-2025-01-31">o3-mini-2025-01-31</option>
                                     </optgroup>
+                                    <optgroup label="GPT-4 Turbo and GPT-4">
+                                        <option value="gpt-4-turbo">gpt-4-turbo</option>
+                                        <option value="gpt-4-turbo-2024-04-09">gpt-4-turbo-2024-04-09</option>
+                                        <option value="gpt-4-turbo-preview">gpt-4-turbo-preview</option>
+                                        <option value="gpt-4-0125-preview">gpt-4-0125-preview (2024)</option>
+                                        <option value="gpt-4-1106-preview">gpt-4-1106-preview (2023)</option>
+                                        <option value="gpt-4">gpt-4</option>
+                                        <option value="gpt-4-0613">gpt-4-0613 (2023)</option>
+                                        <option value="gpt-4-0314">gpt-4-0314 (2023)</option>
+                                    </optgroup>
+                                    <optgroup label="GPT-3.5 Turbo">
+                                        <option value="gpt-3.5-turbo">gpt-3.5-turbo</option>
+                                        <option value="gpt-3.5-turbo-0125">gpt-3.5-turbo-0125 (2024)</option>
+                                        <option value="gpt-3.5-turbo-1106">gpt-3.5-turbo-1106 (2023)</option>
+                                        <option value="gpt-3.5-turbo-instruct">gpt-3.5-turbo-instruct</option>
+                                    </optgroup>
                                     <optgroup label="Other">
-                                        <option value="text-davinci-003">text-davinci-003</option>
-                                        <option value="text-davinci-002">text-davinci-002</option>
-                                        <option value="text-curie-001">text-curie-001</option>
-                                        <option value="text-babbage-001">text-babbage-001</option>
-                                        <option value="text-ada-001">text-ada-001</option>
-                                        <option value="code-davinci-002">code-davinci-002</option>
+                                        <option value="babbage-002">babbage-002</option>
+                                        <option value="davinci-002">davinci-002</option>
                                     </optgroup>
                                     <optgroup id="openai_external_category" label="External">
                                     </optgroup>

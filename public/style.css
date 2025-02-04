@@ -5914,3 +5914,15 @@ body:not(.movingUI) .drawer-content.maximized {
 .mes_text div[data-type="assistant_note"]:has(.assistant_note_export)>div:not(.assistant_note_export) {
     flex: 1;
 }
+
+.oneline-dropdown label {
+    margin-top: 3px;
+    margin-bottom: 5px;
+    flex-grow: 1;
+    text-align: left;
+}
+
+.oneline-dropdown select {
+    min-width: fit-content;
+    width: 40%;
+}

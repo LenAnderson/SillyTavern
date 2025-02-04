@@ -300,6 +300,7 @@ const default_settings = {
     continue_postfix: continue_postfix_types.SPACE,
     custom_prompt_post_processing: custom_prompt_post_processing_types.NONE,
     show_thoughts: true,
+    reasoning_effort: 'medium',
     seed: -1,
     n: 1,
 };
@@ -379,6 +380,7 @@ const oai_settings = {
     continue_postfix: continue_postfix_types.SPACE,
     custom_prompt_post_processing: custom_prompt_post_processing_types.NONE,
     show_thoughts: true,
+    reasoning_effort: 'medium',
     seed: -1,
     n: 1,
 };
@@ -1932,6 +1934,7 @@ async function sendOpenAIRequest(type, messages, signal) {
         'char_name': name2,
         'group_names': getGroupNames(),
         'include_reasoning': Boolean(oai_settings.show_thoughts),
+        'reasoning_effort': String(oai_settings.reasoning_effort),
     };
 
     // Empty array will produce a validation error
@@ -3142,6 +3145,7 @@ function loadOpenAISettings(data, settings) {
     oai_settings.inline_image_quality = settings.inline_image_quality ?? default_settings.inline_image_quality;
     oai_settings.bypass_status_check = settings.bypass_status_check ?? default_settings.bypass_status_check;
     oai_settings.show_thoughts = settings.show_thoughts ?? default_settings.show_thoughts;
+    oai_settings.reasoning_effort = settings.reasoning_effort ?? default_settings.reasoning_effort;
     oai_settings.seed = settings.seed ?? default_settings.seed;
     oai_settings.n = settings.n ?? default_settings.n;
 
@@ -3270,6 +3274,9 @@ function loadOpenAISettings(data, settings) {
     $('#seed_openai').val(oai_settings.seed);
     $('#n_openai').val(oai_settings.n);
     $('#openai_show_thoughts').prop('checked', oai_settings.show_thoughts);
+
+    $('#openai_reasoning_effort').val(oai_settings.reasoning_effort);
+    $(`#openai_reasoning_effort option[value="${oai_settings.reasoning_effort}"]`).prop('selected', true);
 
     if (settings.reverse_proxy !== undefined) oai_settings.reverse_proxy = settings.reverse_proxy;
     $('#openai_reverse_proxy').val(oai_settings.reverse_proxy);
@@ -3531,6 +3538,7 @@ async function saveOpenAIPreset(name, settings, triggerUi = true) {
         continue_postfix: settings.continue_postfix,
         function_calling: settings.function_calling,
         show_thoughts: settings.show_thoughts,
+        reasoning_effort: settings.reasoning_effort,
         seed: settings.seed,
         n: settings.n,
     };
@@ -3989,6 +3997,7 @@ function onSettingsPresetChange() {
         continue_postfix: ['#continue_postfix', 'continue_postfix', false],
         function_calling: ['#openai_function_calling', 'function_calling', true],
         show_thoughts: ['#openai_show_thoughts', 'show_thoughts', true],
+        reasoning_effort: ['#openai_reasoning_effort', 'reasoning_effort', false],
         seed: ['#seed_openai', 'seed', false],
         n: ['#n_openai', 'n', false],
     };
@@ -5527,6 +5536,11 @@ export function initOpenAI() {
 
     $('#openai_show_thoughts').on('input', function () {
         oai_settings.show_thoughts = !!$(this).prop('checked');
+        saveSettingsDebounced();
+    });
+
+    $('#openai_reasoning_effort').on('input', function () {
+        oai_settings.reasoning_effort = String($(this).val());
         saveSettingsDebounced();
     });
 

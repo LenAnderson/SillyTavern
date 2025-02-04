@@ -1063,6 +1063,13 @@ router.post('/generate', jsonParser, function (request, response) {
         return response.status(400).send({ error: true });
     }
 
+    // A few of OpenAIs reasoning models support reasoning effort
+    if ([CHAT_COMPLETION_SOURCES.CUSTOM, CHAT_COMPLETION_SOURCES.OPENAI].includes(request.body.chat_completion_source)) {
+        if (['o1', 'o3-mini', 'o3-mini-2025-01-31'].includes(request.body.model)) {
+            bodyParams['reasoning_effort'] = request.body.reasoning_effort;
+        }
+    }
+
     if (!apiKey && !request.body.reverse_proxy && request.body.chat_completion_source !== CHAT_COMPLETION_SOURCES.CUSTOM) {
         console.warn('OpenAI API key is missing.');
         return response.status(400).send({ error: true });
