@@ -4580,7 +4580,7 @@ export async function Generate(type, { automatic_trigger, force_name2, quiet_pro
     // For prompt bit itemization
     let mesSendString = '';
 
-    function getCombinedPrompt(isNegative) {
+    async function getCombinedPrompt(isNegative) {
         // Only return if the guidance scale doesn't exist or the value is 1
         // Also don't return if constructing the neutral prompt
         if (isNegative && !useCfgPrompt) {
@@ -4689,13 +4689,13 @@ export async function Generate(type, { automatic_trigger, force_name2, quiet_pro
         };
 
         // Before returning the combined prompt, give available context related information to all subscribers.
-        eventSource.emitAndWait(event_types.GENERATE_BEFORE_COMBINE_PROMPTS, data);
+        await eventSource.emit(event_types.GENERATE_BEFORE_COMBINE_PROMPTS, data);
 
         // If one or multiple subscribers return a value, forfeit the responsibillity of flattening the context.
         return !data.combinedPrompt ? combine() : data.combinedPrompt;
     }
 
-    let finalPrompt = getCombinedPrompt(false);
+    let finalPrompt = await getCombinedPrompt(false);
 
     const eventData = { prompt: finalPrompt, dryRun: dryRun };
     await eventSource.emit(event_types.GENERATE_AFTER_COMBINE_PROMPTS, eventData);
@@ -4729,7 +4729,7 @@ export async function Generate(type, { automatic_trigger, force_name2, quiet_pro
             }
             break;
         case 'textgenerationwebui': {
-            const cfgValues = useCfgPrompt ? { guidanceScale: cfgGuidanceScale, negativePrompt: getCombinedPrompt(true) } : null;
+            const cfgValues = useCfgPrompt ? { guidanceScale: cfgGuidanceScale, negativePrompt: await getCombinedPrompt(true) } : null;
             generate_data = getTextGenGenerationData(finalPrompt, maxLength, isImpersonate, isContinue, cfgValues, type);
             break;
         }

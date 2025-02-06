@@ -5,6 +5,7 @@ import process from 'node:process';
 import { Readable } from 'node:stream';
 import { createRequire } from 'node:module';
 import { Buffer } from 'node:buffer';
+import { promises as dnsPromise } from 'node:dns';
 
 import yaml from 'yaml';
 import { sync as commandExistsSync } from 'command-exists';
@@ -692,6 +693,70 @@ export function isValidUrl(url) {
     } catch (error) {
         return false;
     }
+}
+
+/**
+ * removes starting `[` or ending `]` from hostname.
+ * @param {string} hostname hostname to use
+ * @returns {string} hostname plus the modifications
+ */
+export function urlHostnameToIPv6(hostname) {
+    if (hostname.startsWith('[')) {
+        hostname = hostname.slice(1);
+    }
+    if (hostname.endsWith(']')) {
+        hostname = hostname.slice(0, -1);
+    }
+    return hostname;
+}
+
+/**
+ * Test if can resolve a dns name.
+ * @param {string} name Domain name to use
+ * @param {boolean} useIPv6 If use IPv6
+ * @param {boolean} useIPv4 If use IPv4
+ * @returns Promise<boolean> If the URL is valid
+ */
+export async function canResolve(name, useIPv6 = true, useIPv4 = true) {
+    try {
+        let v6Resolved = false;
+        let v4Resolved = false;
+
+        if (useIPv6) {
+            try {
+                await dnsPromise.resolve6(name);
+                v6Resolved = true;
+            } catch (error) {
+                v6Resolved = false;
+            }
+        }
+
+        if (useIPv4) {
+            try {
+                await dnsPromise.resolve(name);
+                v4Resolved = true;
+            } catch (error) {
+                v4Resolved = false;
+            }
+        }
+
+        return v6Resolved || v4Resolved;
+
+    } catch (error) {
+        return false;
+    }
+}
+
+
+/**
+ * converts string to boolean accepts 'true' or 'false' else it returns the string put in
+ * @param {string|null} str Input string or null
+ * @returns {boolean|string|null} boolean else original input string or null if input is
+ */
+export function stringToBool(str) {
+    if (str === 'true') return true;
+    if (str === 'false') return false;
+    return str;
 }
 
 /**

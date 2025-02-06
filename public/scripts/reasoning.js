@@ -153,7 +153,7 @@ function registerReasoningSlashCommands() {
             }),
         ],
         callback: (_args, value) => {
-            const messageId = !isNaN(Number(value)) ? Number(value) : chat.length - 1;
+            const messageId = !isNaN(parseInt(value.toString())) ? parseInt(value.toString()) : chat.length - 1;
             const message = chat[messageId];
             const reasoning = String(message?.extra?.reasoning ?? '');
             return reasoning.replace(PromptReasoning.REASONING_PLACEHOLDER_REGEX, '');
