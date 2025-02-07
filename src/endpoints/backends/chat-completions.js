@@ -306,8 +306,9 @@ async function sendMakerSuiteRequest(request, response) {
         }
 
         const should_use_system_prompt = (
+            model.includes('gemini-2.0-pro') ||
+            model.includes('gemini-2.0-flash') ||
             model.includes('gemini-2.0-flash-thinking-exp') ||
-            model.includes('gemini-2.0-flash-exp') ||
             model.includes('gemini-1.5-flash') ||
             model.includes('gemini-1.5-pro') ||
             model.startsWith('gemini-exp')
@@ -316,9 +317,15 @@ async function sendMakerSuiteRequest(request, response) {
         const prompt = convertGooglePrompt(request.body.messages, model, should_use_system_prompt, getPromptNames(request));
         let safetySettings = GEMINI_SAFETY;
 
-        if (model.includes('gemini-2.0-flash-exp')) {
+        // These old models do not support setting the threshold to OFF at all.
+        if (['gemini-1.5-pro-001', 'gemini-1.5-flash-001', 'gemini-1.5-flash-8b-exp-0827', 'gemini-1.5-flash-8b-exp-0924', 'gemini-pro', 'gemini-1.0-pro', 'gemini-1.0-pro-001'].includes(model)) {
+            safetySettings = GEMINI_SAFETY.map(setting => ({ ...setting, threshold: 'BLOCK_NONE' }));
+        }
+        // Interestingly, Gemini 2.0 Flash does support setting the threshold for HARM_CATEGORY_CIVIC_INTEGRITY to OFF.
+        else if (['gemini-2.0-flash', 'gemini-2.0-flash-001', 'gemini-2.0-flash-exp'].includes(model)) {
             safetySettings = GEMINI_SAFETY.map(setting => ({ ...setting, threshold: 'OFF' }));
         }
+        // Most of the other models allow for setting the threshold of filters, except for HARM_CATEGORY_CIVIC_INTEGRITY, to OFF.
 
         let body = {
             contents: prompt.contents,
