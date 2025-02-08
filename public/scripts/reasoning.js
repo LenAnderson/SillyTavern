@@ -1,13 +1,18 @@
-import { chat, closeMessageEditor, event_types, eventSource, saveChatConditional, saveSettingsDebounced, substituteParams, updateMessageBlock } from '../script.js';
+import {
+    moment,
+} from '../lib.js';
+import { chat, closeMessageEditor, event_types, eventSource, main_api, saveChatConditional, saveSettingsDebounced, substituteParams, updateMessageBlock } from '../script.js';
 import { getRegexedString, regex_placement } from './extensions/regex/engine.js';
-import { t } from './i18n.js';
+import { getCurrentLocale, t } from './i18n.js';
 import { MacrosParser } from './macros.js';
+import { chat_completion_sources, oai_settings } from './openai.js';
 import { Popup } from './popup.js';
 import { power_user } from './power-user.js';
 import { SlashCommand } from './slash-commands/SlashCommand.js';
 import { ARGUMENT_TYPE, SlashCommandArgument, SlashCommandNamedArgument } from './slash-commands/SlashCommandArgument.js';
 import { commonEnumProviders } from './slash-commands/SlashCommandCommonEnumsProvider.js';
 import { SlashCommandParser } from './slash-commands/SlashCommandParser.js';
+import { textgen_types, textgenerationwebui_settings } from './textgen-settings.js';
 import { copyText, escapeRegex, isFalseBoolean } from './utils.js';
 
 /**
@@ -32,6 +37,56 @@ function toggleReasoningAutoExpand() {
             block.open = power_user.reasoning.auto_expand;
         }
     });
+}
+
+/**
+ * Extracts the reasoning from the response data.
+ * @param {object} data Response data
+ * @returns {string} Extracted reasoning
+ */
+export function extractReasoningFromData(data) {
+    switch (main_api) {
+        case 'textgenerationwebui':
+            switch (textgenerationwebui_settings.type) {
+                case textgen_types.OPENROUTER:
+                    return data?.choices?.[0]?.reasoning ?? '';
+            }
+            break;
+
+        case 'openai':
+            if (!oai_settings.show_thoughts) break;
+
+            switch (oai_settings.chat_completion_source) {
+                case chat_completion_sources.DEEPSEEK:
+                    return data?.choices?.[0]?.message?.reasoning_content ?? '';
+                case chat_completion_sources.OPENROUTER:
+                    return data?.choices?.[0]?.message?.reasoning ?? '';
+                case chat_completion_sources.MAKERSUITE:
+                    return data?.responseContent?.parts?.filter(part => part.thought)?.map(part => part.text)?.join('\n\n') ?? '';
+            }
+            break;
+    }
+
+    return '';
+}
+
+/**
+ * Updates the Reasoning controls
+ * @param {HTMLElement} element The element to update
+ * @param {number?} duration The duration of the reasoning in milliseconds
+ * @param {object} [options={}] Options for the function
+ * @param {boolean} [options.forceEnd=false] If true, there will be no "Thinking..." when no duration exists
+ */
+export function updateReasoningTimeUI(element, duration, { forceEnd = false } = {}) {
+    if (duration) {
+        const durationStr = moment.duration(duration).locale(getCurrentLocale()).humanize({ s: 50, ss: 3 });
+        const secondsStr = moment.duration(duration).asSeconds();
+        element.innerHTML = t`Thought for <span title="${secondsStr} seconds">${durationStr}</span>`;
+    } else if (forceEnd) {
+        element.textContent = t`Thought for some time`;
+    } else {
+        element.textContent = t`Thinking...`;
+    }
 }
 
 /**
@@ -247,6 +302,24 @@ function registerReasoningMacros() {
 }
 
 function setReasoningEventHandlers() {
+    $(document).on('click', '.mes_reasoning_details', function (e) {
+        if (!e.target.closest('.mes_reasoning_actions') && !e.target.closest('.mes_reasoning_header')) {
+            e.preventDefault();
+        }
+    });
+
+    $(document).on('click', '.mes_reasoning_header', function () {
+        // If we are in message edit mode and reasoning area is closed, a click opens and edits it
+        const mes = $(this).closest('.mes');
+        const mesEditArea = mes.find('#curEditTextarea');
+        if (mesEditArea.length) {
+            const summary = $(mes).find('.mes_reasoning_summary');
+            if (!summary.attr('open')) {
+                summary.find('.mes_reasoning_edit').trigger('click');
+            }
+        }
+    });
+
     $(document).on('click', '.mes_reasoning_copy', (e) => {
         e.stopPropagation();
         e.preventDefault();
@@ -323,7 +396,7 @@ function setReasoningEventHandlers() {
     });
 
     $(document).on('click', '.mes_edit_add_reasoning', async function () {
-        const { message, messageId } = getMessageFromJquery(this);
+        const { message, messageId, messageBlock } = getMessageFromJquery(this);
         if (!message?.extra) {
             return;
         }
@@ -334,7 +407,8 @@ function setReasoningEventHandlers() {
         }
 
         message.extra.reasoning = PromptReasoning.REASONING_PLACEHOLDER;
-        updateMessageBlock(messageId, message);
+        updateMessageBlock(messageId, message, { rerenderMessage: false });
+        messageBlock.find('.mes_reasoning_edit').trigger('click');
         await saveChatConditional();
     });
 
@@ -348,13 +422,15 @@ function setReasoningEventHandlers() {
             return;
         }
 
-        const { message, messageId } = getMessageFromJquery(this);
+        const { message, messageId, messageBlock } = getMessageFromJquery(this);
         if (!message?.extra) {
             return;
         }
         message.extra.reasoning = '';
         await saveChatConditional();
         updateMessageBlock(messageId, message);
+        const textarea = messageBlock.find('.reasoning_edit_textarea');
+        textarea.remove();
     });
 
     $(document).on('pointerup', '.mes_reasoning_copy', async function () {
