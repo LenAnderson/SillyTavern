@@ -482,7 +482,7 @@
     "separate with commas w/o space between": "phân tách bằng dấu phẩy không có khoảng trắng giữa",
     "Custom Stopping Strings": "Chuỗi dừng tùy chỉnh",
     "JSON serialized array of strings": "Mảng chuỗi được tuần tự hóa JSON",
-    "Replace Macro in Custom Stopping Strings": "Thay thế Macro trong Chuỗi Dừng Tùy chỉnh",
+    "Replace Macro in Stop Strings": "Thay thế Macro trong Chuỗi Dừng Tùy chỉnh",
     "Auto-Continue": "Tự động Tiếp tục",
     "Allow for Chat Completion APIs": "Cho phép các API hoàn thành Trò chuyện",
     "Target length (tokens)": "Độ dài mục tiêu (token)",

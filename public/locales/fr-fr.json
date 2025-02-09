@@ -434,7 +434,7 @@
     "Non-markdown strings": "Chaînes non Markdown",
     "Custom Stopping Strings": "Chaînes d'arrêt personnalisées",
     "JSON serialized array of strings": "Tableau de chaînes sérialisé JSON",
-    "Replace Macro in Custom Stopping Strings": "Remplacer les macro dans les chaînes d'arrêt personnalisées",
+    "Replace Macro in Stop Strings": "Remplacer les macro dans les chaînes d'arrêt personnalisées",
     "Auto-Continue": "Auto-Continue",
     "Allow for Chat Completion APIs": "Autoriser les APIs de complétion de chat",
     "Target length (tokens)": "Longueur cible (tokens)",

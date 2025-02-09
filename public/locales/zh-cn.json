@@ -559,7 +559,7 @@
     "Prompt Content": "提示词内容",
     "Custom Stopping Strings": "自定义停止字符串",
     "JSON serialized array of strings": "JSON序列化的字符串数组",
-    "Replace Macro in Custom Stopping Strings": "替换自定义停止字符串中的宏",
+    "Replace Macro in Stop Strings": "替换自定义停止字符串中的宏",
     "Token Padding": "词符填充",
     "Miscellaneous": "杂项",
     "Non-markdown strings": "非 Markdown 字符串",

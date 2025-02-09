@@ -730,7 +730,7 @@
                                             <input type="range" id="top_k_openai" name="volume" min="0" max="500" step="1">
                                         </div>
                                         <div class="range-block-counter">
-                                            <input type="number" min="0" max="200" step="1" data-for="top_k_openai" id="top_k_counter_openai">
+                                            <input type="number" min="0" max="500" step="1" data-for="top_k_openai" id="top_k_counter_openai">
                                         </div>
                                     </div>
                                 </div>
@@ -3749,8 +3749,8 @@
                             </div>
                             <label class="checkbox_label" for="custom_stopping_strings_macro">
                                 <input id="custom_stopping_strings_macro" type="checkbox" checked>
-                                <small data-i18n="Replace Macro in Custom Stopping Strings">
-                                    Replace Macro in Custom Stopping Strings
+                                <small data-i18n="Replace Macro in Stop Strings">
+                                    Replace Macro in Stop Strings
                                 </small>
                             </label>
                         </div>
@@ -3797,44 +3797,53 @@
                                 <span data-i18n="Reasoning">Reasoning</span>
                             </h4>
                             <div>
-                                <label class="checkbox_label" for="reasoning_auto_parse" title="Automatically parse reasoning blocks from main content between the reasoning prefix/suffix. Both fields must be defined and non-empty." data-i18n="[title]reasoning_auto_parse">
-                                    <input id="reasoning_auto_parse" type="checkbox" />
-                                    <small data-i18n="Auto-Parse Reasoning">
-                                        Auto-Parse Reasoning
-                                    </small>
-                                </label>
-                                <label class="checkbox_label" for="reasoning_auto_expand" title="Automatically expand reasoning blocks." data-i18n="[title]reasoning_auto_expand">
-                                    <input id="reasoning_auto_expand" type="checkbox" />
-                                    <small data-i18n="Auto-Expand Reasoning">
-                                        Auto-Expand Reasoning
-                                    </small>
-                                </label>
-                                <label class="checkbox_label" for="reasoning_add_to_prompts" title="Add existing reasoning blocks to prompts. To add a new reasoning block, use the message edit menu." data-i18n="[title]reasoning_add_to_prompts">
-                                    <input id="reasoning_add_to_prompts" type="checkbox" />
-                                    <small data-i18n="Add Reasoning to Prompts">
-                                        Add Reasoning to Prompts
-                                    </small>
-                                </label>
-                                <div class="flex-container">
-                                    <div class="flex1" title="Inserted before the reasoning content." data-i18n="[title]reasoning_prefix">
-                                        <small data-i18n="Prefix">Prefix</small>
-                                        <textarea id="reasoning_prefix" class="text_pole textarea_compact autoSetHeight"></textarea>
-                                    </div>
-                                    <div class="flex1" title="Inserted after the reasoning content." data-i18n="[title]reasoning_suffix">
-                                        <small data-i18n="Suffix">Suffix</small>
-                                        <textarea id="reasoning_suffix" class="text_pole textarea_compact autoSetHeight"></textarea>
+                                <div class="flex-container alignItemsBaseline">
+                                    <label class="checkbox_label flex1" for="reasoning_auto_parse" title="Automatically parse reasoning blocks from main content between the reasoning prefix/suffix. Both fields must be defined and non-empty." data-i18n="[title]reasoning_auto_parse">
+                                        <input id="reasoning_auto_parse" type="checkbox" />
+                                        <small data-i18n="Auto-Parse">
+                                            Auto-Parse
+                                        </small>
+                                    </label>
+                                    <label class="checkbox_label flex1" for="reasoning_auto_expand" title="Automatically expand reasoning blocks." data-i18n="[title]reasoning_auto_expand">
+                                        <input id="reasoning_auto_expand" type="checkbox" />
+                                        <small data-i18n="Auto-Expand">
+                                            Auto-Expand
+                                        </small>
+                                    </label>
+                                </div>
+                                <div class="flex-container alignItemsBaseline">
+                                    <label class="checkbox_label flex1" for="reasoning_add_to_prompts" title="Add existing reasoning blocks to prompts. To add a new reasoning block, use the message edit menu." data-i18n="[title]reasoning_add_to_prompts">
+                                        <input id="reasoning_add_to_prompts" type="checkbox" />
+                                        <small data-i18n="Add to Prompts">
+                                            Add to Prompts
+                                        </small>
+                                    </label>
+                                    <div class="flex1 flex-container alignItemsBaseline" title="Maximum number of reasoning blocks to be added per prompt, counting from the last message." data-i18n="[title]reasoning_max_additions">
+                                        <input id="reasoning_max_additions" class="text_pole textarea_compact widthUnset" type="number" min="0" max="999"></textarea>
+                                        <small data-i18n="Max">Max</small>
                                     </div>
                                 </div>
-                                <div class="flex-container">
-                                    <div class="flex1" title="Inserted between the reasoning and the message content." data-i18n="[title]reasoning_separator">
-                                        <small data-i18n="Separator">Separator</small>
-                                        <textarea id="reasoning_separator" class="text_pole textarea_compact autoSetHeight"></textarea>
+                                <details>
+                                    <summary data-i18n="Reasoning Formatting">
+                                        Reasoning Formatting
+                                    </summary>
+                                    <div class="flex-container">
+                                        <div class="flex1" title="Inserted before the reasoning content." data-i18n="[title]reasoning_prefix">
+                                            <small data-i18n="Prefix">Prefix</small>
+                                            <textarea id="reasoning_prefix" class="text_pole textarea_compact autoSetHeight"></textarea>
+                                        </div>
+                                        <div class="flex1" title="Inserted after the reasoning content." data-i18n="[title]reasoning_suffix">
+                                            <small data-i18n="Suffix">Suffix</small>
+                                            <textarea id="reasoning_suffix" class="text_pole textarea_compact autoSetHeight"></textarea>
+                                        </div>
                                     </div>
-                                    <div class="flex1" title="Maximum number of reasoning blocks to be added per prompt, counting from the last message." data-i18n="[title]reasoning_max_additions">
-                                        <small data-i18n="Max Additions">Max Additions</small>
-                                        <input id="reasoning_max_additions" class="text_pole textarea_compact" type="number" min="0" max="999"></textarea>
+                                    <div class="flex-container">
+                                        <div class="flex1" title="Inserted between the reasoning and the message content." data-i18n="[title]reasoning_separator">
+                                            <small data-i18n="Separator">Separator</small>
+                                            <textarea id="reasoning_separator" class="text_pole textarea_compact autoSetHeight"></textarea>
+                                        </div>
                                     </div>
-                                </div>
+                                </details>
                             </div>
                         </div>
                         <div>

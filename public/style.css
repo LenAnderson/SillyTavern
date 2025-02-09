@@ -5746,11 +5746,13 @@ body:not(.movingUI) .drawer-content.maximized {
     overflow-wrap: anywhere;
 }
 
+#SystemPromptColumn summary,
 #InstructSequencesColumn summary {
     font-size: 0.95em;
     cursor: pointer;
 }
 
+#SystemPromptColumn details,
 #InstructSequencesColumn details:not(:last-of-type) {
     margin-bottom: 5px;
 }

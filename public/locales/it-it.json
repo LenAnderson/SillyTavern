@@ -482,7 +482,7 @@
     "separate with commas w/o space between": "separati con virgole senza spazio tra loro",
     "Custom Stopping Strings": "Stringhe di Stop Personalizzate",
     "JSON serialized array of strings": "Matrice serializzata JSON di stringhe",
-    "Replace Macro in Custom Stopping Strings": "Sostituisci Macro in Stringhe di Arresto Personalizzate",
+    "Replace Macro in Stop Strings": "Sostituisci Macro in Stringhe di Arresto Personalizzate",
     "Auto-Continue": "Auto-continua",
     "Allow for Chat Completion APIs": "Consenti per API di completamento chat",
     "Target length (tokens)": "Lunghezza obiettivo (token)",

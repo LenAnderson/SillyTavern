@@ -482,7 +482,7 @@
     "separate with commas w/o space between": "فصل بفواصل دون مسافة بينها",
     "Custom Stopping Strings": "سلاسل توقف مخصصة",
     "JSON serialized array of strings": "مصفوفة سلسلة JSON متسلسلة",
-    "Replace Macro in Custom Stopping Strings": "استبدال الماكرو في سلاسل التوقف المخصصة",
+    "Replace Macro in Stop Strings": "استبدال الماكرو في سلاسل التوقف المخصصة",
     "Auto-Continue": "المتابعة التلقائية",
     "Allow for Chat Completion APIs": "السماح بواجهات برمجة التطبيقات لإكمال الدردشة",
     "Target length (tokens)": "الطول المستهدف (رموز)",

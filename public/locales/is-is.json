@@ -482,7 +482,7 @@
     "separate with commas w/o space between": "aðskilið með kommum án bila milli",
     "Custom Stopping Strings": "Eigin stopp-strengir",
     "JSON serialized array of strings": "JSON raðað fylki af strengjum",
-    "Replace Macro in Custom Stopping Strings": "Skiptu út í macro í sérsniðnum stoppa strengjum",
+    "Replace Macro in Stop Strings": "Skiptu út í macro í sérsniðnum stoppa strengjum",
     "Auto-Continue": "Sjálfvirk Forná",
     "Allow for Chat Completion APIs": "Leyfa fyrir spjall Loka APIs",
     "Target length (tokens)": "Markaðarlengd (texti)",

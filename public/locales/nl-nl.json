@@ -482,7 +482,7 @@
     "separate with commas w/o space between": "gescheiden met komma's zonder spatie ertussen",
     "Custom Stopping Strings": "Aangepaste Stopreeksen",
     "JSON serialized array of strings": "JSON geserialiseerde reeks van strings",
-    "Replace Macro in Custom Stopping Strings": "Macro vervangen in aangepaste stopreeksen",
+    "Replace Macro in Stop Strings": "Macro vervangen in aangepaste stopreeksen",
     "Auto-Continue": "Automatisch doorgaan",
     "Allow for Chat Completion APIs": "Chatvervolledigings-API's toestaan",
     "Target length (tokens)": "Doellengte (tokens)",

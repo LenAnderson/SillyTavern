@@ -483,7 +483,7 @@
     "separate with commas w/o space between": "用逗號分隔，之間無空格",
     "Custom Stopping Strings": "自訂停止字串",
     "JSON serialized array of strings": "JSON 序列化字串數組",
-    "Replace Macro in Custom Stopping Strings": "取代自訂停止字串中的巨集",
+    "Replace Macro in Stop Strings": "取代自訂停止字串中的巨集",
     "Auto-Continue": "自動繼續",
     "Allow for Chat Completion APIs": "允許聊天補全 API",
     "Target length (tokens)": "目標長度（符元）",

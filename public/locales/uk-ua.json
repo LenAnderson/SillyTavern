@@ -482,7 +482,7 @@
     "separate with commas w/o space between": "розділяйте комами без пропусків між ними",
     "Custom Stopping Strings": "Власні рядки зупинки",
     "JSON serialized array of strings": "JSON-серіалізований масив рядків",
-    "Replace Macro in Custom Stopping Strings": "Замінювати макроси у власних рядках зупинки",
+    "Replace Macro in Stop Strings": "Замінювати макроси у власних рядках зупинки",
     "Auto-Continue": "Автоматичне продовження",
     "Allow for Chat Completion APIs": "Дозволити для Chat Completion API",
     "Target length (tokens)": "Цільова довжина (токени)",

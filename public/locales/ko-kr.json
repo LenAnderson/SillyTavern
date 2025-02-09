@@ -492,7 +492,7 @@
     "separate with commas w/o space between": "쉼표로 구분 (공백 없이)",
     "Custom Stopping Strings": "사용자 정의 중지 문자열",
     "JSON serialized array of strings": "문자열의 JSON 직렬화된 배열",
-    "Replace Macro in Custom Stopping Strings": "사용자 정의 중단 문자열에서 매크로 교체",
+    "Replace Macro in Stop Strings": "사용자 정의 중단 문자열에서 매크로 교체",
     "Auto-Continue": "자동 계속하기",
     "Allow for Chat Completion APIs": "채팅 완성 API 허용",
     "Target length (tokens)": "대상 길이 (토큰)",

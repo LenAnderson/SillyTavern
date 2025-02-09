@@ -161,7 +161,7 @@
     "View hidden API keys": "Посмотреть скрытые API-ключи",
     "Advanced Formatting": "Расширенное форматирование",
     "Context Template": "Шаблон контекста",
-    "Replace Macro in Custom Stopping Strings": "Заменять макросы в пользовательских стоп-строках",
+    "Replace Macro in Stop Strings": "Заменять макросы в пользовательских стоп-строках",
     "Story String": "Строка истории",
     "Example Separator": "Разделитель примеров сообщений",
     "Chat Start": "Начало чата",
