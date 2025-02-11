@@ -5660,13 +5660,24 @@ async function promptItemize(itemizedPrompts, requestedMesId) {
         toastr.info(t`Copied!`);
     });
 
-    popup.dlg.querySelector('#showRawPrompt').addEventListener('click', function () {
+    popup.dlg.querySelector('#showRawPrompt').addEventListener('click', async function () {
         //console.log(itemizedPrompts[PromptArrayItemForRawPromptDisplay].rawPrompt);
         console.log(PromptArrayItemForRawPromptDisplay);
         console.log(itemizedPrompts);
         console.log(itemizedPrompts[PromptArrayItemForRawPromptDisplay].rawPrompt);
 
         const rawPrompt = flatten(itemizedPrompts[PromptArrayItemForRawPromptDisplay].rawPrompt);
+
+        // Mobile needs special handholding. The side-view on the popup wouldn't work,
+        // so we just show an additional popup for this.
+        if (isMobile()) {
+            const content = document.createElement('div');
+            content.classList.add('tokenItemizingMaintext');
+            content.innerText = rawPrompt;
+            const popup = new Popup(content, POPUP_TYPE.TEXT, null, { allowVerticalScrolling: true, leftAlign: true });
+            await popup.show();
+            return;
+        }
 
         //let DisplayStringifiedPrompt = JSON.stringify(itemizedPrompts[PromptArrayItemForRawPromptDisplay].rawPrompt).replace(/\n+/g, '<br>');
         const rawPromptWrapper = document.getElementById('rawPromptWrapper');

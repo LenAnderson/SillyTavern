@@ -262,6 +262,10 @@ input[type='checkbox']:focus-visible {
     color: var(--SmartThemeEmColor);
 }
 
+.tokenItemizingMaintext {
+    font-size: calc(var(--mainFontSize) * 0.8);
+}
+
 .tokenGraph {
     border-radius: 10px;
     border: 1px solid var(--SmartThemeBorderColor);

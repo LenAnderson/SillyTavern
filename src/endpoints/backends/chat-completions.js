@@ -679,6 +679,11 @@ async function sendDeepSeekRequest(request, response) {
             bodyParams['logprobs'] = true;
         }
 
+        if (Array.isArray(request.body.tools) && request.body.tools.length > 0) {
+            bodyParams['tools'] = request.body.tools;
+            bodyParams['tool_choice'] = request.body.tool_choice;
+        }
+
         const postProcessType = String(request.body.model).endsWith('-reasoner') ? 'deepseek-reasoner' : 'deepseek';
         const processedMessages = postProcessPrompt(request.body.messages, postProcessType, getPromptNames(request));
 
