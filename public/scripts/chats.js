@@ -45,6 +45,7 @@ import { DragAndDropHandler } from './dragdrop.js';
 import { renderTemplateAsync } from './templates.js';
 import { t } from './i18n.js';
 import { humanizedDateTime } from './RossAscends-mods.js';
+import { accountStorage } from './util/AccountStorage.js';
 
 /**
  * @typedef {Object} FileAttachment
@@ -1078,8 +1079,8 @@ async function openAttachmentManager() {
         renderAttachments();
     });
 
-    let sortField = localStorage.getItem('DataBank_sortField') || 'created';
-    let sortOrder = localStorage.getItem('DataBank_sortOrder') || 'desc';
+    let sortField = accountStorage.getItem('DataBank_sortField') || 'created';
+    let sortOrder = accountStorage.getItem('DataBank_sortOrder') || 'desc';
     let filterString = '';
 
     const template = $(await renderExtensionTemplateAsync('attachments', 'manager', {}));
@@ -1095,8 +1096,8 @@ async function openAttachmentManager() {
 
         sortField = this.selectedOptions[0].dataset.sortField;
         sortOrder = this.selectedOptions[0].dataset.sortOrder;
-        localStorage.setItem('DataBank_sortField', sortField);
-        localStorage.setItem('DataBank_sortOrder', sortOrder);
+        accountStorage.setItem('DataBank_sortField', sortField);
+        accountStorage.setItem('DataBank_sortOrder', sortOrder);
         renderAttachments();
     });
     function handleBulkAction(action) {

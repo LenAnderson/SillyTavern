@@ -6,6 +6,7 @@ import { tokenizers } from './tokenizers.js';
 import { renderTemplateAsync } from './templates.js';
 import { POPUP_TYPE, callGenericPopup } from './popup.js';
 import { t } from './i18n.js';
+import { accountStorage } from './util/AccountStorage.js';
 
 let mancerModels = [];
 let togetherModels = [];
@@ -336,7 +337,7 @@ export async function loadFeatherlessModels(data) {
     populateClassSelection(data);
 
     // Retrieve the stored number of items per page or default to 10
-    const perPage = Number(localStorage.getItem(storageKey)) || 10;
+    const perPage = Number(accountStorage.getItem(storageKey)) || 10;
 
     // Initialize pagination
     applyFiltersAndSort();
@@ -412,7 +413,7 @@ export async function loadFeatherlessModels(data) {
             },
             afterSizeSelectorChange: function (e) {
                 const newPerPage = e.target.value;
-                localStorage.setItem('Models_PerPage', newPerPage);
+                accountStorage.setItem(storageKey, newPerPage);
                 setupPagination(models, Number(newPerPage), featherlessCurrentPage); // Use the stored current page number
             },
         });
@@ -513,7 +514,7 @@ export async function loadFeatherlessModels(data) {
         const currentModelIndex = filteredModels.findIndex(x => x.id === textgen_settings.featherless_model);
         featherlessCurrentPage = currentModelIndex >= 0 ? (currentModelIndex / perPage) + 1 : 1;
 
-        setupPagination(filteredModels, Number(localStorage.getItem(storageKey)) || perPage, featherlessCurrentPage);
+        setupPagination(filteredModels, Number(accountStorage.getItem(storageKey)) || perPage, featherlessCurrentPage);
     }
 
     // Required to keep the /model command function

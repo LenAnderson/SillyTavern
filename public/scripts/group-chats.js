@@ -78,6 +78,7 @@ import { FILTER_TYPES, FilterHelper } from './filters.js';
 import { isExternalMediaAllowed } from './chats.js';
 import { POPUP_TYPE, Popup, callGenericPopup } from './popup.js';
 import { t } from './i18n.js';
+import { accountStorage } from './util/AccountStorage.js';
 
 export {
     selected_group,
@@ -1309,10 +1310,10 @@ function printGroupCandidates() {
         formatNavigator: PAGINATION_TEMPLATE,
         showNavigator: true,
         showSizeChanger: true,
-        pageSize: Number(localStorage.getItem(storageKey)) || 5,
+        pageSize: Number(accountStorage.getItem(storageKey)) || 5,
         sizeChangerOptions: [5, 10, 25, 50, 100, 200, 500, 1000],
         afterSizeSelectorChange: function (e) {
-            localStorage.setItem(storageKey, e.target.value);
+            accountStorage.setItem(storageKey, e.target.value);
         },
         callback: function (data) {
             $('#rm_group_add_members').empty();
@@ -1336,10 +1337,10 @@ function printGroupMembers() {
             formatNavigator: PAGINATION_TEMPLATE,
             showNavigator: true,
             showSizeChanger: true,
-            pageSize: Number(localStorage.getItem(storageKey)) || 5,
+            pageSize: Number(accountStorage.getItem(storageKey)) || 5,
             sizeChangerOptions: [5, 10, 25, 50, 100, 200, 500, 1000],
             afterSizeSelectorChange: function (e) {
-                localStorage.setItem(storageKey, e.target.value);
+                accountStorage.setItem(storageKey, e.target.value);
             },
             callback: function (data) {
                 $('.rm_group_members').empty();

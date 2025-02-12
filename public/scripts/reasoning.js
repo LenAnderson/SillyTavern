@@ -447,6 +447,20 @@ function setReasoningEventHandlers() {
 }
 
 /**
+ * Removes reasoning from a string if auto-parsing is enabled.
+ * @param {string} str Input string
+ * @returns {string} Output string
+ */
+export function removeReasoningFromString(str) {
+    if (!power_user.reasoning.auto_parse) {
+        return str;
+    }
+
+    const parsedReasoning = parseReasoningFromString(str);
+    return parsedReasoning?.content ?? str;
+}
+
+/**
  * Parses reasoning from a string using the power user reasoning settings.
  * @typedef {Object} ParsedReasoning
  * @property {string} reasoning Reasoning block

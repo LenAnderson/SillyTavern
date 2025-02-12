@@ -75,6 +75,7 @@ import { commonEnumProviders, enumIcons } from './slash-commands/SlashCommandCom
 import { SlashCommandBreakController } from './slash-commands/SlashCommandBreakController.js';
 import { SlashCommandExecutionError } from './slash-commands/SlashCommandExecutionError.js';
 import { slashCommandReturnHelper } from './slash-commands/SlashCommandReturnHelper.js';
+import { accountStorage } from './util/AccountStorage.js';
 export {
     executeSlashCommands, executeSlashCommandsWithOptions, getSlashCommandsHelp, registerSlashCommand,
 };
@@ -3606,9 +3607,9 @@ export async function sendMessageAs(args, text) {
 
     if (!name) {
         const namelessWarningKey = 'sendAsNamelessWarningShown';
-        if (localStorage.getItem(namelessWarningKey) !== 'true') {
+        if (accountStorage.getItem(namelessWarningKey) !== 'true') {
             toastr.warning('To avoid confusion, please use /sendas name="Character Name"', 'Name defaulted to {{char}}', { timeOut: 10000 });
-            localStorage.setItem(namelessWarningKey, 'true');
+            accountStorage.setItem(namelessWarningKey, 'true');
         }
         name = name2;
     }

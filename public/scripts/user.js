@@ -44,6 +44,14 @@ export function isAdmin() {
 }
 
 /**
+ * Gets the handle string of the current user.
+ * @returns {string} User handle
+ */
+export function getCurrentUserHandle() {
+    return currentUser?.handle || 'default-user';
+}
+
+/**
  * Get the current user.
  * @returns {Promise<void>}
  */
