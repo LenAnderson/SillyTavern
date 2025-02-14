@@ -183,6 +183,10 @@ ollama:
   # * 0: Unload the model immediately after the request
   # * N (any positive number): Keep the model loaded for N seconds after the request.
   keepAlive: -1
+  # Controls the "num_batch" (batch size) parameter of the generation request
+  # * -1: Use the default value of the model
+  # * N (positive number): Use the specified value. Must be a power of 2, e.g. 128, 256, 512, etc.
+  batchSize: -1
 # -- ANTHROPIC CLAUDE API CONFIGURATION --
 claude:
   # Enables caching of the system prompt (if supported).

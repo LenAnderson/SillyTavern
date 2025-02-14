@@ -84,7 +84,6 @@ export {
     setOpenAIMessageExamples,
     setupChatCompletionPromptManager,
     sendOpenAIRequest,
-    getChatCompletionModel,
     TokenHandler,
     IdentifierNotFoundError,
     Message,
@@ -1518,7 +1517,7 @@ async function sendWindowAIRequest(messages, signal, stream) {
     }
 }
 
-function getChatCompletionModel() {
+export function getChatCompletionModel() {
     switch (oai_settings.chat_completion_source) {
         case chat_completion_sources.CLAUDE:
             return oai_settings.claude_model;
@@ -4988,6 +4987,8 @@ export function isImageInliningSupported() {
         'gpt-4-turbo',
         'gpt-4o',
         'gpt-4o-mini',
+        'o1',
+        'o1-2024-12-17',
         'chatgpt-4o-latest',
         'yi-vision',
         'pixtral-latest',

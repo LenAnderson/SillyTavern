@@ -304,6 +304,7 @@ export const TOGETHERAI_KEYS = [
 export const OLLAMA_KEYS = [
     'num_predict',
     'num_ctx',
+    'num_batch',
     'stop',
     'temperature',
     'repeat_penalty',

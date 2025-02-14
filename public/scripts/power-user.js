@@ -258,6 +258,7 @@ let power_user = {
         auto_parse: false,
         add_to_prompts: false,
         auto_expand: false,
+        show_hidden: false,
         prefix: '<think>\n',
         suffix: '\n</think>',
         separator: '\n\n',

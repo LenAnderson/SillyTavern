@@ -2059,6 +2059,23 @@ export function toggleDrawer(drawer, expand = true) {
     }
 }
 
+/**
+ * Sets or removes a dataset property on an HTMLElement
+ *
+ * Utility function to make it easier to reset dataset properties on null, without them being "null" as value.
+ *
+ * @param {HTMLElement} element - The element to modify
+ * @param {string} name - The name of the dataset property
+ * @param {string|null} value - The value to set - If null, the dataset property will be removed
+ */
+export function setDatasetProperty(element, name, value) {
+    if (value === null) {
+        delete element.dataset[name];
+    } else {
+        element.dataset[name] = value;
+    }
+}
+
 export async function fetchFaFile(name) {
     const style = document.createElement('style');
     style.innerHTML = await (await fetch(`/css/${name}`)).text();

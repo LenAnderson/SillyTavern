@@ -269,7 +269,7 @@ import { initSettingsSearch } from './scripts/setting-search.js';
 import { initBulkEdit } from './scripts/bulk-edit.js';
 import { deriveTemplatesFromChatTemplate } from './scripts/chat-templates.js';
 import { getContext } from './scripts/st-context.js';
-import { extractReasoningFromData, initReasoning, PromptReasoning, removeReasoningFromString, updateReasoningTimeUI } from './scripts/reasoning.js';
+import { extractReasoningFromData, initReasoning, PromptReasoning, ReasoningHandler, removeReasoningFromString, updateReasoningUI } from './scripts/reasoning.js';
 import { accountStorage } from './scripts/util/AccountStorage.js';
 
 // API OBJECT FOR EXTERNAL WIRING
@@ -2287,8 +2287,6 @@ function getMessageFromTemplate({
     isUser,
     avatarImg,
     bias,
-    reasoning,
-    reasoningDuration,
     isSystem,
     title,
     timerValue,
@@ -2313,7 +2311,6 @@ function getMessageFromTemplate({
     mes.find('.avatar img').attr('src', avatarImg);
     mes.find('.ch_name .name_text').text(characterName);
     mes.find('.mes_bias').html(bias);
-    mes.find('.mes_reasoning').html(reasoning);
     mes.find('.timestamp').text(timestamp).attr('title', `${extra?.api ? extra.api + ' - ' : ''}${extra?.model ?? ''}`);
     mes.find('.mesIDDisplay').text(`#${mesId}`);
     tokenCount && mes.find('.tokenCounterDisplay').text(`${tokenCount}t`);
@@ -2321,12 +2318,7 @@ function getMessageFromTemplate({
     timerValue && mes.find('.mes_timer').attr('title', timerTitle).text(timerValue);
     bookmarkLink && updateBookmarkDisplay(mes);
 
-    if (reasoning) {
-        mes.addClass('reasoning');
-    }
-    if (reasoningDuration) {
-        updateReasoningTimeUI(mes.find('.mes_reasoning_header_title')[0], reasoningDuration, { forceEnd: true });
-    }
+    updateReasoningUI(mes);
 
     if (power_user.timestamp_model_icon && extra?.api) {
         insertSVGIcon(mes, extra);
@@ -2348,8 +2340,9 @@ export function updateMessageBlock(messageId, message, { rerenderMessage = true 
         const text = message?.extra?.display_text ?? message.mes;
         messageElement.find('.mes_text').html(messageFormatting(text, message.name, message.is_system, message.is_user, messageId, {}, false));
     }
-    messageElement.find('.mes_reasoning').html(messageFormatting(message.extra?.reasoning ?? '', '', false, false, messageId, {}, true));
-    messageElement.toggleClass('reasoning', !!message.extra?.reasoning);
+
+    updateReasoningUI(messageElement);
+
     addCopyToCodeBlocks(messageElement);
     appendMediaToMessage(message, messageElement);
 }
@@ -2509,7 +2502,6 @@ export function addOneMessage(mes, { type = 'normal', insertAfter = null, scroll
         false,
     );
     const bias = messageFormatting(mes.extra?.bias ?? '', '', false, false, -1, {}, false);
-    const reasoning = messageFormatting(mes.extra?.reasoning ?? '', '', false, false, chat.indexOf(mes), {}, true);
     let bookmarkLink = mes?.extra?.bookmark_link ?? '';
 
     let params = {
@@ -2519,8 +2511,6 @@ export function addOneMessage(mes, { type = 'normal', insertAfter = null, scroll
         isUser: mes.is_user,
         avatarImg: avatarImg,
         bias: bias,
-        reasoning: reasoning,
-        reasoningDuration: mes.extra?.reasoning_duration,
         isSystem: isSystem,
         title: title,
         bookmarkLink: bookmarkLink,
@@ -2528,7 +2518,7 @@ export function addOneMessage(mes, { type = 'normal', insertAfter = null, scroll
         timestamp: timestamp,
         extra: mes.extra,
         tokenCount: mes.extra?.token_count ?? 0,
-        ...formatGenerationTimer(mes.gen_started, mes.gen_finished, mes.extra?.token_count),
+        ...formatGenerationTimer(mes.gen_started, mes.gen_finished, mes.extra?.token_count, mes.extra?.reasoning_duration),
     };
 
     const renderedMessage = getMessageFromTemplate(params);
@@ -2580,8 +2570,8 @@ export function addOneMessage(mes, { type = 'normal', insertAfter = null, scroll
         const swipeMessage = chatElement.find(`[mesid="${chat.length - 1}"]`);
         swipeMessage.attr('swipeid', params.swipeId);
         swipeMessage.find('.mes_text').html(messageText).attr('title', title);
-        swipeMessage.find('.mes_reasoning').html(reasoning);
         swipeMessage.find('.timestamp').text(timestamp).attr('title', `${params.extra.api} - ${params.extra.model}`);
+        updateReasoningUI(swipeMessage);
         appendMediaToMessage(mes, swipeMessage);
         if (power_user.timestamp_model_icon && params.extra?.api) {
             insertSVGIcon(swipeMessage, params.extra);
@@ -2648,13 +2638,14 @@ export function formatCharacterAvatar(characterAvatar) {
  * @param {Date} gen_started Date when generation was started
  * @param {Date} gen_finished Date when generation was finished
  * @param {number} tokenCount Number of tokens generated (0 if not available)
+ * @param {number?} [reasoningDuration=null] Reasoning duration (null if no reasoning was done)
  * @returns {Object} Object containing the formatted timer value and title
  * @example
  * const { timerValue, timerTitle } = formatGenerationTimer(gen_started, gen_finished, tokenCount);
  * console.log(timerValue); // 1.2s
  * console.log(timerTitle); // Generation queued: 12:34:56 7 Jan 2021\nReply received: 12:34:57 7 Jan 2021\nTime to generate: 1.2 seconds\nToken rate: 5 t/s
  */
-function formatGenerationTimer(gen_started, gen_finished, tokenCount) {
+function formatGenerationTimer(gen_started, gen_finished, tokenCount, reasoningDuration = null) {
     if (!gen_started || !gen_finished) {
         return {};
     }
@@ -2668,8 +2659,9 @@ function formatGenerationTimer(gen_started, gen_finished, tokenCount) {
         `Generation queued: ${start.format(dateFormat)}`,
         `Reply received: ${finish.format(dateFormat)}`,
         `Time to generate: ${seconds} seconds`,
+        reasoningDuration > 0 ? `Time to think: ${reasoningDuration / 1000} seconds` : '',
         tokenCount > 0 ? `Token rate: ${Number(tokenCount / seconds).toFixed(1)} t/s` : '',
-    ].join('\n');
+    ].filter(x => x).join('\n').trim();
 
     if (isNaN(seconds) || seconds < 0) {
         return { timerValue: '', timerTitle };
@@ -3208,15 +3200,14 @@ class StreamingProcessor {
     constructor(type, forceName2, timeStarted, continueMessage) {
         this.result = '';
         this.messageId = -1;
+        /** @type {HTMLElement} */
         this.messageDom = null;
+        /** @type {HTMLElement} */
         this.messageTextDom = null;
+        /** @type {HTMLElement} */
         this.messageTimerDom = null;
         /** @type {HTMLElement} */
         this.messageTokenCounterDom = null;
-        /** @type {HTMLElement} */
-        this.messageReasoningDom = null;
-        /** @type {HTMLElement} */
-        this.messageReasoningHeaderDom = null;
         /** @type {HTMLTextAreaElement} */
         this.sendTextarea = document.querySelector('#send_textarea');
         this.type = type;
@@ -3232,16 +3223,8 @@ class StreamingProcessor {
         /** @type {import('./scripts/logprobs.js').TokenLogprobs[]} */
         this.messageLogprobs = [];
         this.toolCalls = [];
-        this.reasoning = '';
-        this.reasoningStartTime = null;
-        this.reasoningEndTime = null;
-    }
-
-    #reasoningDuration() {
-        if (this.reasoningStartTime && this.reasoningEndTime) {
-            return (this.reasoningEndTime - this.reasoningStartTime);
-        }
-        return null;
+        // Initialize reasoning in its own handler
+        this.reasoningHandler = new ReasoningHandler(timeStarted);
     }
 
     #checkDomElements(messageId) {
@@ -3250,9 +3233,8 @@ class StreamingProcessor {
             this.messageTextDom = this.messageDom?.querySelector('.mes_text');
             this.messageTimerDom = this.messageDom?.querySelector('.mes_timer');
             this.messageTokenCounterDom = this.messageDom?.querySelector('.tokenCounterDisplay');
-            this.messageReasoningDom = this.messageDom?.querySelector('.mes_reasoning');
-            this.messageReasoningHeaderDom = this.messageDom?.querySelector('.mes_reasoning_header_title');
         }
+        this.reasoningHandler.updateDom(messageId);
     }
 
     #updateMessageBlockVisibility() {
@@ -3262,22 +3244,12 @@ class StreamingProcessor {
         }
     }
 
-    showMessageButtons(messageId) {
-        if (messageId == -1) {
-            return;
-        }
-
-        showStopButton();
-        $(`#chat .mes[mesid="${messageId}"] .mes_buttons`).css({ 'display': 'none' });
+    markUIGenStarted() {
+        deactivateSendButtons();
     }
 
-    hideMessageButtons(messageId) {
-        if (messageId == -1) {
-            return;
-        }
-
-        hideStopButton();
-        $(`#chat .mes[mesid="${messageId}"] .mes_buttons`).css({ 'display': 'flex' });
+    markUIGenStopped() {
+        activateSendButtons();
     }
 
     async onStartStreaming(text) {
@@ -3286,14 +3258,12 @@ class StreamingProcessor {
         if (this.type == 'impersonate') {
             this.sendTextarea.value = '';
             this.sendTextarea.dispatchEvent(new Event('input', { bubbles: true }));
-        }
-        else {
+        } else {
             await saveReply(this.type, text, true, '', [], '');
             messageId = chat.length - 1;
             this.#checkDomElements(messageId);
-            this.showMessageButtons(messageId);
+            this.markUIGenStarted();
         }
-
         hideSwipeButtons();
         scrollChatToBottom();
         return messageId;
@@ -3311,11 +3281,9 @@ class StreamingProcessor {
 
         let processedText = cleanUpMessage(text, isImpersonate, isContinue, !isFinal, this.stoppingStrings);
 
-        // Predict unbalanced asterisks / quotes during streaming
         const charsToBalance = ['*', '"', '```'];
         for (const char of charsToBalance) {
             if (!isFinal && isOdd(countOccurrences(processedText, char))) {
-                // Add character at the end to balance it
                 const separator = char.length > 1 ? '\n' : '';
                 processedText = processedText.trimEnd() + separator + char;
             }
@@ -3324,47 +3292,24 @@ class StreamingProcessor {
         if (isImpersonate) {
             this.sendTextarea.value = processedText;
             this.sendTextarea.dispatchEvent(new Event('input', { bubbles: true }));
-        }
-        else {
+        } else {
             const mesChanged = chat[messageId]['mes'] !== processedText;
-
             this.#checkDomElements(messageId);
             this.#updateMessageBlockVisibility();
             const currentTime = new Date();
             chat[messageId]['mes'] = processedText;
             chat[messageId]['gen_started'] = this.timeStarted;
             chat[messageId]['gen_finished'] = currentTime;
-
             if (!chat[messageId]['extra']) {
                 chat[messageId]['extra'] = {};
             }
 
-            if (this.reasoning) {
-                const reasoning = power_user.trim_spaces ? this.reasoning.trim() : this.reasoning;
-                const reasoningChanged = chat[messageId]['extra']['reasoning'] !== reasoning;
-                chat[messageId]['extra']['reasoning'] = reasoning;
+            // Update reasoning
+            await this.reasoningHandler.process(messageId, mesChanged);
 
-                if (reasoningChanged && this.reasoningStartTime === null) {
-                    this.reasoningStartTime = Date.now();
-                }
-                if (!reasoningChanged && mesChanged && this.reasoningStartTime !== null && this.reasoningEndTime === null) {
-                    this.reasoningEndTime = Date.now();
-                }
-                await this.#updateReasoningTime(messageId);
-
-                if (this.messageReasoningDom instanceof HTMLElement) {
-                    const formattedReasoning = messageFormatting(this.reasoning, '', false, false, messageId, {}, true);
-                    this.messageReasoningDom.innerHTML = formattedReasoning;
-                }
-                if (this.messageDom instanceof HTMLElement) {
-                    this.messageDom.classList.add('reasoning');
-                }
-            }
-
-            // Don't waste time calculating token count for streaming
-            const tokenCountText = (this.reasoning || '') + processedText;
+            // Token count update.
+            const tokenCountText = this.reasoningHandler.reasoning + processedText;
             const currentTokenCount = isFinal && power_user.message_token_count_enabled ? getTokenCount(tokenCountText, 0) : 0;
-
             if (currentTokenCount) {
                 chat[messageId]['extra']['token_count'] = currentTokenCount;
                 if (this.messageTokenCounterDom instanceof HTMLElement) {
@@ -3390,7 +3335,7 @@ class StreamingProcessor {
                 this.messageTextDom.innerHTML = formattedText;
             }
 
-            const timePassed = formatGenerationTimer(this.timeStarted, currentTime, currentTokenCount);
+            const timePassed = formatGenerationTimer(this.timeStarted, currentTime, currentTokenCount, this.reasoningHandler.getDuration());
             if (this.messageTimerDom instanceof HTMLElement) {
                 this.messageTimerDom.textContent = timePassed.timerValue;
                 this.messageTimerDom.title = timePassed.timerTitle;
@@ -3404,23 +3349,12 @@ class StreamingProcessor {
         }
     }
 
-    async #updateReasoningTime(messageId, { forceEnd = false } = {}) {
-        const duration = this.#reasoningDuration();
-        chat[messageId]['extra']['reasoning_duration'] = duration;
-        updateReasoningTimeUI(this.messageReasoningHeaderDom, duration, { forceEnd: forceEnd });
-        await eventSource.emit(event_types.STREAM_REASONING_DONE, this.reasoning, duration);
-    }
-
     async onFinishStreaming(messageId, text) {
-        this.hideMessageButtons(this.messageId);
+        this.markUIGenStopped();
         await this.onProgressStreaming(messageId, text, true);
         addCopyToCodeBlocks($(`#chat .mes[mesid="${messageId}"]`));
 
-        // Ensure reasoning finish time is recorded if not already
-        if (this.reasoningStartTime !== null && this.reasoningEndTime === null) {
-            this.reasoningEndTime = Date.now();
-            await this.#updateReasoningTime(messageId, { forceEnd: true });
-        }
+        await this.reasoningHandler.finish(messageId);
 
         if (Array.isArray(this.swipes) && this.swipes.length > 0) {
             const message = chat[messageId];
@@ -3461,7 +3395,7 @@ class StreamingProcessor {
         this.abortController.abort();
         this.isStopped = true;
 
-        this.hideMessageButtons(this.messageId);
+        this.markUIGenStopped();
         generatedPromptCache = '';
         unblockGeneration();
 
@@ -3521,7 +3455,8 @@ class StreamingProcessor {
                 if (logprobs) {
                     this.messageLogprobs.push(...(Array.isArray(logprobs) ? logprobs : [logprobs]));
                 }
-                this.reasoning = getRegexedString(state?.reasoning ?? '', regex_placement.REASONING);
+                // Get the updated reasoning string into the handler
+                this.reasoningHandler.updateReasoning(this.messageId, state?.reasoning ?? '');
                 await eventSource.emit(event_types.STREAM_TOKEN_RECEIVED, text);
                 await sw.tick(async () => await this.onProgressStreaming(this.messageId, this.continueMessage + text));
             }
@@ -6278,20 +6213,21 @@ function extractImageFromMessage(getMessage) {
     return { getMessage, image, title };
 }
 
+/**
+ * A function mainly used to switch 'generating' state - setting it to false and activating the buttons again
+ */
 export function activateSendButtons() {
     is_send_press = false;
-    $('#send_but').removeClass('displayNone');
-    $('#mes_continue').removeClass('displayNone');
-    $('#mes_impersonate').removeClass('displayNone');
-    $('.mes_buttons:last').show();
     hideStopButton();
+    delete document.body.dataset.generating;
 }
 
+/**
+ * A function mainly used to switch 'generating' state - setting it to true and deactivating the buttons
+ */
 export function deactivateSendButtons() {
-    $('#send_but').addClass('displayNone');
-    $('#mes_continue').addClass('displayNone');
-    $('#mes_impersonate').addClass('displayNone');
     showStopButton();
+    document.body.dataset.generating = 'true';
 }
 
 export function resetChatState() {
@@ -8887,7 +8823,7 @@ const swipe_right = () => {
                     // resets the timer
                     swipeMessage.find('.mes_timer').html('');
                     swipeMessage.find('.tokenCounterDisplay').text('');
-                    swipeMessage.find('.mes_reasoning').html('');
+                    updateReasoningUI(swipeMessage, { reset: true });
                 } else {
                     //console.log('showing previously generated swipe candidate, or "..."');
                     //console.log('onclick right swipe calling addOneMessage');
@@ -8937,7 +8873,6 @@ const swipe_right = () => {
                                 if (run_generate && !is_send_press && parseInt(chat[chat.length - 1]['swipe_id']) === chat[chat.length - 1]['swipes'].length) {
                                     console.debug('caught here 2');
                                     is_send_press = true;
-                                    $('.mes_buttons:last').hide();
                                     await Generate('swipe');
                                 } else {
                                     if (parseInt(chat[chat.length - 1]['swipe_id']) !== chat[chat.length - 1]['swipes'].length) {

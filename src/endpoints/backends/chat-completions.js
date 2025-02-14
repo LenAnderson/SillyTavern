@@ -288,7 +288,6 @@ async function sendMakerSuiteRequest(request, response) {
 
     const model = String(request.body.model);
     const stream = Boolean(request.body.stream);
-    const showThoughts = Boolean(request.body.include_reasoning);
     const isThinking = model.includes('thinking');
 
     const generationConfig = {
@@ -335,12 +334,6 @@ async function sendMakerSuiteRequest(request, response) {
 
         if (should_use_system_prompt) {
             body.systemInstruction = prompt.system_instruction;
-        }
-
-        if (isThinking && showThoughts) {
-            generationConfig.thinkingConfig = {
-                includeThoughts: true,
-            };
         }
 
         return body;

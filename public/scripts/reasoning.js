@@ -1,11 +1,11 @@
 import {
     moment,
 } from '../lib.js';
-import { chat, closeMessageEditor, event_types, eventSource, main_api, saveChatConditional, saveSettingsDebounced, substituteParams, updateMessageBlock } from '../script.js';
+import { chat, closeMessageEditor, event_types, eventSource, main_api, messageFormatting, saveChatConditional, saveSettingsDebounced, substituteParams, updateMessageBlock } from '../script.js';
 import { getRegexedString, regex_placement } from './extensions/regex/engine.js';
 import { getCurrentLocale, t } from './i18n.js';
 import { MacrosParser } from './macros.js';
-import { chat_completion_sources, oai_settings } from './openai.js';
+import { chat_completion_sources, getChatCompletionModel, oai_settings } from './openai.js';
 import { Popup } from './popup.js';
 import { power_user } from './power-user.js';
 import { SlashCommand } from './slash-commands/SlashCommand.js';
@@ -13,7 +13,7 @@ import { ARGUMENT_TYPE, SlashCommandArgument, SlashCommandNamedArgument } from '
 import { commonEnumProviders } from './slash-commands/SlashCommandCommonEnumsProvider.js';
 import { SlashCommandParser } from './slash-commands/SlashCommandParser.js';
 import { textgen_types, textgenerationwebui_settings } from './textgen-settings.js';
-import { copyText, escapeRegex, isFalseBoolean } from './utils.js';
+import { copyText, escapeRegex, isFalseBoolean, setDatasetProperty } from './utils.js';
 
 /**
  * Gets a message from a jQuery element.
@@ -71,21 +71,345 @@ export function extractReasoningFromData(data) {
 }
 
 /**
- * Updates the Reasoning controls
- * @param {HTMLElement} element The element to update
- * @param {number?} duration The duration of the reasoning in milliseconds
- * @param {object} [options={}] Options for the function
- * @param {boolean} [options.forceEnd=false] If true, there will be no "Thinking..." when no duration exists
+ * Check if the model supports reasoning, but does not send back the reasoning
+ * @returns {boolean} True if the model supports reasoning
  */
-export function updateReasoningTimeUI(element, duration, { forceEnd = false } = {}) {
-    if (duration) {
-        const durationStr = moment.duration(duration).locale(getCurrentLocale()).humanize({ s: 50, ss: 3 });
-        const secondsStr = moment.duration(duration).asSeconds();
-        element.innerHTML = t`Thought for <span title="${secondsStr} seconds">${durationStr}</span>`;
-    } else if (forceEnd) {
-        element.textContent = t`Thought for some time`;
-    } else {
-        element.textContent = t`Thinking...`;
+export function isHiddenReasoningModel() {
+    if (main_api !== 'openai') {
+        return false;
+    }
+
+    /** @typedef {{ (currentModel: string, supportedModel: string): boolean }} MatchingFunc */
+    /** @type {Record.<string, MatchingFunc>} */
+    const FUNCS = {
+        equals: (currentModel, supportedModel) => currentModel === supportedModel,
+        startsWith: (currentModel, supportedModel) => currentModel.startsWith(supportedModel),
+    };
+
+    /** @type {{ name: string; func: MatchingFunc; }[]} */
+    const hiddenReasoningModels = [
+        { name: 'o1', func: FUNCS.startsWith },
+        { name: 'o3', func: FUNCS.startsWith },
+        { name: 'gemini-2.0-flash-thinking-exp', func: FUNCS.startsWith },
+        { name: 'gemini-2.0-pro-exp', func: FUNCS.startsWith },
+    ];
+
+    const model = getChatCompletionModel();
+
+    const isHidden = hiddenReasoningModels.some(({ name, func }) => func(model, name));
+    return isHidden;
+}
+
+/**
+ * Updates the Reasoning UI for a specific message
+ * @param {number|JQuery<HTMLElement>|HTMLElement} messageIdOrElement The message ID or the message element
+ * @param {Object} [options={}] - Optional arguments
+ * @param {boolean} [options.reset=false] - Whether to reset state, and not take the current mess properties (for example when swiping)
+ */
+export function updateReasoningUI(messageIdOrElement, { reset = false } = {}) {
+    const handler = new ReasoningHandler();
+    handler.initHandleMessage(messageIdOrElement, { reset });
+}
+
+
+/**
+ * Enum for representing the state of reasoning
+ * @enum {string}
+ * @readonly
+ */
+export const ReasoningState = {
+    None: 'none',
+    Thinking: 'thinking',
+    Done: 'done',
+    Hidden: 'hidden',
+};
+
+/**
+ * Handles reasoning-specific logic and DOM updates for messages.
+ * This class is used inside the {@link StreamingProcessor} to manage reasoning states and UI updates.
+ */
+export class ReasoningHandler {
+    #isHiddenReasoningModel;
+
+    /**
+     * @param {Date?} [timeStarted=null] - When the generation started
+     */
+    constructor(timeStarted = null) {
+        /** @type {ReasoningState} The current state of the reasoning process */
+        this.state = ReasoningState.None;
+        /** @type {string} The reasoning output */
+        this.reasoning = '';
+        /** @type {Date} When the reasoning started */
+        this.startTime = null;
+        /** @type {Date} When the reasoning ended */
+        this.endTime = null;
+
+        /** @type {Date} Initial starting time of the generation */
+        this.initialTime = timeStarted ?? new Date();
+
+        /** @type {boolean} True if the model supports reasoning, but hides the reasoning output */
+        this.#isHiddenReasoningModel = isHiddenReasoningModel();
+
+        // Cached DOM elements for reasoning
+        /** @type {HTMLElement} Main message DOM element `.mes` */
+        this.messageDom = null;
+        /** @type {HTMLDetailsElement} Reasoning details DOM element `.mes_reasoning_details` */
+        this.messageReasoningDetailsDom = null;
+        /** @type {HTMLElement} Reasoning content DOM element `.mes_reasoning` */
+        this.messageReasoningContentDom = null;
+        /** @type {HTMLElement} Reasoning header DOM element `.mes_reasoning_header_title` */
+        this.messageReasoningHeaderDom = null;
+    }
+
+    /**
+     * Initializes the reasoning handler for a specific message.
+     *
+     * Can be used to update the DOM elements or read other reasoning states.
+     * It will internally take the message-saved data and write the states back into the handler, as if during streaming of the message.
+     * The state will always be either done/hidden or none.
+     *
+     * @param {number|JQuery<HTMLElement>|HTMLElement} messageIdOrElement - The message ID or the message element
+     * @param {Object} [options={}] - Optional arguments
+     * @param {boolean} [options.reset=false] - Whether to reset state of the handler, and not take the current mess properties (for example when swiping)
+     */
+    initHandleMessage(messageIdOrElement, { reset = false } = {}) {
+        /** @type {HTMLElement} */
+        const messageElement = typeof messageIdOrElement === 'number'
+            ? document.querySelector(`#chat [mesid="${messageIdOrElement}"]`)
+            : messageIdOrElement instanceof HTMLElement
+                ? messageIdOrElement
+                : $(messageIdOrElement)[0];
+        const messageId = Number(messageElement.getAttribute('mesid'));
+
+        if (isNaN(messageId) || !chat[messageId]) return;
+
+        if (!chat[messageId].extra) {
+            chat[messageId].extra = {};
+        }
+        const extra = chat[messageId].extra;
+
+        if (extra.reasoning) {
+            this.state = ReasoningState.Done;
+        } else if (extra.reasoning_duration) {
+            this.state = ReasoningState.Hidden;
+        }
+
+        this.reasoning = extra?.reasoning ?? '';
+
+        if (this.state !== ReasoningState.None) {
+            this.initialTime = new Date(chat[messageId].gen_started);
+            this.startTime = this.initialTime;
+            this.endTime = new Date(this.startTime.getTime() + (extra?.reasoning_duration ?? 0));
+        }
+
+        // Prefill main dom element, as message might not have been rendered yet
+        this.messageDom = messageElement;
+
+        // Make sure reset correctly clears all relevant states
+        if (reset) {
+            this.state = this.#isHiddenReasoningModel ? ReasoningState.Thinking : ReasoningState.None;
+            this.reasoning = '';
+            this.initialTime = new Date();
+            this.startTime = null;
+            this.endTime = null;
+        }
+
+        this.updateDom(messageId);
+    }
+
+    /**
+     * Gets the duration of the reasoning in milliseconds.
+     *
+     * @returns {number?} The duration in milliseconds, or null if the start or end time is not set
+     */
+    getDuration() {
+        if (this.startTime && this.endTime) {
+            return this.endTime.getTime() - this.startTime.getTime();
+        }
+        return null;
+    }
+
+    /**
+     * Updates the reasoning text/string for a message.
+     *
+     * @param {number} messageId - The ID of the message to update
+     * @param {string?} [reasoning=null] - The reasoning text to update - If null, uses the current reasoning
+     * @param {Object} [options={}] - Optional arguments
+     * @param {boolean} [options.persist=false] - Whether to persist the reasoning to the message object
+     * @returns {boolean} - Returns true if the reasoning was changed, otherwise false
+     */
+    updateReasoning(messageId, reasoning = null, { persist = false } = {}) {
+        if (messageId == -1 || !chat[messageId]) {
+            return false;
+        }
+
+        reasoning = reasoning ?? this.reasoning;
+        reasoning = power_user.trim_spaces ? reasoning.trim() : reasoning;
+
+        // Ensure the chat extra exists
+        if (!chat[messageId].extra) {
+            chat[messageId].extra = {};
+        }
+        const extra = chat[messageId].extra;
+
+        const reasoningChanged = extra.reasoning !== reasoning;
+        this.reasoning = getRegexedString(reasoning ?? '', regex_placement.REASONING);
+
+        if (persist) {
+            // Build and save the reasoning data to message extras
+            extra.reasoning = this.reasoning;
+            extra.reasoning_duration = this.getDuration();
+        }
+
+        return reasoningChanged;
+    }
+
+
+    /**
+     * Handles processing of reasoning for a message.
+     *
+     * This is usually called by the message processor when a message is changed.
+     *
+     * @param {number} messageId - The ID of the message to process
+     * @param {boolean} mesChanged - Whether the message has changed
+     * @returns {Promise<void>}
+     */
+    async process(messageId, mesChanged) {
+        if (!this.reasoning && !this.#isHiddenReasoningModel) return;
+
+        // Ensure reasoning string is updated and regexes are applied correctly
+        const reasoningChanged = this.updateReasoning(messageId, null, { persist: true });
+
+        if ((this.#isHiddenReasoningModel || reasoningChanged) && this.state === ReasoningState.None) {
+            this.state = ReasoningState.Thinking;
+            this.startTime = this.initialTime;
+        }
+        if ((this.#isHiddenReasoningModel || !reasoningChanged) && mesChanged && this.state === ReasoningState.Thinking) {
+            this.endTime = new Date();
+            await this.finish(messageId);
+        }
+    }
+
+    /**
+     * Completes the reasoning process for a message.
+     *
+     * Records the finish time if it was not set during streaming and updates the reasoning state.
+     * Emits an event to signal the completion of reasoning and updates the DOM elements accordingly.
+     *
+     * @param {number} messageId - The ID of the message to complete reasoning for
+     * @returns {Promise<void>}
+     */
+    async finish(messageId) {
+        if (this.state === ReasoningState.None) return;
+
+        // Make sure the finish time is recorded if a reasoning was in process and it wasn't ended correctly during streaming
+        if (this.startTime !== null && this.endTime === null) {
+            this.endTime = new Date();
+        }
+
+        if (this.state === ReasoningState.Thinking) {
+            this.state = this.#isHiddenReasoningModel ? ReasoningState.Hidden : ReasoningState.Done;
+            this.updateReasoning(messageId, null, { persist: true });
+            await eventSource.emit(event_types.STREAM_REASONING_DONE, this.reasoning, this.getDuration(), messageId, this.state);
+        }
+
+        this.updateDom(messageId);
+    }
+
+    /**
+     * Updates the reasoning UI elements for a message.
+     *
+     * Toggles the CSS class, updates states, reasoning message, and duration.
+     *
+     * @param {number} messageId - The ID of the message to update
+     */
+    updateDom(messageId) {
+        this.#checkDomElements(messageId);
+
+        // Main CSS class to show this message includes reasoning
+        this.messageDom.classList.toggle('reasoning', this.state !== ReasoningState.None);
+
+        // Update states to the relevant DOM elements
+        setDatasetProperty(this.messageDom, 'reasoningState', this.state !== ReasoningState.None ? this.state : null);
+        setDatasetProperty(this.messageReasoningDetailsDom, 'state', this.state);
+
+        // Update the reasoning message
+        const reasoning = power_user.trim_spaces ? this.reasoning.trim() : this.reasoning;
+        const displayReasoning = messageFormatting(reasoning, '', false, false, messageId, {}, true);
+        this.messageReasoningContentDom.innerHTML = displayReasoning;
+
+        // Update tooltip for hidden reasoning edit
+        /** @type {HTMLElement} */
+        const button = this.messageDom.querySelector('.mes_edit_add_reasoning');
+        button.title = this.state === ReasoningState.Hidden ? t`Hidden reasoning - Add reasoning block` : t`Add reasoning block`;
+
+        // Make sure that hidden reasoning headers are collapsed by default, to not show a useless edit button
+        if (this.state === ReasoningState.Hidden) {
+            this.messageReasoningDetailsDom.open = false;
+        }
+
+        // Update the reasoning duration in the UI
+        this.#updateReasoningTimeUI();
+    }
+
+    /**
+     * Finds and caches reasoning-related DOM elements for the given message.
+     *
+     * @param {number} messageId - The ID of the message to cache the DOM elements for
+     */
+    #checkDomElements(messageId) {
+        // Make sure we reset dom elements if we are checking for a different message (shouldn't happen, but be sure)
+        if (this.messageDom !== null && this.messageDom.getAttribute('mesid') !== messageId.toString()) {
+            this.messageDom = null;
+        }
+
+        // Cache the DOM elements once
+        if (this.messageDom === null) {
+            this.messageDom = document.querySelector(`#chat .mes[mesid="${messageId}"]`);
+            if (this.messageDom === null) throw new Error('message dom does not exist');
+        }
+        if (this.messageReasoningDetailsDom === null) {
+            this.messageReasoningDetailsDom = this.messageDom.querySelector('.mes_reasoning_details');
+        }
+        if (this.messageReasoningContentDom === null) {
+            this.messageReasoningContentDom = this.messageDom.querySelector('.mes_reasoning');
+        }
+        if (this.messageReasoningHeaderDom === null) {
+            this.messageReasoningHeaderDom = this.messageDom.querySelector('.mes_reasoning_header_title');
+        }
+    }
+
+    /**
+     * Updates the reasoning time display in the UI.
+     *
+     * Shows the duration in a human-readable format with a tooltip for exact seconds.
+     * Displays "Thinking..." if still processing, or a generic message otherwise.
+     */
+    #updateReasoningTimeUI() {
+        const element = this.messageReasoningHeaderDom;
+        const duration = this.getDuration();
+        let data = null;
+        if (duration) {
+            const durationStr = moment.duration(duration).locale(getCurrentLocale()).humanize({ s: 50, ss: 3 });
+            const secondsStr = moment.duration(duration).asSeconds();
+
+            const span = document.createElement('span');
+            span.title = t`${secondsStr} seconds`;
+            span.textContent = durationStr;
+
+            element.textContent = t`Thought for `;
+            element.appendChild(span);
+            data = String(secondsStr);
+        } else if ([ReasoningState.Done, ReasoningState.Hidden].includes(this.state)) {
+            element.textContent = t`Thought for some time`;
+            data = 'unknown';
+        } else {
+            element.textContent = t`Thinking...`;
+            data = null;
+        }
+
+        setDatasetProperty(this.messageReasoningDetailsDom, 'duration', data);
+        setDatasetProperty(element, 'duration', data);
     }
 }
 
@@ -95,7 +419,6 @@ export function updateReasoningTimeUI(element, duration, { forceEnd = false } = 
  */
 export class PromptReasoning {
     static REASONING_PLACEHOLDER = '\u200B';
-    static REASONING_PLACEHOLDER_REGEX = new RegExp(`${PromptReasoning.REASONING_PLACEHOLDER}$`);
 
     constructor() {
         this.counter = 0;
@@ -126,7 +449,7 @@ export class PromptReasoning {
             return content;
         }
 
-        // No reasoning provided or a placeholder
+        // No reasoning provided or a legacy placeholder
         if (!reasoning || reasoning === PromptReasoning.REASONING_PLACEHOLDER) {
             return content;
         }
@@ -192,6 +515,15 @@ function loadReasoningSettings() {
         toggleReasoningAutoExpand();
         saveSettingsDebounced();
     });
+    toggleReasoningAutoExpand();
+
+    $('#reasoning_show_hidden').prop('checked', power_user.reasoning.show_hidden);
+    $('#reasoning_show_hidden').on('change', function () {
+        power_user.reasoning.show_hidden = !!$(this).prop('checked');
+        $('#chat').attr('data-show-hidden-reasoning', power_user.reasoning.show_hidden ? 'true' : null);
+        saveSettingsDebounced();
+    });
+    $('#chat').attr('data-show-hidden-reasoning', power_user.reasoning.show_hidden ? 'true' : null);
 }
 
 function registerReasoningSlashCommands() {
@@ -211,7 +543,7 @@ function registerReasoningSlashCommands() {
             const messageId = !isNaN(parseInt(value.toString())) ? parseInt(value.toString()) : chat.length - 1;
             const message = chat[messageId];
             const reasoning = String(message?.extra?.reasoning ?? '');
-            return reasoning.replace(PromptReasoning.REASONING_PLACEHOLDER_REGEX, '');
+            return reasoning;
         },
     }));
 
@@ -308,7 +640,14 @@ function setReasoningEventHandlers() {
         }
     });
 
-    $(document).on('click', '.mes_reasoning_header', function () {
+    $(document).on('click', '.mes_reasoning_header', function (e) {
+        const details = $(this).closest('.mes_reasoning_details');
+        // Along with the CSS rules to mark blocks not toggle-able when they are empty, prevent them from actually being toggled, or being edited
+        if (details.find('.mes_reasoning').is(':empty')) {
+            e.preventDefault();
+            return;
+        }
+
         // If we are in message edit mode and reasoning area is closed, a click opens and edits it
         const mes = $(this).closest('.mes');
         const mesEditArea = mes.find('#curEditTextarea');
@@ -338,7 +677,7 @@ function setReasoningEventHandlers() {
         const textarea = document.createElement('textarea');
         const reasoningBlock = messageBlock.find('.mes_reasoning');
         textarea.classList.add('reasoning_edit_textarea');
-        textarea.value = reasoning.replace(PromptReasoning.REASONING_PLACEHOLDER_REGEX, '');
+        textarea.value = reasoning;
         $(textarea).insertBefore(reasoningBlock);
 
         if (!CSS.supports('field-sizing', 'content')) {
@@ -393,10 +732,12 @@ function setReasoningEventHandlers() {
         textarea.remove();
 
         messageBlock.find('.mes_reasoning_edit_cancel:visible').trigger('click');
+
+        updateReasoningUI(messageBlock);
     });
 
     $(document).on('click', '.mes_edit_add_reasoning', async function () {
-        const { message, messageId, messageBlock } = getMessageFromJquery(this);
+        const { message, messageBlock } = getMessageFromJquery(this);
         if (!message?.extra) {
             return;
         }
@@ -406,8 +747,16 @@ function setReasoningEventHandlers() {
             return;
         }
 
-        message.extra.reasoning = PromptReasoning.REASONING_PLACEHOLDER;
-        updateMessageBlock(messageId, message, { rerenderMessage: false });
+        messageBlock.addClass('reasoning');
+
+        // To make hidden reasoning blocks editable, we just set them to "Done" here already.
+        // They will be done on save anyway - and on cancel the reasoning block gets rerendered too.
+        if (messageBlock.attr('data-reasoning-state') === ReasoningState.Hidden) {
+            messageBlock.attr('data-reasoning-state', ReasoningState.Done);
+        }
+
+        // Open the reasoning area so we can actually edit it
+        messageBlock.find('.mes_reasoning_details').attr('open', '');
         messageBlock.find('.mes_reasoning_edit').trigger('click');
         await saveChatConditional();
     });
@@ -416,7 +765,7 @@ function setReasoningEventHandlers() {
         e.stopPropagation();
         e.preventDefault();
 
-        const confirm = await Popup.show.confirm(t`Are you sure you want to clear the reasoning?`, t`Visible message contents will stay intact.`);
+        const confirm = await Popup.show.confirm(t`Remove Reasoning`, t`Are you sure you want to clear the reasoning?<br />Visible message contents will stay intact.`);
 
         if (!confirm) {
             return;
@@ -435,7 +784,7 @@ function setReasoningEventHandlers() {
 
     $(document).on('pointerup', '.mes_reasoning_copy', async function () {
         const { message } = getMessageFromJquery(this);
-        const reasoning = String(message?.extra?.reasoning ?? '').replace(PromptReasoning.REASONING_PLACEHOLDER_REGEX, '');
+        const reasoning = String(message?.extra?.reasoning ?? '');
 
         if (!reasoning) {
             return;
@@ -553,7 +902,6 @@ function registerReasoningAppEvents() {
 
 export function initReasoning() {
     loadReasoningSettings();
-    toggleReasoningAutoExpand();
     setReasoningEventHandlers();
     registerReasoningSlashCommands();
     registerReasoningMacros();
