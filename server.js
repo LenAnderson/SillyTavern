@@ -30,6 +30,7 @@ import bodyParser from 'body-parser';
 
 // net related library imports
 import fetch from 'node-fetch';
+import ipRegex from 'ip-regex';
 
 // Unrestrict console logs display limit
 util.inspect.defaultOptions.maxArrayLength = null;
@@ -130,6 +131,8 @@ if (process.versions && process.versions.node && process.versions.node.match(/20
 const DEFAULT_PORT = 8000;
 const DEFAULT_AUTORUN = false;
 const DEFAULT_LISTEN = false;
+const DEFAULT_LISTEN_ADDRESS_IPV6 = '[::]';
+const DEFAULT_LISTEN_ADDRESS_IPV4 = '0.0.0.0';
 const DEFAULT_CORS_PROXY = false;
 const DEFAULT_WHITELIST = true;
 const DEFAULT_ACCOUNTS = false;
@@ -185,6 +188,14 @@ const cliArguments = yargs(hideBin(process.argv))
         type: 'boolean',
         default: null,
         describe: `SillyTavern is listening on all network interfaces (Wi-Fi, LAN, localhost). If false, will limit it only to internal localhost (127.0.0.1).\nIf not provided falls back to yaml config 'listen'.\n[config default: ${DEFAULT_LISTEN}]`,
+    }).option('listenAddressIPv6', {
+        type: 'string',
+        default: null,
+        describe: 'Set SillyTavern to listen to a specific IPv6 address. If not set, it will fallback to listen to all.\n[config default: [::] ]',
+    }).option('listenAddressIPv4', {
+        type: 'string',
+        default: null,
+        describe: 'Set SillyTavern to listen to a specific IPv4 address. If not set, it will fallback to listen to all.\n[config default: 0.0.0.0 ]',
     }).option('corsProxy', {
         type: 'boolean',
         default: null,
@@ -254,6 +265,10 @@ const server_port = cliArguments.port ?? process.env.SILLY_TAVERN_PORT ?? getCon
 const autorun = (cliArguments.autorun ?? getConfigValue('autorun', DEFAULT_AUTORUN)) && !cliArguments.ssl;
 /** @type {boolean} */
 const listen = cliArguments.listen ?? getConfigValue('listen', DEFAULT_LISTEN);
+/** @type {string} */
+const listenAddressIPv6 = cliArguments.listenAddressIPv6 ?? getConfigValue('listenAddress.ipv6', DEFAULT_LISTEN_ADDRESS_IPV6);
+/** @type {string} */
+const listenAddressIPv4 = cliArguments.listenAddressIPv4 ?? getConfigValue('listenAddress.ipv4', DEFAULT_LISTEN_ADDRESS_IPV4);
 /** @type {boolean} */
 const enableCorsProxy = cliArguments.corsProxy ?? getConfigValue('enableCorsProxy', DEFAULT_CORS_PROXY);
 const enableWhitelist = cliArguments.whitelist ?? getConfigValue('whitelistMode', DEFAULT_WHITELIST);
@@ -708,13 +723,13 @@ app.use('/api/azure', azureRouter);
 
 const tavernUrlV6 = new URL(
     (cliArguments.ssl ? 'https://' : 'http://') +
-    (listen ? '[::]' : '[::1]') +
+    (listen ? (ipRegex.v6({ exact: true }).test(listenAddressIPv6) ? listenAddressIPv6 : '[::]') : '[::1]') +
     (':' + server_port),
 );
 
 const tavernUrl = new URL(
     (cliArguments.ssl ? 'https://' : 'http://') +
-    (listen ? '0.0.0.0' : '127.0.0.1') +
+    (listen ? (ipRegex.v4({ exact: true }).test(listenAddressIPv4) ? listenAddressIPv4 : '0.0.0.0') : '127.0.0.1') +
     (':' + server_port),
 );
 
@@ -837,15 +852,15 @@ const postSetupTasks = async function (v6Failed, v4Failed, useIPv6, useIPv4) {
     const plainGoToLog = removeColorFormatting(goToLog);
 
     console.log(logListen);
+    if (listen) {
+        console.log();
+        console.log('To limit connections to internal localhost only ([::1] or 127.0.0.1), change the setting in config.yaml to "listen: false".');
+        console.log('Check the "access.log" file in the SillyTavern directory to inspect incoming connections.');
+    }
     console.log('\n' + getSeparator(plainGoToLog.length) + '\n');
     console.log(goToLog);
     console.log('\n' + getSeparator(plainGoToLog.length) + '\n');
 
-    if (listen) {
-        console.log(
-            '[::] or 0.0.0.0 means SillyTavern is listening on all network interfaces (Wi-Fi, LAN, localhost). If you want to limit it only to internal localhost ([::1] or 127.0.0.1), change the setting in config.yaml to "listen: false". Check "access.log" file in the SillyTavern directory if you want to inspect incoming connections.\n',
-        );
-    }
 
     if (basicAuthMode) {
         if (perUserBasicAuth && !enableAccounts) {
@@ -1083,7 +1098,7 @@ async function verifySecuritySettings() {
     }
 
     if (!enableAccounts) {
-        logSecurityAlert('Your SillyTavern is currently insecurely open to the public. Enable whitelisting, basic authentication or user accounts.');
+        logSecurityAlert('Your current SillyTavern configuration is insecure (listening to non-localhost). Enable whitelisting, basic authentication or user accounts.');
     }
 
     const users = await getAllEnabledUsers();

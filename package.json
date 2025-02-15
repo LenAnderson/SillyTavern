@@ -31,6 +31,7 @@
         "html-entities": "^2.5.2",
         "iconv-lite": "^0.6.3",
         "ip-matching": "^2.1.2",
+        "ip-regex": "^5.0.0",
         "ipaddr.js": "^2.0.1",
         "jimp": "^0.22.10",
         "localforage": "^1.10.0",
@@ -89,6 +90,7 @@
     "version": "1.12.11",
     "scripts": {
         "start": "node server.js",
+        "debug": "node server.js --inspect",
         "start:deno": "deno run --allow-run --allow-net --allow-read --allow-write --allow-sys --allow-env server.js",
         "start:bun": "bun server.js",
         "start:no-csrf": "node server.js --disableCsrf",

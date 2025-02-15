@@ -6,6 +6,10 @@ cardsCacheCapacity: 100
 # -- SERVER CONFIGURATION --
 # Listen for incoming connections
 listen: false
+# Listen on a specific address, supports IPv4 and IPv6
+listenAddress:
+  ipv4: 0.0.0.0
+  ipv6: '[::]'
 # Enables IPv6 and/or IPv4 protocols. Need to have at least one enabled!
 # - Use option "auto" to automatically detect support
 # - Use true or false (no qoutes) to enable or disable each protocol

@@ -839,6 +839,9 @@ router.post('/edit', urlencodedParser, validateAvatarUrlMiddleware, async functi
             invalidateThumbnail(request.user.directories, 'avatar', request.body.avatar_url);
             await writeCharacterData(newAvatarPath, char, targetFile, request, crop);
             fs.unlinkSync(newAvatarPath);
+
+            // Bust cache to reload the new avatar
+            response.setHeader('Clear-Site-Data', '"cache"');
         }
 
         return response.sendStatus(200);
