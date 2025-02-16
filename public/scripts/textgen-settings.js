@@ -10,6 +10,7 @@ import {
     setOnlineStatus,
     substituteParams,
 } from '../script.js';
+import { t } from './i18n.js';
 import { BIAS_CACHE, createNewLogitBiasEntry, displayLogitBias, getLogitBiasListResult } from './logit-bias.js';
 
 import { power_user, registerDebugFunction } from './power-user.js';
@@ -182,6 +183,8 @@ const settings = {
     grammar_string: '',
     json_schema: {},
     banned_tokens: '',
+    global_banned_tokens: '',
+    send_banned_tokens: true,
     sampler_priority: OOBA_DEFAULT_ORDER,
     samplers: LLAMACPP_DEFAULT_ORDER,
     samplers_priorities: APHRODITE_DEFAULT_ORDER,
@@ -274,6 +277,8 @@ export const setting_names = [
     'grammar_string',
     'json_schema',
     'banned_tokens',
+    'global_banned_tokens',
+    'send_banned_tokens',
     'ignore_eos_token',
     'spaces_between_special_tokens',
     'speculative_ngram',
@@ -394,7 +399,7 @@ function getTokenizerForTokenIds() {
  * @returns {TokenBanResult} String with comma-separated banned token IDs
  */
 function getCustomTokenBans() {
-    if (!settings.banned_tokens && !textgenerationwebui_banned_in_macros.length) {
+    if (!settings.send_banned_tokens || (!settings.banned_tokens && !settings.global_banned_tokens && !textgenerationwebui_banned_in_macros.length)) {
         return {
             banned_tokens: '',
             banned_strings: [],
@@ -404,8 +409,9 @@ function getCustomTokenBans() {
     const tokenizer = getTokenizerForTokenIds();
     const banned_tokens = [];
     const banned_strings = [];
-    const sequences = settings.banned_tokens
-        .split('\n')
+    const sequences = []
+        .concat(settings.banned_tokens.split('\n'))
+        .concat(settings.global_banned_tokens.split('\n'))
         .concat(textgenerationwebui_banned_in_macros)
         .filter(x => x.length > 0)
         .filter(onlyUnique);
@@ -450,6 +456,18 @@ function getCustomTokenBans() {
         banned_tokens: banned_tokens.filter(onlyUnique).map(x => String(x)).join(','),
         banned_strings: banned_strings,
     };
+}
+
+/**
+ * Sets the banned strings kill switch toggle.
+ * @param {boolean} isEnabled Kill switch state
+ * @param {string} title Label title
+ */
+function toggleBannedStringsKillSwitch(isEnabled, title) {
+    $('#send_banned_tokens_textgenerationwebui').prop('checked', isEnabled);
+    $('#send_banned_tokens_label').find('.menu_button').toggleClass('toggleEnabled', isEnabled).prop('title', title);
+    settings.send_banned_tokens = isEnabled;
+    saveSettingsDebounced();
 }
 
 /**
@@ -594,6 +612,14 @@ function sortAphroditeItemsByOrder(orderArray) {
 }
 
 jQuery(function () {
+    $('#send_banned_tokens_textgenerationwebui').on('change', function () {
+        const checked = !!$(this).prop('checked');
+        toggleBannedStringsKillSwitch(checked,
+            checked
+                ? t`Banned tokens/strings are being sent in the request.`
+                : t`Banned tokens/strings are NOT being sent in the request.`);
+    });
+
     $('#koboldcpp_order').sortable({
         delay: getSortableDelay(),
         stop: function () {
@@ -932,6 +958,10 @@ function setSettingByName(setting, value, trigger) {
     if (isCheckbox) {
         const val = Boolean(value);
         $(`#${setting}_textgenerationwebui`).prop('checked', val);
+
+        if ('send_banned_tokens' === setting) {
+            $(`#${setting}_textgenerationwebui`).trigger('change');
+        }
     }
     else if (isText) {
         $(`#${setting}_textgenerationwebui`).val(value);

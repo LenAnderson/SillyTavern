@@ -2879,9 +2879,8 @@ select option:not(:checked) {
     color: var(--active) !important;
 }
 
-#instruct_enabled_label .menu_button:not(.toggleEnabled),
-#sysprompt_enabled_label .menu_button:not(.toggleEnabled) {
-    color: Red;
+.menu_button.togglable:not(.toggleEnabled) {
+    color: red;
 }
 
 .displayBlock {

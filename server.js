@@ -60,6 +60,7 @@ import basicAuthMiddleware from './src/middleware/basicAuth.js';
 import whitelistMiddleware from './src/middleware/whitelist.js';
 import multerMonkeyPatch from './src/middleware/multerMonkeyPatch.js';
 import initRequestProxy from './src/request-proxy.js';
+import getCacheBusterMiddleware from './src/middleware/cacheBuster.js';
 import {
     getVersion,
     getConfigValue,
@@ -515,7 +516,7 @@ if (!disableCsrf) {
 
 // Static files
 // Host index page
-app.get('/', (request, response) => {
+app.get('/', getCacheBusterMiddleware(), (request, response) => {
     if (shouldRedirectToLogin(request)) {
         const query = request.url.split('?')[1];
         const redirectUrl = query ? `/login?${query}` : '/login';

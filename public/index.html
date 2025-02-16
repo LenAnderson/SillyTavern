@@ -1621,17 +1621,34 @@
                                     </div>
                                     <div data-tg-type-mode="except" data-tg-type="generic" id="banned_tokens_block_ooba" class="wide100p">
                                         <hr class="width100p">
-                                        <h4 class="range-block-title justifyCenter">
-                                            <span data-i18n="Banned Tokens">Banned Tokens/Strings</span>
-                                            <div class="margin5 fa-solid fa-circle-info opacity50p " data-i18n="[title]LLaMA / Mistral / Yi models only" title="Enter sequences you don't want to appear in the output.&#13;Unquoted text will be tokenized in the back end and banned as tokens.&#13;[token ids] will be banned as-is.&#13;Most tokens have a leading space. Use token counter (with the correct tokenizer selected first!) if you are unsure.&#13;Enclose text in double quotes to ban the entire string as a set.&#13;Quoted Strings and [Token ids] must be on their own line."></div>
-                                        </h4>
-                                        <div class="wide100p">
-                                            <textarea id="banned_tokens_textgenerationwebui" class="text_pole textarea_compact" name="banned_tokens_textgenerationwebui" rows="3" data-i18n="[placeholder]Example: some text [42, 69, 1337]" placeholder='some text as tokens&#10;[420, 69, 1337]&#10;"Some verbatim string"'></textarea>
+                                        <div class="range-block-title title_restorable">
+                                            <div>
+                                                <strong data-i18n="Banned Tokens">Banned Tokens/Strings</strong>
+                                                <div class="margin5 fa-solid fa-circle-info opacity50p " data-i18n="[title]LLaMA / Mistral / Yi models only" title="Enter sequences you don't want to appear in the output.&#13;Unquoted text will be tokenized in the back end and banned as tokens.&#13;[token ids] will be banned as-is.&#13;Most tokens have a leading space. Use token counter (with the correct tokenizer selected first!) if you are unsure.&#13;Enclose text in double quotes to ban the entire string as a set.&#13;Quoted Strings and [Token ids] must be on their own line."></div>
+                                            </div>
+                                            <label id="send_banned_tokens_label" for="send_banned_tokens_textgenerationwebui" class="checkbox_label">
+                                                <input id="send_banned_tokens_textgenerationwebui" type="checkbox" style="display:none;" />
+                                                <small><i class="fa-solid fa-power-off menu_button togglable margin0"></i></small>
+                                            </label>
+                                        </div>
+                                        <div id="banned_tokens_controls_ooba">
+                                            <div class="textAlignCenter">
+                                                <small data-i18n="Global list">Global list</small>
+                                            </div>
+                                            <div class="wide100p marginBot10">
+                                                <textarea id="global_banned_tokens_textgenerationwebui" class="text_pole textarea_compact" name="global_banned_tokens_textgenerationwebui" rows="3" data-i18n="[placeholder]Example: some text [42, 69, 1337]" placeholder='some text as tokens&#10;[420, 69, 1337]&#10;"Some verbatim string"'></textarea>
+                                            </div>
+                                            <div class="textAlignCenter">
+                                                <small data-i18n="Preset-specific list">Preset-specific list</small>
+                                            </div>
+                                            <div class="wide100p">
+                                                <textarea id="banned_tokens_textgenerationwebui" class="text_pole textarea_compact" name="banned_tokens_textgenerationwebui" rows="3" data-i18n="[placeholder]Example: some text [42, 69, 1337]" placeholder='some text as tokens&#10;[420, 69, 1337]&#10;"Some verbatim string"'></textarea>
+                                            </div>
                                         </div>
                                     </div>
                                     <div class="range-block wide100p">
                                         <div id="logit_bias_textgenerationwebui" class="range-block-title title_restorable">
-                                            <span data-i18n="Logit Bias">Logit Bias</span>
+                                            <strong data-i18n="Logit Bias">Logit Bias</strong>
                                             <div id="textgen_logit_bias_new_entry" class="menu_button menu_button_icon">
                                                 <i class="fa-xs fa-solid fa-plus"></i>
                                                 <small data-i18n="Add">Add</small>
@@ -3517,7 +3534,7 @@
                                 </label>
                                 <label id="instruct_enabled_label"for="instruct_enabled" class="checkbox_label flex1" title="Enable Instruct Mode" data-i18n="[title]instruct_enabled">
                                     <input id="instruct_enabled" type="checkbox" style="display:none;" />
-                                    <small><i class="fa-solid fa-power-off menu_button margin0"></i></small>
+                                    <small><i class="fa-solid fa-power-off menu_button togglable margin0"></i></small>
                                 </label>
                             </div>
                         </h4>
@@ -3695,7 +3712,7 @@
                             <div class="flex-container">
                                 <label id="sysprompt_enabled_label" for="sysprompt_enabled" class="checkbox_label flex1" title="Enable System Prompt" data-i18n="[title]sysprompt_enabled">
                                     <input id="sysprompt_enabled" type="checkbox" style="display:none;" />
-                                    <small><i class="fa-solid fa-power-off menu_button margin0"></i></small>
+                                    <small><i class="fa-solid fa-power-off menu_button togglable margin0"></i></small>
                                 </label>
                             </div>
                         </h4>
