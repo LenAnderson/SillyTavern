@@ -584,7 +584,7 @@
     "(0 = unlimited, use budget)": "（“0”为无限制，使用预算）",
     "Cap the number of entry activation recursions": "限制条目激活递归的次数",
     "Max Recursion Steps": "最大递归深度",
-    "0 = unlimited, 1 = scans once and doesn't recurse, 2 = scans once and recurses once, etc\\n(disabled when min activations are used)": "“0”为无限制，“1”为扫描一次且不递归，“2”为扫描一次且递归一次，依此类推\n（当使用最小激活次数时，此功能被禁用）",
+    "0 = unlimited, 1 = scans once and doesn't recurse, 2 = scans once and recurses once, etc": "“0”为无限制，“1”为扫描一次且不递归，“2”为扫描一次且递归一次，依此类推\n（当使用最小激活次数时，此功能被禁用）",
     "Insertion Strategy": "插入策略",
     "Sorted Evenly": "均匀排序",
     "Character Lore First": "角色世界书优先",

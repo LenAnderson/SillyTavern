@@ -1275,7 +1275,8 @@ falai.post('/generate', jsonParser, async (request, response) => {
             num_inference_steps: request.body.steps,
             seed: request.body.seed ?? null,
             guidance_scale: request.body.guidance,
-            enable_safety_checker: false,
+            enable_safety_checker: false, // Disable general safety checks
+            safety_tolerance: 6 // Make Flux the least strict
         };
 
         console.debug('FAL.AI request:', requestBody);

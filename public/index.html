@@ -2015,7 +2015,7 @@
                                         </div>
                                     </div>
                                     <div class="flex-container flexFlowColumn wide100p textAlignCenter marginTop10" data-source="openai,custom">
-                                        <div class="flex-container oneline-dropdown" title="Constrains effort on reasoning for reasoning models.&#10;Currently supported values are low, medium, and high.&#10;Reducing reasoning effort can result in faster responses and fewer tokens used on reasoning in a response.">
+                                        <div class="flex-container oneline-dropdown" title="Constrains effort on reasoning for reasoning models.&#10;Currently supported values are low, medium, and high.&#10;Reducing reasoning effort can result in faster responses and fewer tokens used on reasoning in a response." data-i18n="[title]Constrains effort on reasoning for reasoning models.">
                                             <label for="openai_reasoning_effort" data-i18n="Reasoning Effort">
                                                 Reasoning Effort
                                             </label>
@@ -4001,7 +4001,7 @@
                                             <div class="alignitemscenter flex-container flexFlowColumn flexGrow flexShrink gap0 flexBasis48p" title="Cap the number of entry activation recursions" data-i18n="[title]Cap the number of entry activation recursions">
                                                 <small>
                                                     <span data-i18n="Max Recursion Steps">Max Recursion Steps</span>
-                                                    <div class="fa-solid fa-triangle-exclamation opacity50p" data-i18n="[title]0 = unlimited, 1 = scans once and doesn't recurse, 2 = scans once and recurses once, etc\n(disabled when min activations are used)" title="0 = unlimited, 1 = scans once and doesn't recurse, 2 = scans once and recurses once, etc&#10;(disabled when min activations are used)"></div>
+                                                    <div class="fa-solid fa-triangle-exclamation opacity50p" data-i18n="[title]0 = unlimited, 1 = scans once and doesn't recurse, 2 = scans once and recurses once, etc" title="0 = unlimited, 1 = scans once and doesn't recurse, 2 = scans once and recurses once, etc&#10;(disabled when min activations are used)"></div>
                                                 </small>
                                                 <input class="neo-range-slider" type="range" id="world_info_max_recursion_steps" name="world_info_max_recursion_steps" min="0" max="10" step="1">
                                                 <input class="neo-range-input" type="number" min="0" max="10" step="1" data-for="world_info_max_recursion_steps" id="world_info_max_recursion_steps_counter">
@@ -6890,8 +6890,8 @@
         </div>
         <div id="form_sheld">
             <div id="dialogue_del_mes">
-                <div id="dialogue_del_mes_ok" class="menu_button">Delete</div>
-                <div id="dialogue_del_mes_cancel" class="menu_button">Cancel</div>
+                <div id="dialogue_del_mes_ok" data-i18n="Delete" class="menu_button">Delete</div>
+                <div id="dialogue_del_mes_cancel" data-i18n="Cancel" class="menu_button">Cancel</div>
             </div>
             <div id="send_form" class="no-connection">
                 <form id="file_form" class="wide100p displayNone">

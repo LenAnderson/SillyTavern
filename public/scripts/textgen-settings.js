@@ -311,7 +311,7 @@ export function validateTextGenUrl() {
     const formattedUrl = formatTextGenURL(url);
 
     if (!formattedUrl) {
-        toastr.error('Enter a valid API URL', 'Text Completion API');
+        toastr.error(t`Enter a valid API URL`, 'Text Completion API');
         return;
     }
 
@@ -1187,7 +1187,7 @@ export function getTextGenModel() {
             return settings.aphrodite_model;
         case OLLAMA:
             if (!settings.ollama_model) {
-                toastr.error('No Ollama model selected.', 'Text Completion API');
+                toastr.error(t`No Ollama model selected.`, 'Text Completion API');
                 throw new Error('No Ollama model selected');
             }
             return settings.ollama_model;

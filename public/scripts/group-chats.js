@@ -1664,12 +1664,12 @@ function updateFavButtonState(state) {
 export async function openGroupById(groupId) {
     if (isChatSaving) {
         toastr.info(t`Please wait until the chat is saved before switching characters.`, t`Your chat is still saving...`);
-        return;
+        return false;
     }
 
     if (!groups.find(x => x.id === groupId)) {
         console.log('Group not found', groupId);
-        return;
+        return false;
     }
 
     if (!is_send_press && !is_group_generating) {
@@ -1686,8 +1686,11 @@ export async function openGroupById(groupId) {
             updateChatMetadata({}, true);
             chat.length = 0;
             await getGroupChat(groupId);
+            return true;
         }
     }
+
+    return false;
 }
 
 function openCharacterDefinition(characterSelect) {

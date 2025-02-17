@@ -607,12 +607,12 @@ function generateExtensionHtml(name, manifest, isActive, isDisabled, isExternal,
     }
 
     let toggleElement = isActive || isDisabled ?
-        `<input type="checkbox" title="Click to toggle" data-name="${name}" class="${isActive ? 'toggle_disable' : 'toggle_enable'} ${checkboxClass}" ${isActive ? 'checked' : ''}>` :
+        '<input type="checkbox" title="' + t`Click to toggle` + `" data-name="${name}" class="${isActive ? 'toggle_disable' : 'toggle_enable'} ${checkboxClass}" ${isActive ? 'checked' : ''}>` :
         `<input type="checkbox" title="Cannot enable extension" data-name="${name}" class="extension_missing ${checkboxClass}" disabled>`;
 
-    let deleteButton = isExternal ? `<button class="btn_delete menu_button" data-name="${externalId}" title="Delete"><i class="fa-fw fa-solid fa-trash-can"></i></button>` : '';
+    let deleteButton = isExternal ? `<button class="btn_delete menu_button" data-name="${externalId}" data-i18n="[title]Delete" title="Delete"><i class="fa-fw fa-solid fa-trash-can"></i></button>` : '';
     let updateButton = isExternal ? `<button class="btn_update menu_button displayNone" data-name="${externalId}" title="Update available"><i class="fa-solid fa-download fa-fw"></i></button>` : '';
-    let moveButton = isExternal && isUserAdmin ? `<button class="btn_move menu_button" data-name="${externalId}" title="Move"><i class="fa-solid fa-folder-tree fa-fw"></i></button>` : '';
+    let moveButton = isExternal && isUserAdmin ? `<button class="btn_move menu_button" data-name="${externalId}" data-i18n="[title]Move" title="Move"><i class="fa-solid fa-folder-tree fa-fw"></i></button>` : '';
     let modulesInfo = '';
 
     if (isActive && Array.isArray(manifest.optional)) {
@@ -620,7 +620,7 @@ function generateExtensionHtml(name, manifest, isActive, isDisabled, isExternal,
         modules.forEach(x => optional.delete(x));
         if (optional.size > 0) {
             const optionalString = DOMPurify.sanitize([...optional].join(', '));
-            modulesInfo = `<div class="extension_modules">Optional modules: <span class="optional">${optionalString}</span></div>`;
+            modulesInfo = '<div class="extension_modules">' + t`Optional modules:` + ` <span class="optional">${optionalString}</span></div>`;
         }
     } else if (!isDisabled) { // Neither active nor disabled
         const requirements = new Set(manifest.requires);

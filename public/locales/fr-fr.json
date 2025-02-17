@@ -1485,7 +1485,7 @@
     "(disabled when max recursion steps are used)": "(désactivé lorsque le nombre maximum de pas de récursivité est utilisé)",
     "Cap the number of entry activation recursions": "Plafonner le nombre de récursions d'activation d'entrée",
     "Max Recursion Steps": "Nombre maximal d'étapes de récursivité",
-    "0 = unlimited, 1 = scans once and doesn't recurse, 2 = scans once and recurses once, etc\\n(disabled when min activations are used)": "0 = illimité, 1 = scanne une fois et ne récure pas, 2 = scanne une fois et récure une fois, etc.\n(désactivé lorsque des activations minimales sont utilisées)",
+    "0 = unlimited, 1 = scans once and doesn't recurse, 2 = scans once and recurses once, etc": "0 = illimité, 1 = scanne une fois et ne récure pas, 2 = scanne une fois et récure une fois, etc.\n(désactivé lorsque des activations minimales sont utilisées)",
     "Include names with each message into the context for scanning": "Inclure les noms dans chaque message dans le contexte pour l'analyse.",
     "Apply current sorting as Order": "Appliquer le tri actuel comme ordre",
     "Display swipe numbers for all messages, not just the last.": "Afficher le nombre de balayage sur tous les messages, et pas seulement le dernier.",
