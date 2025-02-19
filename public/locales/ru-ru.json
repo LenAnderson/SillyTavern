@@ -426,7 +426,7 @@
     "Requests logprobs from the API for the Token Probabilities feature": "Запросить логпробы из API для функции Token Probabilities.",
     "Automatically reject and re-generate AI message based on configurable criteria": "Автоматическое отклонение и повторная генерация сообщений AI на основе настраиваемых критериев.",
     "Enable the auto-swipe function. Settings in this section only have an effect when auto-swipe is enabled": "Включить авто-свайп. Настройки в этом разделе действуют только при включенном авто-свайпе.",
-    "If the generated message is shorter than this, trigger an auto-swipe": "Если сгенерированное сообщение короче этого значения, срабатывает авто-свайп.",
+    "If the generated message is shorter than these many characters, trigger an auto-swipe": "Если сгенерированное сообщение короче этого значения, срабатывает авто-свайп.",
     "Reload and redraw the currently open chat": "Перезагрузить и перерисовать открытый в данный момент чат.",
     "Auto-Expand Message Actions": "Развернуть действия",
     "Persona Management": "Управление персоной",

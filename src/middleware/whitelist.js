@@ -12,6 +12,8 @@ const enableForwardedWhitelist = getConfigValue('enableForwardedWhitelist', fals
 let whitelist = getConfigValue('whitelist', []);
 let knownIPs = new Set();
 
+export const getAccessLogPath = () => path.join(globalThis.DATA_ROOT, 'access.log');
+
 if (fs.existsSync(whitelistPath)) {
     try {
         let whitelistTxt = fs.readFileSync(whitelistPath, 'utf-8');
@@ -46,6 +48,23 @@ function getForwardedIp(req) {
     return undefined;
 }
 
+export function migrateAccessLog() {
+    try {
+        if (!fs.existsSync('access.log')) {
+            return;
+        }
+        const logPath = getAccessLogPath();
+        if (fs.existsSync(logPath)) {
+            return;
+        }
+        fs.renameSync('access.log', logPath);
+        console.log(color.yellow('Migrated access.log to new location:'), logPath);
+    } catch (e) {
+        console.error('Failed to migrate access log:', e);
+        console.info('Please move access.log to the data directory manually.');
+    }
+}
+
 /**
  * Returns a middleware function that checks if the client IP is in the whitelist.
  * @param {boolean} whitelistMode If whitelist mode is enabled via config or command line
@@ -67,9 +86,10 @@ export default function whitelistMiddleware(whitelistMode, listen) {
             knownIPs.add(clientIp);
 
             // Write access log
+            const logPath = getAccessLogPath();
             const timestamp = new Date().toISOString();
             const log = `${timestamp} ${clientIp} ${userAgent}\n`;
-            fs.appendFile('access.log', log, (err) => {
+            fs.appendFile(logPath, log, (err) => {
                 if (err) {
                     console.error('Failed to write access log:', err);
                 }

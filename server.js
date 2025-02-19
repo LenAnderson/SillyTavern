@@ -57,7 +57,7 @@ import {
 
 import getWebpackServeMiddleware from './src/middleware/webpack-serve.js';
 import basicAuthMiddleware from './src/middleware/basicAuth.js';
-import whitelistMiddleware from './src/middleware/whitelist.js';
+import whitelistMiddleware, { getAccessLogPath, migrateAccessLog } from './src/middleware/whitelist.js';
 import multerMonkeyPatch from './src/middleware/multerMonkeyPatch.js';
 import initRequestProxy from './src/request-proxy.js';
 import getCacheBusterMiddleware from './src/middleware/cacheBuster.js';
@@ -754,6 +754,7 @@ const preSetupTasks = async function () {
     await checkForNewContent(directories);
     await ensureThumbnailCache();
     cleanUploads();
+    migrateAccessLog();
 
     await settingsInit();
     await statsInit();
@@ -856,7 +857,7 @@ const postSetupTasks = async function (v6Failed, v4Failed, useIPv6, useIPv4) {
     if (listen) {
         console.log();
         console.log('To limit connections to internal localhost only ([::1] or 127.0.0.1), change the setting in config.yaml to "listen: false".');
-        console.log('Check the "access.log" file in the SillyTavern directory to inspect incoming connections.');
+        console.log('Check the "access.log" file in the data directory to inspect incoming connections:', color.green(getAccessLogPath()));
     }
     console.log('\n' + getSeparator(plainGoToLog.length) + '\n');
     console.log(goToLog);

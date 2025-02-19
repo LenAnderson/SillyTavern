@@ -709,7 +709,7 @@
     "Auto-swipe": "Automatisch vegen",
     "Enable the auto-swipe function. Settings in this section only have an effect when auto-swipe is enabled": "Schakel de automatische-vegen functie in. Instellingen in dit gedeelte hebben alleen effect wanneer automatisch vegen is ingeschakeld",
     "Minimum generated message length": "Minimale gegenereerde berichtlengte",
-    "If the generated message is shorter than this, trigger an auto-swipe": "Als het gegenereerde bericht korter is dan dit, activeer dan een automatische veeg",
+    "If the generated message is shorter than these many characters, trigger an auto-swipe": "Als het gegenereerde bericht korter is dan dit, activeer dan een automatische veeg",
     "Blacklisted words": "Verboden woorden",
     "words you dont want generated separated by comma ','": "woorden die je niet gegenereerd wilt hebben gescheiden door komma ','",
     "Blacklisted word count to swipe": "Aantal verboden woorden om te vegen",

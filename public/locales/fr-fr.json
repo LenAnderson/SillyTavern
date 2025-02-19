@@ -656,7 +656,7 @@
     "Auto-swipe": "Balayage automatique",
     "Enable the auto-swipe function. Settings in this section only have an effect when auto-swipe is enabled": "Activer la fonction de balayage automatique. Les paramètres de cette section n'ont d'effet que lorsque le balayage automatique est activé",
     "Minimum generated message length": "Longueur minimale du message généré",
-    "If the generated message is shorter than this, trigger an auto-swipe": "Si le message généré est plus court que cela, déclenchez un balayage automatique",
+    "If the generated message is shorter than these many characters, trigger an auto-swipe": "Si le message généré est plus court que cela, déclenchez un balayage automatique",
     "Blacklisted words": "Mots en liste noire",
     "words you dont want generated separated by comma ','": "mots que vous ne voulez pas générer séparés par des virgules ','",
     "Blacklisted word count to swipe": "Nombre de mots en liste noire pour balayer",

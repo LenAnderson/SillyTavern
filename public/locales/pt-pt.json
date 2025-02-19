@@ -709,7 +709,7 @@
     "Auto-swipe": "Auto-swipe",
     "Enable the auto-swipe function. Settings in this section only have an effect when auto-swipe is enabled": "Ativar a função de auto-swipe. As configurações nesta seção só têm efeito quando o auto-swipe está ativado",
     "Minimum generated message length": "Comprimento mínimo da mensagem gerada",
-    "If the generated message is shorter than this, trigger an auto-swipe": "Se a mensagem gerada for mais curta que isso, acione um auto-swipe",
+    "If the generated message is shorter than these many characters, trigger an auto-swipe": "Se a mensagem gerada for mais curta que isso, acione um auto-swipe",
     "Blacklisted words": "Palavras proibidas",
     "words you dont want generated separated by comma ','": "palavras que você não quer geradas separadas por vírgula ','",
     "Blacklisted word count to swipe": "Contagem de palavras proibidas para swipe",

@@ -709,7 +709,7 @@
     "Auto-swipe": "オートスワイプ",
     "Enable the auto-swipe function. Settings in this section only have an effect when auto-swipe is enabled": "自動スワイプ機能を有効にします。このセクションの設定は、自動スワイプが有効になっている場合にのみ効果があります",
     "Minimum generated message length": "生成されたメッセージの最小長",
-    "If the generated message is shorter than this, trigger an auto-swipe": "生成されたメッセージがこれよりも短い場合、自動スワイプをトリガーします",
+    "If the generated message is shorter than these many characters, trigger an auto-swipe": "生成されたメッセージがこれよりも短い場合、自動スワイプをトリガーします",
     "Blacklisted words": "ブラックリストされた単語",
     "words you dont want generated separated by comma ','": "コンマ ',' で区切られた生成したくない単語",
     "Blacklisted word count to swipe": "スワイプするブラックリストされた単語の数",

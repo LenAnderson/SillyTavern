@@ -709,7 +709,7 @@
     "Auto-swipe": "Tự động vuốt",
     "Enable the auto-swipe function. Settings in this section only have an effect when auto-swipe is enabled": "Bật chức năng tự động vuốt. Các cài đặt trong phần này chỉ có tác dụng khi tự động vuốt được bật",
     "Minimum generated message length": "Độ dài tối thiểu của tin nhắn được tạo",
-    "If the generated message is shorter than this, trigger an auto-swipe": "Nếu tin nhắn được tạo ra ngắn hơn điều này, kích hoạt tự động vuốt",
+    "If the generated message is shorter than these many characters, trigger an auto-swipe": "Nếu tin nhắn được tạo ra ngắn hơn điều này, kích hoạt tự động vuốt",
     "Blacklisted words": "Từ trong danh sách đen",
     "words you dont want generated separated by comma ','": "các từ bạn không muốn được tạo ra được phân tách bằng dấu phẩy ','",
     "Blacklisted word count to swipe": "Số từ trong danh sách đen để vuốt",

@@ -709,7 +709,7 @@
     "Auto-swipe": "السحب التلقائي",
     "Enable the auto-swipe function. Settings in this section only have an effect when auto-swipe is enabled": "تمكين وظيفة السحب التلقائي. الإعدادات في هذا القسم تؤثر فقط عند تمكين السحب التلقائي",
     "Minimum generated message length": "الحد الأدنى لطول الرسالة المولدة",
-    "If the generated message is shorter than this, trigger an auto-swipe": "إذا كانت الرسالة المولدة أقصر من هذا، فتحريض السحب التلقائي",
+    "If the generated message is shorter than these many characters, trigger an auto-swipe": "إذا كانت الرسالة المولدة أقصر من هذا، فتحريض السحب التلقائي",
     "Blacklisted words": "الكلمات الممنوعة",
     "words you dont want generated separated by comma ','": "الكلمات التي لا تريد توليدها مفصولة بفاصلة ','",
     "Blacklisted word count to swipe": "عدد الكلمات الممنوعة للسحب",

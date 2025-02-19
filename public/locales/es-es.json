@@ -709,7 +709,7 @@
     "Auto-swipe": "Deslizamiento automático",
     "Enable the auto-swipe function. Settings in this section only have an effect when auto-swipe is enabled": "Habilitar la función de deslizamiento automático. La configuración en esta sección solo tiene efecto cuando el deslizamiento automático está habilitado",
     "Minimum generated message length": "Longitud mínima del mensaje generado",
-    "If the generated message is shorter than this, trigger an auto-swipe": "Si el mensaje generado es más corto que esto, activar un deslizamiento automático",
+    "If the generated message is shorter than these many characters, trigger an auto-swipe": "Si el mensaje generado es más corto que esto, activar un deslizamiento automático",
     "Blacklisted words": "Palabras prohibidas",
     "words you dont want generated separated by comma ','": "palabras que no desea generar separadas por coma ','",
     "Blacklisted word count to swipe": "Número de palabras prohibidas para deslizar",

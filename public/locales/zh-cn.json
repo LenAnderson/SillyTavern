@@ -804,7 +804,7 @@
     "Auto-swipe": "自动滑动",
     "Enable the auto-swipe function. Settings in this section only have an effect when auto-swipe is enabled": "启用自动滑动功能。仅当启用自动滑动时，本节中的设置才会生效",
     "Minimum generated message length": "生成的消息的最小长度",
-    "If the generated message is shorter than this, trigger an auto-swipe": "如果生成的消息短于此长度，则触发自动滑动",
+    "If the generated message is shorter than these many characters, trigger an auto-swipe": "如果生成的消息短于此长度，则触发自动滑动",
     "Blacklisted words": "屏蔽词",
     "words you dont want generated separated by comma ','": "不想生成的词语，用半角逗号“,”分隔",
     "Blacklisted word count to swipe": "触发滑动的黑名单词语数量",

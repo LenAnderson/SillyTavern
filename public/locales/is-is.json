@@ -709,7 +709,7 @@
     "Auto-swipe": "Sjálfvirkur sveip",
     "Enable the auto-swipe function. Settings in this section only have an effect when auto-swipe is enabled": "Virkjaðu sjálfvirka sveiflugerð. Stillingar í þessum hluta hafa aðeins áhrif þegar sjálfvirkur sveiflugerð er virk",
     "Minimum generated message length": "Lágmarks lengd á mynduðum skilaboðum",
-    "If the generated message is shorter than this, trigger an auto-swipe": "Ef mynduðu skilaboðin eru styttri en þessi, kallaðu fram sjálfvirkar sveiflugerðar",
+    "If the generated message is shorter than these many characters, trigger an auto-swipe": "Ef mynduðu skilaboðin eru styttri en þessi, kallaðu fram sjálfvirkar sveiflugerðar",
     "Blacklisted words": "Svört orð",
     "words you dont want generated separated by comma ','": "orð sem þú vilt ekki að framleiða aðskilin með kommu ','",
     "Blacklisted word count to swipe": "Fjöldi svörtra orða til að sveipa",

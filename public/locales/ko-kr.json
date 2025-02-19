@@ -724,7 +724,7 @@
     "Auto-swipe": "자동 스와이프",
     "Enable the auto-swipe function. Settings in this section only have an effect when auto-swipe is enabled": "자동 스와이프 기능을 활성화합니다. 이 섹션의 설정은 자동 스와이프가 활성화되었을 때만 영향을 미칩니다",
     "Minimum generated message length": "생성된 메시지 최소 길이",
-    "If the generated message is shorter than this, trigger an auto-swipe": "생성된 메시지가이보다 짧으면 자동 스와이프를 트리거합니다",
+    "If the generated message is shorter than these many characters, trigger an auto-swipe": "생성된 메시지가이보다 짧으면 자동 스와이프를 트리거합니다",
     "Blacklisted words": "금지어",
     "words you dont want generated separated by comma ','": "쉼표로 구분된 생성하지 않으려는 단어",
     "Blacklisted word count to swipe": "스와이프할 금지어 개수",
