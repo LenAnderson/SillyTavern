@@ -9,6 +9,9 @@ import { ensureImageFormatSupported, getBase64Async, humanFileSize } from './uti
 export let currentUser = null;
 export let accountsEnabled = false;
 
+// Extend the session every 30 minutes
+const SESSION_EXTEND_INTERVAL = 30 * 60 * 1000;
+
 /**
  * Enable or disable user account controls in the UI.
  * @param {boolean} isEnabled User account controls enabled
@@ -894,6 +897,24 @@ async function slugify(text) {
     }
 }
 
+/**
+ * Pings the server to extend the user session.
+ */
+async function extendUserSession() {
+    try {
+        const response = await fetch('/api/ping?extend=1', {
+            method: 'GET',
+            headers: getRequestHeaders(),
+        });
+
+        if (!response.ok) {
+            throw new Error('Ping did not succeed', { cause: response.status });
+        }
+    } catch (error) {
+        console.error('Failed to extend user session', error);
+    }
+}
+
 jQuery(() => {
     $('#logout_button').on('click', () => {
         logout();
@@ -904,4 +925,9 @@ jQuery(() => {
     $('#account_button').on('click', () => {
         openUserProfile();
     });
+    setInterval(async () => {
+        if (currentUser) {
+            await extendUserSession();
+        }
+    }, SESSION_EXTEND_INTERVAL);
 });

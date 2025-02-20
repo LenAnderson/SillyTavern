@@ -556,7 +556,13 @@ app.use('/api/users', usersPublicRouter);
 
 // Everything below this line requires authentication
 app.use(requireLoginMiddleware);
-app.get('/api/ping', (_, response) => response.sendStatus(204));
+app.get('/api/ping', (request, response) => {
+    if (request.query.extend && request.session) {
+        request.session.touch = Date.now();
+    }
+
+    response.sendStatus(204);
+});
 
 // File uploads
 app.use(multer({ dest: uploadsPath, limits: { fieldSize: 10 * 1024 * 1024 } }).single('avatar'));
