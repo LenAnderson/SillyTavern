@@ -230,7 +230,7 @@ router.post('/version', jsonParser, async (request, response) => {
         } catch (error) {
             // it is not a git repo, or has no commits yet, or is a bare repo
             // not possible to update it, most likely can't get the branch name either
-            return response.send({ currentBranchName: null, currentCommitHash, isUpToDate: true, remoteUrl: null });
+            return response.send({ currentBranchName: '', currentCommitHash: '', isUpToDate: true, remoteUrl: '' });
         }
 
         const currentBranch = await git.cwd(extensionPath).branch();

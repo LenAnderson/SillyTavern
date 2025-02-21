@@ -514,7 +514,7 @@ export const event_types = {
     TOOL_CALLS_RENDERED: 'tool_calls_rendered',
 };
 
-export const eventSource = new EventEmitter();
+export const eventSource = new EventEmitter([event_types.APP_READY]);
 
 eventSource.on(event_types.CHAT_CHANGED, processChatSlashCommands);
 

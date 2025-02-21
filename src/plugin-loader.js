@@ -3,7 +3,7 @@ import path from 'node:path';
 import url from 'node:url';
 
 import express from 'express';
-import { default as git } from 'simple-git';
+import { default as git, CheckRepoActions } from 'simple-git';
 import { sync as commandExistsSync } from 'command-exists';
 import { getConfigValue, color } from './util.js';
 
@@ -256,7 +256,7 @@ async function updatePlugins(pluginsPath) {
             const pluginPath = path.join(pluginsPath, directory);
             const pluginRepo = git(pluginPath);
 
-            const isRepo = await pluginRepo.checkIsRepo();
+            const isRepo = await pluginRepo.checkIsRepo(CheckRepoActions.IS_REPO_ROOT);
             if (!isRepo) {
                 continue;
             }

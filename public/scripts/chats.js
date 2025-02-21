@@ -1487,7 +1487,7 @@ jQuery(function () {
             ...chat.filter(x => x?.extra?.type !== system_message_types.ASSISTANT_NOTE),
         ];
 
-        download(JSON.stringify(chatToSave, null, 4), `Assistant - ${humanizedDateTime()}.json`, 'application/json');
+        download(chatToSave.map((m) => JSON.stringify(m)).join('\n'), `Assistant - ${humanizedDateTime()}.jsonl`, 'application/json');
     });
 
     // Do not change. #attachFile is added by extension.
