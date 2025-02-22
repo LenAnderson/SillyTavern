@@ -605,7 +605,7 @@ const handleOutgoingMessage = createEventHandler(translateOutgoingMessage, () =>
 const handleImpersonateReady = createEventHandler(translateImpersonate, () => shouldTranslate(incomingTypes));
 const handleMessageEdit = createEventHandler(translateMessageEdit, () => true);
 
-window['translate'] = translate;
+globalThis.translate = translate;
 
 jQuery(async () => {
     const html = await renderExtensionTemplateAsync('translate', 'index');

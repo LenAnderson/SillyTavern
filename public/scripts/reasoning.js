@@ -76,6 +76,11 @@ export function extractReasoningFromData(data) {
                     return data?.choices?.[0]?.message?.reasoning ?? '';
                 case chat_completion_sources.MAKERSUITE:
                     return data?.responseContent?.parts?.filter(part => part.thought)?.map(part => part.text)?.join('\n\n') ?? '';
+                case chat_completion_sources.CUSTOM: {
+                    return data?.choices?.[0]?.message?.reasoning_content
+                        ?? data?.choices?.[0]?.message?.reasoning
+                        ?? '';
+                }
             }
             break;
     }
@@ -338,14 +343,15 @@ export class ReasoningHandler {
             return mesChanged;
         }
 
-        if (this.state === ReasoningState.None) {
+        if (this.state === ReasoningState.None || this.#isHiddenReasoningModel) {
             // If streamed message starts with the opening, cut it out and put all inside reasoning
             if (message.mes.startsWith(power_user.reasoning.prefix) && message.mes.length > power_user.reasoning.prefix.length) {
                 this.#isParsingReasoning = true;
 
                 // Manually set starting state here, as we might already have received the ending suffix
                 this.state = ReasoningState.Thinking;
-                this.startTime = this.initialTime;
+                this.startTime = this.startTime ?? this.initialTime;
+                this.endTime = null;
             }
         }
 

@@ -2000,7 +2000,7 @@
                                             </span>
                                         </div>
                                     </div>
-                                    <div class="range-block" data-source="deepseek,openrouter">
+                                    <div class="range-block" data-source="deepseek,openrouter,custom">
                                         <label for="openai_show_thoughts" class="checkbox_label widthFreeExpand">
                                             <input id="openai_show_thoughts" type="checkbox" />
                                             <span>
@@ -3186,21 +3186,33 @@
                             </div>
                             <h4 data-i18n="Groq Model">Groq Model</h4>
                             <select id="model_groq_select">
-                                <optgroup label="Production Models">
-                                    <option value="gemma2-9b-it">gemma2-9b-it</option>
-                                    <option value="llama-3.3-70b-versatile">llama-3.3-70b-versatile</option>
-                                    <option value="llama-3.1-8b-instant">llama-3.1-8b-instant</option>
-                                    <option value="llama3-70b-8192">llama3-70b-8192</option>
-                                    <option value="llama3-8b-8192">llama3-8b-8192</option>
-                                    <option value="mixtral-8x7b-32768">mixtral-8x7b-32768</option>
+                                <optgroup label="Alibaba Cloud">
+                                    <option value="qwen-2.5-32b">qwen-2.5-32b</option>
+                                    <option value="qwen-2.5-coder-32b">qwen-2.5-coder-32b</option>
                                 </optgroup>
-                                <optgroup label="Preview Models">
+                                <optgroup label="DeepSeek / Alibaba Cloud">
+                                    <option value="deepseek-r1-distill-qwen-32b">deepseek-r1-distill-qwen-32b</option>
+                                </optgroup>
+                                <optgroup label="DeepSeek / Meta">
                                     <option value="deepseek-r1-distill-llama-70b">deepseek-r1-distill-llama-70b</option>
-                                    <option value="llama-3.3-70b-specdec">llama-3.3-70b-specdec</option>
-                                    <option value="llama-3.2-1b-preview">llama-3.2-1b-preview</option>
-                                    <option value="llama-3.2-3b-preview">llama-3.2-3b-preview</option>
-                                    <option value="llama-3.2-11b-vision-preview">llama-3.2-11b-vision-preview</option>
-                                    <option value="llama-3.2-90b-vision-preview">llama-3.2-90b-vision-preview</option>
+                                </optgroup>
+                                <optgroup label="Google">
+                                    <option value="gemma2-9b-it">gemma2-9b-it</option>
+                                </optgroup>
+                                <optgroup label="Meta">
+                                    <option value="llama-3.1-8b-instant">llama-3.1-8b-instant </option>
+                                    <option value="llama-3.2-11b-vision-preview">llama-3.2-11b-vision-preview </option>
+                                    <option value="llama-3.2-1b-preview">llama-3.2-1b-preview </option>
+                                    <option value="llama-3.2-3b-preview">llama-3.2-3b-preview </option>
+                                    <option value="llama-3.2-90b-vision-preview">llama-3.2-90b-vision-preview </option>
+                                    <option value="llama-3.3-70b-specdec">llama-3.3-70b-specdec </option>
+                                    <option value="llama-3.3-70b-versatile">llama-3.3-70b-versatile </option>
+                                    <option value="llama-guard-3-8b">llama-guard-3-8b </option>
+                                    <option value="llama3-70b-8192">llama3-70b-8192 </option>
+                                    <option value="llama3-8b-8192">llama3-8b-8192 </option>
+                                </optgroup>
+                                <optgroup label="Mistral AI">
+                                    <option value="mixtral-8x7b-32768">mixtral-8x7b-32768</option>
                                 </optgroup>
                             </select>
                         </div>
@@ -3253,6 +3265,10 @@
                                     <option value="sonar">sonar</option>
                                     <option value="sonar-pro">sonar-pro</option>
                                     <option value="sonar-reasoning">sonar-reasoning</option>
+                                    <option value="sonar-reasoning-pro">sonar-reasoning-pro</option>
+                                </optgroup>
+                                <optgroup label="Offline Models">
+                                    <option value="r1-1776">r1-1776</option>
                                 </optgroup>
                                 <optgroup label="Deprecated Models">
                                     <!-- These are scheduled for deprecation after 2/22/2025 -->

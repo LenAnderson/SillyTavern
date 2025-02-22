@@ -561,9 +561,9 @@ async function retrieveFileChunks(queryText, collectionId) {
  */
 async function vectorizeFile(fileText, fileName, collectionId, chunkSize, overlapPercent) {
     try {
-        if (settings.translate_files && typeof window['translate'] === 'function') {
+        if (settings.translate_files && typeof globalThis.translate === 'function') {
             console.log(`Vectors: Translating file ${fileName} to English...`);
-            const translatedText = await window['translate'](fileText, 'en');
+            const translatedText = await globalThis.translate(fileText, 'en');
             fileText = translatedText;
         }
 

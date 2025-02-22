@@ -57,7 +57,8 @@ import {
 
 import getWebpackServeMiddleware from './src/middleware/webpack-serve.js';
 import basicAuthMiddleware from './src/middleware/basicAuth.js';
-import whitelistMiddleware, { getAccessLogPath, migrateAccessLog } from './src/middleware/whitelist.js';
+import whitelistMiddleware from './src/middleware/whitelist.js';
+import accessLoggerMiddleware, { getAccessLogPath, migrateAccessLog } from './src/middleware/accessLogWriter.js';
 import multerMonkeyPatch from './src/middleware/multerMonkeyPatch.js';
 import initRequestProxy from './src/request-proxy.js';
 import getCacheBusterMiddleware from './src/middleware/cacheBuster.js';
@@ -243,7 +244,6 @@ const cliArguments = yargs(hideBin(process.argv))
         describe: 'Request proxy URL (HTTP or SOCKS protocols)',
     }).option('requestProxyBypass', {
         type: 'array',
-        default: null,
         describe: 'Request proxy bypass list (space separated list of hosts)',
     }).parseSync();
 
@@ -340,9 +340,17 @@ const CORS = cors({
 
 app.use(CORS);
 
-if (listen && basicAuthMode) app.use(basicAuthMiddleware);
+if (listen && basicAuthMode) {
+    app.use(basicAuthMiddleware);
+}
 
-app.use(whitelistMiddleware(enableWhitelist, listen));
+if (enableWhitelist) {
+    app.use(whitelistMiddleware());
+}
+
+if (listen) {
+    app.use(accessLoggerMiddleware());
+}
 
 if (enableCorsProxy) {
     app.use(bodyParser.json({

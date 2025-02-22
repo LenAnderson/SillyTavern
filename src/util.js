@@ -763,7 +763,7 @@ export function stringToBool(str) {
  * Setup the minimum log level
  */
 export function setupLogLevel() {
-    const logLevel = getConfigValue('minLogLevel', LOG_LEVELS.DEBUG);
+    const logLevel = getConfigValue('logging.minLogLevel', LOG_LEVELS.DEBUG);
 
     globalThis.console.debug = logLevel <= LOG_LEVELS.DEBUG ? console.debug : () => {};
     globalThis.console.info = logLevel <= LOG_LEVELS.INFO ? console.info : () => {};

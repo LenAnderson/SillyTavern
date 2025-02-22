@@ -2187,6 +2187,14 @@ function getStreamingReply(data, state) {
             state.reasoning += (data.choices?.filter(x => x?.delta?.reasoning)?.[0]?.delta?.reasoning || '');
         }
         return data.choices?.[0]?.delta?.content ?? data.choices?.[0]?.message?.content ?? data.choices?.[0]?.text ?? '';
+    } else if (oai_settings.chat_completion_source === chat_completion_sources.CUSTOM) {
+        if (oai_settings.show_thoughts) {
+            state.reasoning +=
+                data.choices?.filter(x => x?.delta?.reasoning_content)?.[0]?.delta?.reasoning_content ??
+                data.choices?.filter(x => x?.delta?.reasoning)?.[0]?.delta?.reasoning ??
+                '';
+        }
+        return data.choices?.[0]?.delta?.content ?? data.choices?.[0]?.message?.content ?? data.choices?.[0]?.text ?? '';
     } else {
         return data.choices?.[0]?.delta?.content ?? data.choices?.[0]?.message?.content ?? data.choices?.[0]?.text ?? '';
     }
@@ -4127,6 +4135,40 @@ function getMaxContextWindowAI(value) {
     }
 }
 
+/**
+ * Get the maximum context size for the Groq model
+ * @param {string} model Model identifier
+ * @param {boolean} isUnlocked Whether context limits are unlocked
+ * @returns {number} Maximum context size in tokens
+ */
+function getGroqMaxContext(model, isUnlocked) {
+    if (isUnlocked) {
+        return unlocked_max;
+    }
+
+    const contextMap = {
+        'gemma2-9b-it': max_8k,
+        'llama-3.3-70b-versatile': max_128k,
+        'llama-3.1-8b-instant': max_128k,
+        'llama3-70b-8192': max_8k,
+        'llama3-8b-8192': max_8k,
+        'llama-guard-3-8b': max_8k,
+        'mixtral-8x7b-32768': max_32k,
+        'deepseek-r1-distill-llama-70b': max_128k,
+        'llama-3.3-70b-specdec': max_8k,
+        'llama-3.2-1b-preview': max_128k,
+        'llama-3.2-3b-preview': max_128k,
+        'llama-3.2-11b-vision-preview': max_128k,
+        'llama-3.2-90b-vision-preview': max_128k,
+        'qwen-2.5-32b': max_128k,
+        'deepseek-r1-distill-qwen-32b': max_128k,
+        'deepseek-r1-distill-llama-70b-specdec': max_128k,
+    };
+
+    // Return context size if model found, otherwise default to 128k
+    return Object.entries(contextMap).find(([key]) => model.includes(key))?.[1] || max_128k;
+}
+
 async function onModelChange() {
     biasCache = undefined;
     let value = String($(this).val() || '');
@@ -4407,7 +4449,7 @@ async function onModelChange() {
         if (oai_settings.max_context_unlocked) {
             $('#openai_max_context').attr('max', unlocked_max);
         }
-        else if (['sonar', 'sonar-reasoning'].includes(oai_settings.perplexity_model)) {
+        else if (['sonar', 'sonar-reasoning', 'sonar-reasoning-pro', 'r1-1776'].includes(oai_settings.perplexity_model)) {
             $('#openai_max_context').attr('max', 127000);
         }
         else if (['sonar-pro'].includes(oai_settings.perplexity_model)) {
@@ -4428,33 +4470,8 @@ async function onModelChange() {
     }
 
     if (oai_settings.chat_completion_source == chat_completion_sources.GROQ) {
-        if (oai_settings.max_context_unlocked) {
-            $('#openai_max_context').attr('max', unlocked_max);
-        } else if (oai_settings.groq_model.includes('gemma2-9b-it')) {
-            $('#openai_max_context').attr('max', max_8k);
-        } else if (oai_settings.groq_model.includes('llama-3.3-70b-versatile')) {
-            $('#openai_max_context').attr('max', max_128k);
-        } else if (oai_settings.groq_model.includes('llama-3.1-8b-instant')) {
-            $('#openai_max_context').attr('max', max_128k);
-        } else if (oai_settings.groq_model.includes('llama3-70b-8192')) {
-            $('#openai_max_context').attr('max', max_8k);
-        } else if (oai_settings.groq_model.includes('llama3-8b-8192')) {
-            $('#openai_max_context').attr('max', max_8k);
-        } else if (oai_settings.groq_model.includes('mixtral-8x7b-32768')) {
-            $('#openai_max_context').attr('max', max_32k);
-        } else if (oai_settings.groq_model.includes('deepseek-r1-distill-llama-70b')) {
-            $('#openai_max_context').attr('max', max_128k);
-        } else if (oai_settings.groq_model.includes('llama-3.3-70b-specdec')) {
-            $('#openai_max_context').attr('max', max_8k);
-        } else if (oai_settings.groq_model.includes('llama-3.2-1b-preview')) {
-            $('#openai_max_context').attr('max', max_128k);
-        } else if (oai_settings.groq_model.includes('llama-3.2-3b-preview')) {
-            $('#openai_max_context').attr('max', max_128k);
-        } else if (oai_settings.groq_model.includes('llama-3.2-11b-vision-preview')) {
-            $('#openai_max_context').attr('max', max_128k);
-        } else if (oai_settings.groq_model.includes('llama-3.2-90b-vision-preview')) {
-            $('#openai_max_context').attr('max', max_128k);
-        }
+        const maxContext = getGroqMaxContext(oai_settings.groq_model, oai_settings.max_context_unlocked);
+        $('#openai_max_context').attr('max', maxContext);
         oai_settings.openai_max_context = Math.min(Number($('#openai_max_context').attr('max')), oai_settings.openai_max_context);
         $('#openai_max_context').val(oai_settings.openai_max_context).trigger('input');
         oai_settings.temp_openai = Math.min(oai_max_temp, oai_settings.temp_openai);

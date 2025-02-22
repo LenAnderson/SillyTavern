@@ -104,6 +104,11 @@ const keyMigrationMap = [
         newKey: 'extensions.models.textToSpeech',
         migrate: (value) => value,
     },
+    {
+        oldKey: 'minLogLevel',
+        newKey: 'logging.minLogLevel',
+        migrate: (value) => value,
+    },
 ];
 
 /**
