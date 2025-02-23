@@ -633,7 +633,7 @@
     "Prefer Character Card Prompt": "تفضيل التعليمات من بطاقة الشخصية",
     "If checked and the character card contains a jailbreak override (Post History Instruction), use that instead": "إذا تم التحقق وكانت بطاقة الشخصية تحتوي على تجاوز للكسر (تعليمات تاريخ المشاركة)، استخدم ذلك بدلاً من ذلك",
     "Prefer Character Card Jailbreak": "تفضيل كسر الحصار من بطاقة الشخصية",
-    "Avoid cropping and resizing imported character images. When off, crop/resize to 512x768": "تجنب اقتصاص صور الأحرف المستوردة وتغيير حجمها. عند إيقاف التشغيل، قم بالقص/تغيير الحجم إلى 512 × 768.",
+    "never_resize_avatars_tooltip": "تجنب اقتصاص صور الأحرف المستوردة وتغيير حجمها. عند إيقاف التشغيل، قم بالقص/تغيير الحجم إلى 512 × 768.",
     "Never resize avatars": "لا تغيير حجم الصور الرمزية أبدًا",
     "Show actual file names on the disk, in the characters list display only": "عرض الأسماء الفعلية للملفات على القرص، في عرض قائمة الشخصيات فقط",
     "Show avatar filenames": "عرض أسماء ملفات الصور الرمزية",

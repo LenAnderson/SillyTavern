@@ -633,7 +633,7 @@
     "Prefer Character Card Prompt": "Preferir Indicaciones en Tarjeta de Personaje",
     "If checked and the character card contains a jailbreak override (Post History Instruction), use that instead": "Si está marcado y la tarjeta de personaje contiene una anulación de jailbreak (Instrucciones Post Historial), usar eso en su lugar",
     "Prefer Character Card Jailbreak": "Preferir Jailbreak en Tarjeta de Personaje",
-    "Avoid cropping and resizing imported character images. When off, crop/resize to 512x768": "Evite recortar y cambiar el tamaño de las imágenes de personajes importados. Cuando esté desactivado, recorte/cambie el tamaño a 512x768.",
+    "never_resize_avatars_tooltip": "Evite recortar y cambiar el tamaño de las imágenes de personajes importados. Cuando esté desactivado, recorte/cambie el tamaño a 512x768.",
     "Never resize avatars": "Nunca redimensionar avatares",
     "Show actual file names on the disk, in the characters list display only": "Mostrar nombres de archivo reales en el disco, solo en la visualización de la lista de personajes",
     "Show avatar filenames": "Mostrar nombres de archivo de avatares",

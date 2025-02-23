@@ -581,7 +581,7 @@
     "Advanced Character Search": "Recherche de personnage avancée",
     "If checked and the character card contains a prompt override (System Prompt), use that instead": "Si cochée et si la carte de personnage contient un prompt de remplacement (prompt système), l'utiliser à la place",
     "Prefer Character Card Prompt": "Préférer le prompt du personnage",
-    "Avoid cropping and resizing imported character images. When off, crop/resize to 512x768": "Évitez de recadrer et de redimensionner les images de personnages importés. Lorsqu'il est désactivé, recadrez/redimensionnez à 512 x 768.",
+    "never_resize_avatars_tooltip": "Évitez de recadrer et de redimensionner les images de personnages importés. Lorsqu'il est désactivé, recadrez/redimensionnez à 512 x 768.",
     "Never resize avatars": "Ne jamais redimensionner les avatars",
     "Show actual file names on the disk, in the characters list display only": "Afficher les noms de fichier réels sur le disque, dans l'affichage de la liste de personnages uniquement",
     "Show avatar filenames": "Afficher les noms de fichier des avatars",

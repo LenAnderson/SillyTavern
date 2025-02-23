@@ -633,7 +633,7 @@
     "Prefer Character Card Prompt": "キャラクターカードのプロンプトを優先",
     "If checked and the character card contains a jailbreak override (Post History Instruction), use that instead": "チェックされていてキャラクターカードにジェイルブレイクオーバーライド（投稿履歴指示）が含まれている場合、それを代わりに使用します",
     "Prefer Character Card Jailbreak": "キャラクターカードのJailbreakを優先",
-    "Avoid cropping and resizing imported character images. When off, crop/resize to 512x768": "インポートした文字画像の切り取りやサイズ変更を避けます。オフにすると、512x768 に切り取り/サイズ変更されます。",
+    "never_resize_avatars_tooltip": "インポートした文字画像の切り取りやサイズ変更を避けます。オフにすると、512x768 に切り取り/サイズ変更されます。",
     "Never resize avatars": "アバターを常にリサイズしない",
     "Show actual file names on the disk, in the characters list display only": "ディスク上の実際のファイル名を表示します。キャラクターリストの表示にのみ",
     "Show avatar filenames": "アバターのファイル名を表示",

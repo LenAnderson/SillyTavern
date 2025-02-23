@@ -1,7 +1,7 @@
 import {
     moment,
 } from '../lib.js';
-import { chat, closeMessageEditor, event_types, eventSource, main_api, messageFormatting, saveChatConditional, saveSettingsDebounced, substituteParams, updateMessageBlock } from '../script.js';
+import { chat, closeMessageEditor, event_types, eventSource, main_api, messageFormatting, saveChatConditional, saveChatDebounced, saveSettingsDebounced, substituteParams, updateMessageBlock } from '../script.js';
 import { getRegexedString, regex_placement } from './extensions/regex/engine.js';
 import { getCurrentLocale, t, translate } from './i18n.js';
 import { MacrosParser } from './macros.js';
@@ -755,6 +755,17 @@ function registerReasoningMacros() {
 }
 
 function setReasoningEventHandlers() {
+    /**
+     * Updates the reasoning block of a message from a value.
+     * @param {object} message Message object
+     * @param {string} value Reasoning value
+     */
+    function updateReasoningFromValue(message, value) {
+        const reasoning = getRegexedString(value, regex_placement.REASONING, { isEdit: true });
+        message.extra.reasoning = reasoning;
+        message.extra.reasoning_type = message.extra.reasoning_type ? ReasoningType.Edited : ReasoningType.Manual;
+    }
+
     $(document).on('click', '.mes_reasoning_details', function (e) {
         if (!e.target.closest('.mes_reasoning_actions') && !e.target.closest('.mes_reasoning_header')) {
             e.preventDefault();
@@ -835,9 +846,7 @@ function setReasoningEventHandlers() {
         }
 
         const textarea = messageBlock.find('.reasoning_edit_textarea');
-        const reasoning = getRegexedString(String(textarea.val()), regex_placement.REASONING, { isEdit: true });
-        message.extra.reasoning = reasoning;
-        message.extra.reasoning_type = message.extra.reasoning_type ? ReasoningType.Edited : ReasoningType.Manual;
+        updateReasoningFromValue(message, String(textarea.val()));
         await saveChatConditional();
         updateMessageBlock(messageId, message);
         textarea.remove();
@@ -917,6 +926,20 @@ function setReasoningEventHandlers() {
         await copyText(reasoning);
         toastr.info(t`Copied!`, '', { timeOut: 2000 });
     });
+
+    $(document).on('input', '.reasoning_edit_textarea', function () {
+        if (!power_user.auto_save_msg_edits) {
+            return;
+        }
+
+        const { message } = getMessageFromJquery(this);
+        if (!message?.extra) {
+            return;
+        }
+
+        updateReasoningFromValue(message, String($(this).val()));
+        saveChatDebounced();
+    });
 }
 
 /**
@@ -973,7 +996,7 @@ function parseReasoningFromString(str, { strict = true } = {}) {
 }
 
 function registerReasoningAppEvents() {
-    eventSource.makeFirst(event_types.MESSAGE_RECEIVED, (/** @type {number} */ idx) => {
+    const eventHandler = (/** @type {number} */ idx) => {
         if (!power_user.reasoning.auto_parse) {
             return;
         }
@@ -1029,7 +1052,11 @@ function registerReasoningAppEvents() {
                 updateMessageBlock(idx, message);
             }
         }
-    });
+    };
+
+    for (const event of [event_types.MESSAGE_RECEIVED, event_types.MESSAGE_UPDATED]) {
+        eventSource.on(event, eventHandler);
+    }
 }
 
 export function initReasoning() {

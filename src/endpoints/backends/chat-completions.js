@@ -979,6 +979,7 @@ router.post('/generate', jsonParser, function (request, response) {
         headers = { ...OPENROUTER_HEADERS };
         bodyParams = {
             'transforms': getOpenRouterTransforms(request),
+            'include_reasoning': Boolean(request.body.include_reasoning),
         };
 
         if (request.body.min_p !== undefined) {
@@ -1002,10 +1003,6 @@ router.post('/generate', jsonParser, function (request, response) {
 
         if (request.body.use_fallback) {
             bodyParams['route'] = 'fallback';
-        }
-
-        if (request.body.include_reasoning) {
-            bodyParams['include_reasoning'] = true;
         }
 
         let cachingAtDepth = getConfigValue('claude.cachingAtDepth', -1);

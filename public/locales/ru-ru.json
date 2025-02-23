@@ -995,7 +995,7 @@
     "Set your custom avatar.": "Установить аватарку",
     "Remove your custom avatar.": "Сбросить аватарку",
     "Make a Snapshot": "Сделать снимок",
-    "Avoid cropping and resizing imported character images. When off, crop/resize to 512x768": "Не менять размер картинок у импортируемых персонажей. При отключении все картинки будут приводиться к размеру 512х768",
+    "never_resize_avatars_tooltip": "Не менять размер картинок у импортируемых персонажей. При отключении все картинки будут приводиться к размеру 512х768",
     "Char List Subheader": "Доп. заголовок в списке персонажей",
     "# Messages to Load": "Сколько сообщений загружать",
     "(0 = All)": "(0 = все)",

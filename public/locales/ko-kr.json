@@ -646,7 +646,7 @@
     "Prefer Character Card Prompt": "캐릭터 카드 프롬프트 선호",
     "If checked and the character card contains a jailbreak override (Post History Instruction), use that instead": "선택되어 있고 캐릭터 카드에 (Post-History 지시)탈옥 재정의가 포함 된 경우, 그것을 대신 사용합니다.",
     "Prefer Character Card Jailbreak": "캐릭터 카드 탈옥 선호",
-    "Avoid cropping and resizing imported character images. When off, crop/resize to 512x768": "가져온 캐릭터 이미지를 자르거나 크기를 조정하지 마세요. 꺼져 있으면 512x768로 자르거나 크기를 조정합니다.",
+    "never_resize_avatars_tooltip": "가져온 캐릭터 이미지를 자르거나 크기를 조정하지 마세요. 꺼져 있으면 512x768로 자르거나 크기를 조정합니다.",
     "Never resize avatars": "아바타 크기 변경하지 않음",
     "Show actual file names on the disk, in the characters list display only": "실제 파일 이름을 디스크에 표시하며 캐릭터 목록 디스플레이에만",
     "Show avatar filenames": "아바타 파일 이름 표시",

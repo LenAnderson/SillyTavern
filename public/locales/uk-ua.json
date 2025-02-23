@@ -633,7 +633,7 @@
     "Prefer Character Card Prompt": "Перевага запиту персонажа",
     "If checked and the character card contains a jailbreak override (Post History Instruction), use that instead": "Якщо відмічено і картка персонажа містить заміну джейлбрейку (Інструкцію), використовуйте її замість цього",
     "Prefer Character Card Jailbreak": "Перевага джейлбрейку персонажа",
-    "Avoid cropping and resizing imported character images. When off, crop/resize to 512x768": "Уникайте обрізання та зміни розміру імпортованих зображень символів. Коли вимкнено, обрізати/змінити розмір до 512x768.",
+    "never_resize_avatars_tooltip": "Уникайте обрізання та зміни розміру імпортованих зображень символів. Коли вимкнено, обрізати/змінити розмір до 512x768.",
     "Never resize avatars": "Ніколи не змінювати розмір аватарів",
     "Show actual file names on the disk, in the characters list display only": "Показувати фактичні назви файлів на диску, тільки у відображенні списку персонажів",
     "Show avatar filenames": "Показувати імена файлів аватарів",

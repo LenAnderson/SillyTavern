@@ -722,7 +722,7 @@
     "Prefer Character Card Prompt": "角色卡提示词优先",
     "If checked and the character card contains a Post-History Instructions override, use that instead": "开启后，如果角色卡包含后历史指令覆盖，则使用它。",
     "Prefer Character Card Instructions": "首选角色卡说明",
-    "Avoid cropping and resizing imported character images. When off, crop/resize to 512x768": "避免裁剪和调整导入的角色图像的大小。关闭时，裁剪/调整大小为 512x768。",
+    "never_resize_avatars_tooltip": "避免裁剪和调整导入的角色图像的大小。关闭时，裁剪/调整大小为 512x768。",
     "Never resize avatars": "永不调整头像大小",
     "Show actual file names on the disk, in the characters list display only": "在角色列表显示中，显示磁盘上实际的文件名。",
     "Show avatar filenames": "显示头像文件名",

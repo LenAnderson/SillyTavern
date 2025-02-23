@@ -633,7 +633,7 @@
     "Prefer Character Card Prompt": "Ưu tiên Gợi ý từ Card",
     "If checked and the character card contains a jailbreak override (Post History Instruction), use that instead": "Nếu được kiểm tra và thẻ nhân vật chứa một lệnh phá vỡ giam giữ (Hướng dẫn Lịch sử Bài viết), hãy sử dụng thay vào đó",
     "Prefer Character Card Jailbreak": "Ưu tiên Jailbreak từ Card",
-    "Avoid cropping and resizing imported character images. When off, crop/resize to 512x768": "Tránh cắt xén và thay đổi kích thước hình ảnh ký tự đã nhập. Khi tắt, hãy cắt/thay đổi kích thước thành 512x768.",
+    "never_resize_avatars_tooltip": "Tránh cắt xén và thay đổi kích thước hình ảnh ký tự đã nhập. Khi tắt, hãy cắt/thay đổi kích thước thành 512x768.",
     "Never resize avatars": "Không bao giờ thay đổi kích thước hình đại diện",
     "Show actual file names on the disk, in the characters list display only": "Hiển thị tên tệp thực tế trên đĩa, chỉ trong danh sách nhân vật",
     "Show avatar filenames": "Hiển thị tên tệp hình đại diện",

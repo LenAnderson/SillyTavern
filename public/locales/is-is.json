@@ -633,7 +633,7 @@
     "Prefer Character Card Prompt": "Kosstu kvenkortu fyrirspurn",
     "If checked and the character card contains a jailbreak override (Post History Instruction), use that instead": "Ef merkt er og kortið inniheldur fangabrotsskil, notaðu það í staðinn",
     "Prefer Character Card Jailbreak": "Kosstu kvenkortu fangabrot",
-    "Avoid cropping and resizing imported character images. When off, crop/resize to 512x768": "Forðastu að klippa og breyta stærð innfluttra stafamynda. Þegar slökkt er á því skaltu skera/breyta stærð í 512x768.",
+    "never_resize_avatars_tooltip": "Forðastu að klippa og breyta stærð innfluttra stafamynda. Þegar slökkt er á því skaltu skera/breyta stærð í 512x768.",
     "Never resize avatars": "Aldrei breyta stærðinni á merkjum",
     "Show actual file names on the disk, in the characters list display only": "Sýna raunveruleg nöfn skráa á diskinum, í lista yfir persónur sýna aðeins",
     "Show avatar filenames": "Sýna nöfn merkja",
