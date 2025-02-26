@@ -323,7 +323,7 @@ router.get('/discover', jsonParser, function (request, response) {
 
     // Combine all extensions
     const allExtensions = [...builtInExtensions, ...userExtensions];
-    console.info('Extensions available for', request.user.profile.handle, allExtensions);
+    console.debug('Extensions available for', request.user.profile.handle, allExtensions);
 
     return response.send(allExtensions);
 });

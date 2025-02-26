@@ -572,7 +572,7 @@ export function convertMistralMessages(messages, names) {
     }
 
     // Make the last assistant message a prefill
-    const prefixEnabled = getConfigValue('mistral.enablePrefix', false);
+    const prefixEnabled = getConfigValue('mistral.enablePrefix', false, 'boolean');
     const lastMsg = messages[messages.length - 1];
     if (prefixEnabled && messages.length > 0 && lastMsg?.role === 'assistant') {
         lastMsg.prefix = true;
@@ -861,4 +861,35 @@ export function cachingAtDepthForOpenRouterClaude(messages, cachingAtDepth) {
             previousRoleName = messages[i].role;
         }
     }
+}
+
+/**
+ * Calculate the budget tokens for a given reasoning effort.
+ * @param {number} maxTokens Maximum tokens
+ * @param {string} reasoningEffort Reasoning effort
+ * @param {boolean} stream If streaming is enabled
+ * @returns {number} Budget tokens
+ */
+export function calculateBudgetTokens(maxTokens, reasoningEffort, stream) {
+    let budgetTokens = 0;
+
+    switch (reasoningEffort) {
+        case 'low':
+            budgetTokens = Math.floor(maxTokens * 0.1);
+            break;
+        case 'medium':
+            budgetTokens = Math.floor(maxTokens * 0.25);
+            break;
+        case 'high':
+            budgetTokens = Math.floor(maxTokens * 0.5);
+            break;
+    }
+
+    budgetTokens = Math.max(budgetTokens, 1024);
+
+    if (!stream) {
+        budgetTokens = Math.min(budgetTokens, 21333);
+    }
+
+    return budgetTokens;
 }

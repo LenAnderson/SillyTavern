@@ -1,7 +1,7 @@
 import {
     moment,
 } from '../lib.js';
-import { chat, closeMessageEditor, event_types, eventSource, main_api, messageFormatting, saveChatConditional, saveChatDebounced, saveSettingsDebounced, substituteParams, updateMessageBlock } from '../script.js';
+import { chat, closeMessageEditor, event_types, eventSource, main_api, messageFormatting, saveChatConditional, saveChatDebounced, saveSettingsDebounced, substituteParams, syncMesToSwipe, updateMessageBlock } from '../script.js';
 import { getRegexedString, regex_placement } from './extensions/regex/engine.js';
 import { getCurrentLocale, t, translate } from './i18n.js';
 import { MacrosParser } from './macros.js';
@@ -76,6 +76,8 @@ export function extractReasoningFromData(data) {
                     return data?.choices?.[0]?.message?.reasoning ?? '';
                 case chat_completion_sources.MAKERSUITE:
                     return data?.responseContent?.parts?.filter(part => part.thought)?.map(part => part.text)?.join('\n\n') ?? '';
+                case chat_completion_sources.CLAUDE:
+                    return data?.content?.find(part => part.type === 'thinking')?.thinking ?? '';
                 case chat_completion_sources.CUSTOM: {
                     return data?.choices?.[0]?.message?.reasoning_content
                         ?? data?.choices?.[0]?.message?.reasoning
@@ -1044,8 +1046,11 @@ function registerReasoningAppEvents() {
             message.mes = parsedReasoning.content;
         }
 
-        // Find if a message already exists in DOM and must be updated
         if (contentUpdated) {
+            syncMesToSwipe();
+            saveChatDebounced();
+
+            // Find if a message already exists in DOM and must be updated
             const messageRendered = document.querySelector(`.mes[mesid="${idx}"]`) !== null;
             if (messageRendered) {
                 console.debug('[Reasoning] Updating message block', idx);

@@ -318,8 +318,14 @@ export function validateTextGenUrl() {
     control.val(formattedUrl);
 }
 
-export function getTextGenServer() {
-    switch (settings.type) {
+/**
+ * Gets the API URL for the selected text generation type.
+ * @param {string} type If it's set, ignores active type
+ * @returns {string} API URL
+ */
+export function getTextGenServer(type = null) {
+    const selectedType = type ?? settings.type;
+    switch (selectedType) {
         case FEATHERLESS:
             return FEATHERLESS_SERVER;
         case MANCER:
@@ -333,7 +339,7 @@ export function getTextGenServer() {
         case OPENROUTER:
             return OPENROUTER_SERVER;
         default:
-            return settings.server_urls[settings.type] ?? '';
+            return settings.server_urls[selectedType] ?? '';
     }
 }
 
@@ -1215,8 +1221,14 @@ function isDynamicTemperatureSupported() {
     return settings.dynatemp && DYNATEMP_BLOCK?.dataset?.tgType?.includes(settings.type);
 }
 
-function getLogprobsNumber() {
-    if (settings.type === VLLM || settings.type === INFERMATICAI) {
+/**
+ * Gets the number of logprobs to request based on the selected type.
+ * @param {string} type If it's set, ignores active type
+ * @returns {number} Number of logprobs to request
+ */
+export function getLogprobsNumber(type = null) {
+    const selectedType = type ?? settings.type;
+    if (selectedType === VLLM || selectedType === INFERMATICAI) {
         return 5;
     }
 
@@ -1228,7 +1240,7 @@ function getLogprobsNumber() {
  * @param {string} str Input string
  * @returns {string} Output string
  */
-function replaceMacrosInList(str) {
+export function replaceMacrosInList(str) {
     if (!str || typeof str !== 'string') {
         return str;
     }

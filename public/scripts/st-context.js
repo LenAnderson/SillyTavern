@@ -6,11 +6,13 @@ import {
     characters,
     chat,
     chat_metadata,
+    CONNECT_API_MAP,
     create_save,
     deactivateSendButtons,
     event_types,
     eventSource,
     extension_prompts,
+    extractMessageFromData,
     Generate,
     generateQuietPrompt,
     getCharacters,
@@ -55,9 +57,10 @@ import { groups, openGroupChat, selected_group } from './group-chats.js';
 import { t, translate } from './i18n.js';
 import { hideLoader, showLoader } from './loader.js';
 import { MacrosParser } from './macros.js';
-import { oai_settings } from './openai.js';
+import { getChatCompletionModel, oai_settings } from './openai.js';
 import { callGenericPopup, Popup, POPUP_RESULT, POPUP_TYPE } from './popup.js';
 import { power_user, registerDebugFunction } from './power-user.js';
+import { getPresetManager } from './preset-manager.js';
 import { humanizedDateTime, isMobile, shouldSendOnEnter } from './RossAscends-mods.js';
 import { ScraperManager } from './scrapers.js';
 import { executeSlashCommands, executeSlashCommandsWithOptions, registerSlashCommand } from './slash-commands.js';
@@ -65,7 +68,7 @@ import { SlashCommand } from './slash-commands/SlashCommand.js';
 import { ARGUMENT_TYPE, SlashCommandArgument, SlashCommandNamedArgument } from './slash-commands/SlashCommandArgument.js';
 import { SlashCommandParser } from './slash-commands/SlashCommandParser.js';
 import { tag_map, tags } from './tags.js';
-import { textgenerationwebui_settings } from './textgen-settings.js';
+import { getTextGenServer, textgenerationwebui_settings } from './textgen-settings.js';
 import { tokenizers, getTextTokens, getTokenCount, getTokenCountAsync, getTokenizerModel } from './tokenizers.js';
 import { ToolManager } from './tool-calling.js';
 import { accountStorage } from './util/AccountStorage.js';
@@ -193,6 +196,11 @@ export function getContext() {
         saveWorldInfo,
         updateWorldInfoList,
         convertCharacterBook,
+        CONNECT_API_MAP,
+        getTextGenServer,
+        extractMessageFromData,
+        getPresetManager,
+        getChatCompletionModel,
     };
 }
 
