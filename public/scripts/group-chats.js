@@ -72,6 +72,7 @@ import {
     animation_duration,
     depth_prompt_role_default,
     shouldAutoContinue,
+    unshallowCharacter,
 } from '../script.js';
 import { printTagList, createTagMapFromList, applyTagsOnCharacterSelect, tag_map, applyTagsOnGroupSelect } from './tags.js';
 import { FILTER_TYPES, FilterHelper } from './filters.js';
@@ -216,6 +217,7 @@ export async function getGroupChat(groupId, reload = false) {
 
     // Run validation before any loading
     validateGroup(group);
+    await unshallowGroupMembers(groupId);
 
     const chat_id = group.chat_id;
     const data = await loadGroupChat(chat_id);
@@ -228,9 +230,6 @@ export async function getGroupChat(groupId, reload = false) {
         chat.splice(0, chat.length, ...data);
         await printMessages();
     } else {
-        sendSystemMessage(system_message_types.GROUP, '', { isSmallSys: true });
-        await eventSource.emit(event_types.MESSAGE_RECEIVED, (chat.length - 1));
-        await eventSource.emit(event_types.CHARACTER_MESSAGE_RENDERED, (chat.length - 1));
         if (group && Array.isArray(group.members)) {
             for (let member of group.members) {
                 const character = characters.find(x => x.avatar === member || x.name === member);
@@ -827,6 +826,8 @@ async function generateGroupWrapper(by_auto_mode, type = null, params = {}) {
     }
 
     try {
+        await unshallowGroupMembers(selected_group);
+
         throwIfAborted();
         hideSwipeButtons();
         is_group_generating = true;
@@ -1140,6 +1141,29 @@ export async function editGroup(id, immediately, reload = true) {
     saveGroupDebounced(group, reload);
 }
 
+/**
+ * Unshallows all definitions of group members.
+ * @param {string} groupId Id of the group
+ * @returns {Promise<void>} Promise that resolves when all group members are unshallowed
+ */
+export async function unshallowGroupMembers(groupId) {
+    const group = groups.find(x => x.id == groupId);
+    if (!group) {
+        return;
+    }
+    const members = group.members;
+    if (!Array.isArray(members)) {
+        return;
+    }
+    for (const member of members) {
+        const index = characters.findIndex(x => x.avatar === member);
+        if (index === -1) {
+            continue;
+        }
+        await unshallowCharacter(String(index));
+    }
+}
+
 let groupAutoModeAbortController = null;
 
 async function groupChatAutoModeWorker() {
@@ -1161,9 +1185,9 @@ async function groupChatAutoModeWorker() {
     await generateGroupWrapper(true, 'auto', { signal: groupAutoModeAbortController.signal });
 }
 
-async function modifyGroupMember(chat_id, groupMember, isDelete) {
+async function modifyGroupMember(groupId, groupMember, isDelete) {
     const id = groupMember.data('id');
-    const thisGroup = groups.find((x) => x.id == chat_id);
+    const thisGroup = groups.find((x) => x.id == groupId);
     const membersArray = thisGroup?.members ?? newGroupMembers;
 
     if (isDelete) {
@@ -1176,6 +1200,7 @@ async function modifyGroupMember(chat_id, groupMember, isDelete) {
     }
 
     if (openGroupId) {
+        await unshallowGroupMembers(openGroupId);
         await editGroup(openGroupId, false, false);
         updateGroupAvatar(thisGroup);
     }
@@ -1641,7 +1666,7 @@ async function onGroupActionClick(event) {
     }
 
     if (action === 'view') {
-        openCharacterDefinition(member);
+        await openCharacterDefinition(member);
     }
 
     if (action === 'speak') {
@@ -1693,7 +1718,7 @@ export async function openGroupById(groupId) {
     return false;
 }
 
-function openCharacterDefinition(characterSelect) {
+async function openCharacterDefinition(characterSelect) {
     if (is_group_generating) {
         toastr.warning(t`Can't peek a character while group reply is being generated`);
         console.warn('Can\'t peek a character def while group reply is being generated');
@@ -1706,6 +1731,7 @@ function openCharacterDefinition(characterSelect) {
         return;
     }
 
+    await unshallowCharacter(chid);
     setCharacterId(chid);
     select_selected_character(chid);
     // Gentle nudge to recalculate tokens

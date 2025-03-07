@@ -395,7 +395,7 @@ class BulkEditOverlay {
 
     /**
      * @typedef {object} LastSelected - An object noting the last selected character and its state.
-     * @property {string} [characterId] - The character id of the last selected character.
+     * @property {number} [characterId] - The character id of the last selected character.
      * @property {boolean} [select] - The selected state of the last selected character. <c>true</c> if it was selected, <c>false</c> if it was deselected.
      */
 
@@ -675,7 +675,7 @@ class BulkEditOverlay {
         const characterId = Number(currentCharacter.getAttribute('data-chid'));
         const select = !this.selectedCharacters.includes(characterId);
 
-        if (this.lastSelected.characterId && this.lastSelected.select !== undefined) {
+        if (this.lastSelected.characterId >= 0 && this.lastSelected.select !== undefined) {
             // Only if select state and the last select state match we execute the range select
             if (select === this.lastSelected.select) {
                 this.toggleCharactersInRange(currentCharacter, select);

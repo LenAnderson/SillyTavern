@@ -99,6 +99,21 @@ function getOpenRouterTransforms(request) {
 }
 
 /**
+ * Gets OpenRouter plugins based on the request.
+ * @param {import('express').Request} request
+ * @returns {any[]} OpenRouter plugins
+ */
+function getOpenRouterPlugins(request) {
+    const plugins = [];
+
+    if (request.body.enable_web_search) {
+        plugins.push({ 'id': 'web' });
+    }
+
+    return plugins;
+}
+
+/**
  * Sends a request to Claude API.
  * @param {express.Request} request Express request
  * @param {express.Response} response Express response
@@ -323,6 +338,7 @@ async function sendMakerSuiteRequest(request, response) {
 
     const model = String(request.body.model);
     const stream = Boolean(request.body.stream);
+    const enableWebSearch = Boolean(request.body.enable_web_search);
     const isThinking = model.includes('thinking');
 
     const generationConfig = {
@@ -332,6 +348,8 @@ async function sendMakerSuiteRequest(request, response) {
         temperature: request.body.temperature,
         topP: request.body.top_p,
         topK: request.body.top_k || undefined,
+        responseMimeType: request.body.responseMimeType,
+        responseSchema: request.body.responseSchema,
     };
 
     function getGeminiBody() {
@@ -348,6 +366,7 @@ async function sendMakerSuiteRequest(request, response) {
             model.startsWith('gemini-exp')
         ) && request.body.use_makersuite_sysprompt;
 
+        const tools = [];
         const prompt = convertGooglePrompt(request.body.messages, model, should_use_system_prompt, getPromptNames(request));
         let safetySettings = GEMINI_SAFETY;
 
@@ -361,6 +380,26 @@ async function sendMakerSuiteRequest(request, response) {
         }
         // Most of the other models allow for setting the threshold of filters, except for HARM_CATEGORY_CIVIC_INTEGRITY, to OFF.
 
+        if (enableWebSearch) {
+            const searchTool = model.includes('1.5') || model.includes('1.0')
+                ? ({ google_search_retrieval: {} })
+                : ({ google_search: {} });
+            tools.push(searchTool);
+        }
+
+        if (Array.isArray(request.body.tools) && request.body.tools.length > 0) {
+            const functionDeclarations = [];
+            for (const tool of request.body.tools) {
+                if (tool.type === 'function') {
+                    if (tool.function.parameters?.$schema) {
+                        delete tool.function.parameters.$schema;
+                    }
+                    functionDeclarations.push(tool.function);
+                }
+            }
+            tools.push({ function_declarations: functionDeclarations });
+        }
+
         let body = {
             contents: prompt.contents,
             safetySettings: safetySettings,
@@ -369,6 +408,10 @@ async function sendMakerSuiteRequest(request, response) {
 
         if (should_use_system_prompt) {
             body.systemInstruction = prompt.system_instruction;
+        }
+
+        if (tools.length) {
+            body.tools = tools;
         }
 
         return body;
@@ -426,10 +469,11 @@ async function sendMakerSuiteRequest(request, response) {
             }
 
             const responseContent = candidates[0].content ?? candidates[0].output;
+            const functionCall = (candidates?.[0]?.content?.parts ?? []).some(part => part.functionCall);
             console.warn('Google AI Studio response:', responseContent);
 
             const responseText = typeof responseContent === 'string' ? responseContent : responseContent?.parts?.filter(part => !part.thought)?.map(part => part.text)?.join('\n\n');
-            if (!responseText) {
+            if (!responseText && !functionCall) {
                 let message = 'Google AI Studio Candidate text empty';
                 console.warn(message, generateResponseJson);
                 return response.send({ error: { message } });
@@ -542,6 +586,7 @@ async function sendMistralAIRequest(request, response) {
             'stream': request.body.stream,
             'safe_prompt': request.body.safe_prompt,
             'random_seed': request.body.seed === -1 ? undefined : request.body.seed,
+            'stop': Array.isArray(request.body.stop) && request.body.stop.length > 0 ? request.body.stop : undefined,
         };
 
         if (Array.isArray(request.body.tools) && request.body.tools.length > 0) {
@@ -1014,6 +1059,7 @@ router.post('/generate', jsonParser, function (request, response) {
         headers = { ...OPENROUTER_HEADERS };
         bodyParams = {
             'transforms': getOpenRouterTransforms(request),
+            'plugins': getOpenRouterPlugins(request),
             'include_reasoning': Boolean(request.body.include_reasoning),
         };
 
@@ -1182,6 +1228,7 @@ router.post('/generate', jsonParser, function (request, response) {
      */
     async function makeRequest(config, response, request, retries = 5, timeout = 5000) {
         try {
+            controller.signal.throwIfAborted();
             const fetchResponse = await fetch(endpointUrl, config);
 
             if (request.body.stream) {

@@ -1557,9 +1557,9 @@ async function loadPowerUserSettings(settings, data) {
     $('#stscript_autocomplete_font_scale_counter').val(power_user.stscript.autocomplete.font.scale ?? defaultStscript.autocomplete.font.scale);
     document.body.style.setProperty('--ac-font-scale', power_user.stscript.autocomplete.font.scale ?? defaultStscript.autocomplete.font.scale.toString());
     $('#stscript_autocomplete_width_left').val(power_user.stscript.autocomplete.width.left ?? AUTOCOMPLETE_WIDTH.CHAT);
-    document.querySelector('#stscript_autocomplete_width_left').dispatchEvent(new Event('input', { bubbles: true }));
+    document.querySelector('#stscript_autocomplete_width_left')?.dispatchEvent(new Event('input', { bubbles: true }));
     $('#stscript_autocomplete_width_right').val(power_user.stscript.autocomplete.width.right ?? AUTOCOMPLETE_WIDTH.CHAT);
-    document.querySelector('#stscript_autocomplete_width_right').dispatchEvent(new Event('input', { bubbles: true }));
+    document.querySelector('#stscript_autocomplete_width_right')?.dispatchEvent(new Event('input', { bubbles: true }));
 
     $('#restore_user_input').prop('checked', power_user.restore_user_input);
 

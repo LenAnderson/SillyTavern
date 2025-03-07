@@ -3324,7 +3324,7 @@ async function goToCharacterCallback(_, name) {
     const character = findChar({ name: name });
     if (character) {
         const chid = getCharIndex(character);
-        await openChat(new String(chid));
+        await openChat(String(chid));
         setActiveCharacter(character.avatar);
         setActiveGroup(null);
         return character.name;

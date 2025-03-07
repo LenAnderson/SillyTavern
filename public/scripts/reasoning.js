@@ -108,6 +108,7 @@ export function isHiddenReasoningModel() {
 
     /** @type {{ name: string; func: MatchingFunc; }[]} */
     const hiddenReasoningModels = [
+        { name: 'gpt-4.5', func: FUNCS.startsWith },
         { name: 'o1', func: FUNCS.startsWith },
         { name: 'o3', func: FUNCS.startsWith },
         { name: 'gemini-2.0-flash-thinking-exp', func: FUNCS.startsWith },
@@ -166,6 +167,8 @@ export class ReasoningHandler {
         this.type = null;
         /** @type {string} The reasoning output */
         this.reasoning = '';
+        /** @type {string?} The reasoning output display in case of translate or other */
+        this.reasoningDisplayText = null;
         /** @type {Date} When the reasoning started */
         this.startTime = null;
         /** @type {Date} When the reasoning ended */
@@ -185,6 +188,17 @@ export class ReasoningHandler {
         this.messageReasoningContentDom = null;
         /** @type {HTMLElement} Reasoning header DOM element `.mes_reasoning_header_title` */
         this.messageReasoningHeaderDom = null;
+    }
+
+    /**
+     * Sets the reasoning state when continuing a prompt.
+     * @param {PromptReasoning} promptReasoning Prompt reasoning object
+     */
+    initContinue(promptReasoning) {
+        this.reasoning = promptReasoning.prefixReasoning;
+        this.state = ReasoningState.Done;
+        this.startTime = this.initialTime;
+        this.endTime = promptReasoning.prefixDuration ? new Date(this.initialTime.getTime() + promptReasoning.prefixDuration) : null;
     }
 
     /**
@@ -222,6 +236,7 @@ export class ReasoningHandler {
 
         this.type = extra?.reasoning_type;
         this.reasoning = extra?.reasoning ?? '';
+        this.reasoningDisplayText = extra?.reasoning_display_text ?? null;
 
         if (this.state !== ReasoningState.None) {
             this.initialTime = new Date(chat[messageId].gen_started);
@@ -237,6 +252,7 @@ export class ReasoningHandler {
             this.state = this.#isHiddenReasoningModel ? ReasoningState.Thinking : ReasoningState.None;
             this.type = null;
             this.reasoning = '';
+            this.reasoningDisplayText = null;
             this.initialTime = new Date();
             this.startTime = null;
             this.endTime = null;
@@ -422,7 +438,7 @@ export class ReasoningHandler {
         setDatasetProperty(this.messageReasoningDetailsDom, 'type', this.type);
 
         // Update the reasoning message
-        const reasoning = trimSpaces(this.reasoning);
+        const reasoning = trimSpaces(this.reasoningDisplayText ?? this.reasoning);
         const displayReasoning = messageFormatting(reasoning, '', false, false, messageId, {}, true);
         this.messageReasoningContentDom.innerHTML = displayReasoning;
 
@@ -493,7 +509,7 @@ export class ReasoningHandler {
             data = null;
         }
 
-        if (this.type !== ReasoningType.Model) {
+        if (this.type && this.type !== ReasoningType.Model) {
             title += ` [${translate(this.type)}]`;
             title = title.trim();
         }
@@ -513,6 +529,9 @@ export class PromptReasoning {
 
     constructor() {
         this.counter = 0;
+        this.prefixLength = -1;
+        this.prefixReasoning = '';
+        this.prefixDuration = null;
     }
 
     /**
@@ -532,9 +551,10 @@ export class PromptReasoning {
      * @param {string} content Message content
      * @param {string} reasoning Message reasoning
      * @param {boolean} isPrefix Whether this is the last message prefix
+     * @param {number?} duration Duration of the reasoning
      * @returns {string} Message content with reasoning
      */
-    addToMessage(content, reasoning, isPrefix) {
+    addToMessage(content, reasoning, isPrefix, duration) {
         // Disabled or reached limit of additions
         if (!isPrefix && (!power_user.reasoning.add_to_prompts || this.counter >= power_user.reasoning.max_additions)) {
             return content;
@@ -555,11 +575,35 @@ export class PromptReasoning {
 
         // Combine parts with reasoning only
         if (isPrefix && !content) {
-            return `${prefix}${reasoning}`;
+            const formattedReasoning = `${prefix}${reasoning}`;
+            if (isPrefix) {
+                this.prefixReasoning = reasoning;
+                this.prefixLength = formattedReasoning.length;
+                this.prefixDuration = duration;
+            }
+            return formattedReasoning;
         }
 
         // Combine parts with reasoning and content
-        return `${prefix}${reasoning}${suffix}${separator}${content}`;
+        const formattedReasoning = `${prefix}${reasoning}${suffix}${separator}`;
+        if (isPrefix) {
+            this.prefixReasoning = reasoning;
+            this.prefixLength = formattedReasoning.length;
+            this.prefixDuration = duration;
+        }
+        return `${formattedReasoning}${content}`;
+    }
+
+    /**
+     * Removes the reasoning prefix from the content.
+     * @param {string} content Content with the reasoning prefix
+     * @returns {string} Content without the reasoning prefix
+     */
+    removePrefix(content) {
+        if (this.prefixLength > 0) {
+            return content.slice(this.prefixLength);
+        }
+        return content;
     }
 }
 
@@ -848,12 +892,17 @@ function setReasoningEventHandlers() {
         }
 
         const textarea = messageBlock.find('.reasoning_edit_textarea');
-        updateReasoningFromValue(message, String(textarea.val()));
+        const newReasoning = String(textarea.val());
+        textarea.remove();
+        if (newReasoning === message.extra.reasoning) {
+            return;
+        }
+        updateReasoningFromValue(message, newReasoning);
         await saveChatConditional();
         updateMessageBlock(messageId, message);
-        textarea.remove();
 
         messageBlock.find('.mes_edit_done:visible').trigger('click');
+        await eventSource.emit(event_types.MESSAGE_REASONING_EDITED, messageId);
     });
 
     $(document).on('click', '.mes_reasoning_edit_cancel', function (e) {
@@ -915,6 +964,7 @@ function setReasoningEventHandlers() {
         updateMessageBlock(messageId, message);
         const textarea = messageBlock.find('.reasoning_edit_textarea');
         textarea.remove();
+        await eventSource.emit(event_types.MESSAGE_REASONING_DELETED, messageId);
     });
 
     $(document).on('pointerup', '.mes_reasoning_copy', async function () {

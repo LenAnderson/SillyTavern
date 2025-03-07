@@ -51,6 +51,8 @@ var speechUtteranceChunker = function (utt, settings, callback) {
         }
         newUtt.lang = utt.lang;
         newUtt.voice = utt.voice;
+        newUtt.rate = utt.rate;
+        newUtt.pitch = utt.pitch;
         newUtt.addEventListener('end', function () {
             if (speechUtteranceChunker.cancel) {
                 speechUtteranceChunker.cancel = false;

@@ -439,11 +439,16 @@ class PresetManager {
 
     }
 
-    getPresetList() {
+    getPresetList(api) {
         let presets = [];
         let preset_names = {};
 
-        switch (this.apiId) {
+        // If no API specified, use the current API
+        if (api === undefined) {
+            api = this.apiId;
+        }
+
+        switch (api) {
             case 'koboldhorde':
             case 'kobold':
                 presets = koboldai_settings;
@@ -474,7 +479,7 @@ class PresetManager {
                 preset_names = system_prompts.map(x => x.name);
                 break;
             default:
-                console.warn(`Unknown API ID ${this.apiId}`);
+                console.warn(`Unknown API ID ${api}`);
         }
 
         return { presets, preset_names };
