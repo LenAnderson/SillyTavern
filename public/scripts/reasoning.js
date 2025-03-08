@@ -984,12 +984,13 @@ function setReasoningEventHandlers() {
             return;
         }
 
-        const { message } = getMessageFromJquery(this);
+        const { message, messageBlock } = getMessageFromJquery(this);
         if (!message?.extra) {
             return;
         }
 
         updateReasoningFromValue(message, String($(this).val()));
+        updateReasoningUI(messageBlock);
         saveChatDebounced();
     });
 }

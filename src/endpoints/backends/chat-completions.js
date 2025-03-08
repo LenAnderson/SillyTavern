@@ -499,6 +499,12 @@ async function sendMakerSuiteRequest(request, response) {
 async function sendAI21Request(request, response) {
     if (!request.body) return response.sendStatus(400);
 
+    const apiKey = readSecret(request.user.directories, SECRET_KEYS.AI21);
+    if (!apiKey) {
+        console.warn('AI21 API key is missing.');
+        return response.status(400).send({ error: true });
+    }
+
     const controller = new AbortController();
     console.debug(request.body.messages);
     request.socket.removeAllListeners('close');
@@ -520,7 +526,7 @@ async function sendAI21Request(request, response) {
         headers: {
             accept: 'application/json',
             'content-type': 'application/json',
-            Authorization: `Bearer ${readSecret(request.user.directories, SECRET_KEYS.AI21)}`,
+            Authorization: `Bearer ${apiKey}`,
         },
         body: JSON.stringify(body),
         signal: controller.signal,
