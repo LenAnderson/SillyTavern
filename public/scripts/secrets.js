@@ -1,5 +1,6 @@
 import { DOMPurify } from '../lib.js';
 import { callPopup, getRequestHeaders } from '../script.js';
+import { t } from './i18n.js';
 
 export const SECRET_KEYS = {
     HORDE: 'api_key_horde',
@@ -104,7 +105,7 @@ async function viewSecrets() {
     });
 
     if (response.status == 403) {
-        callPopup('<h3>Forbidden</h3><p>To view your API keys here, set the value of allowKeysExposure to true in config.yaml file and restart the SillyTavern server.</p>', 'text');
+        callPopup('<h3>' + t`Forbidden` + '</h3><p>' + t`To view your API keys here, set the value of allowKeysExposure to true in config.yaml file and restart the SillyTavern server.` + '</p>', 'text');
         return;
     }
 

@@ -9,7 +9,6 @@ import sanitize from 'sanitize-filename';
 import { sync as writeFileAtomicSync } from  'write-file-atomic';
 
 import { getConfigValue, color } from '../util.js';
-import { jsonParser } from '../express-common.js';
 import { write } from '../character-card-parser.js';
 
 const contentDirectory = path.join(process.cwd(), 'default/content');
@@ -49,6 +48,7 @@ export const CONTENT_TYPES = {
     MOVING_UI: 'moving_ui',
     QUICK_REPLIES: 'quick_replies',
     SYSPROMPT: 'sysprompt',
+    REASONING: 'reasoning',
 };
 
 /**
@@ -62,7 +62,7 @@ export function getDefaultPresets(directories) {
         const presets = [];
 
         for (const contentItem of contentIndex) {
-            if (contentItem.type.endsWith('_preset') || contentItem.type === 'instruct' || contentItem.type === 'context' || contentItem.type === 'sysprompt') {
+            if (contentItem.type.endsWith('_preset') || ['instruct', 'context', 'sysprompt', 'reasoning'].includes(contentItem.type)) {
                 contentItem.name = path.parse(contentItem.filename).name;
                 contentItem.folder = getTargetByType(contentItem.type, directories);
                 presets.push(contentItem);
@@ -300,6 +300,8 @@ function getTargetByType(type, directories) {
             return directories.quickreplies;
         case CONTENT_TYPES.SYSPROMPT:
             return directories.sysprompt;
+        case CONTENT_TYPES.REASONING:
+            return directories.reasoning;
         default:
             return null;
     }
@@ -627,7 +629,7 @@ function isHostWhitelisted(host) {
 
 export const router = express.Router();
 
-router.post('/importURL', jsonParser, async (request, response) => {
+router.post('/importURL', async (request, response) => {
     if (!request.body.url) {
         return response.sendStatus(400);
     }
@@ -713,7 +715,7 @@ router.post('/importURL', jsonParser, async (request, response) => {
     }
 });
 
-router.post('/importUUID', jsonParser, async (request, response) => {
+router.post('/importUUID', async (request, response) => {
     if (!request.body.url) {
         return response.sendStatus(400);
     }

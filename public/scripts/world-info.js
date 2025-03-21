@@ -1,6 +1,6 @@
 import { Fuse } from '../lib.js';
 
-import { saveSettings, callPopup, substituteParams, getRequestHeaders, chat_metadata, this_chid, characters, saveCharacterDebounced, menu_type, eventSource, event_types, getExtensionPromptByName, saveMetadata, getCurrentChatId, extension_prompt_roles } from '../script.js';
+import { saveSettings, substituteParams, getRequestHeaders, chat_metadata, this_chid, characters, saveCharacterDebounced, menu_type, eventSource, event_types, getExtensionPromptByName, saveMetadata, getCurrentChatId, extension_prompt_roles } from '../script.js';
 import { download, debounce, initScrollHeight, resetScrollHeight, parseJsonFile, extractDataFromPng, getFileBuffer, getCharaFilename, getSortableDelay, escapeRegex, PAGINATION_TEMPLATE, navigation_option, waitUntilCondition, isTrueBoolean, setValueByPath, flashHighlight, select2ModifyOptions, getSelect2OptionId, dynamicSelect2DataViaAjax, highlightRegex, select2ChoiceClickSubscribe, isFalseBoolean, getSanitizedFilename, checkOverwriteExistingData, getStringHash, parseStringArray, cancelDebounce, findChar, onlyUnique } from './utils.js';
 import { extension_settings, getContext } from './extensions.js';
 import { NOTE_MODULE_NAME, metadata_keys, shouldWIAddPrompt } from './authors-note.js';
@@ -753,10 +753,17 @@ export const worldInfoCache = new StructuredCloneMap({ cloneOnGet: true, cloneOn
 
 /**
  * Gets the world info based on chat messages.
- * @param {string[]} chat The chat messages to scan, in reverse order.
- * @param {number} maxContext The maximum context size of the generation.
- * @param {boolean} isDryRun If true, the function will not emit any events.
- * @typedef {{worldInfoString: string, worldInfoBefore: string, worldInfoAfter: string, worldInfoExamples: any[], worldInfoDepth: any[]}} WIPromptResult
+ * @param {string[]} chat - The chat messages to scan, in reverse order.
+ * @param {number} maxContext - The maximum context size of the generation.
+ * @param {boolean} isDryRun - If true, the function will not emit any events.
+ * @typedef {object} WIPromptResult
+ * @property {string} worldInfoString - Complete world info string
+ * @property {string} worldInfoBefore - World info that goes before the prompt
+ * @property {string} worldInfoAfter - World info that goes after the prompt
+ * @property {Array} worldInfoExamples - Array of example entries
+ * @property {Array} worldInfoDepth - Array of depth entries
+ * @property {Array} anBefore - Array of entries before Author's Note
+ * @property {Array} anAfter - Array of entries after Author's Note
  * @returns {Promise<WIPromptResult>} The world info string and depth.
  */
 export async function getWorldInfoPrompt(chat, maxContext, isDryRun) {
@@ -778,6 +785,8 @@ export async function getWorldInfoPrompt(chat, maxContext, isDryRun) {
         worldInfoAfter,
         worldInfoExamples: activatedWorldInfo.EMEntries ?? [],
         worldInfoDepth: activatedWorldInfo.WIDepthEntries ?? [],
+        anBefore: activatedWorldInfo.ANBeforeEntries ?? [],
+        anAfter: activatedWorldInfo.ANAfterEntries ?? [],
     };
 }
 
@@ -3542,6 +3551,10 @@ export async function deleteWorldInfo(worldInfoName) {
         return false;
     }
 
+    if (worldInfoCache.has(worldInfoName)) {
+        worldInfoCache.delete(worldInfoName);
+    }
+
     const existingWorldIndex = selected_world_info.findIndex((e) => e === worldInfoName);
     if (existingWorldIndex !== -1) {
         selected_world_info.splice(existingWorldIndex, 1);
@@ -3858,7 +3871,14 @@ function parseDecorators(content) {
  * @param {string[]} chat The chat messages to scan, in reverse order.
  * @param {number} maxContext The maximum context size of the generation.
  * @param {boolean} isDryRun Whether to perform a dry run.
- * @typedef {{ worldInfoBefore: string, worldInfoAfter: string, EMEntries: any[], WIDepthEntries: any[], allActivatedEntries: Set<any> }} WIActivated
+ * @typedef {object} WIActivated
+ * @property {string} worldInfoBefore The world info before the chat.
+ * @property {string} worldInfoAfter The world info after the chat.
+ * @property {any[]} EMEntries The entries for examples.
+ * @property {any[]} WIDepthEntries The depth entries.
+ * @property {any[]} ANBeforeEntries The entries before Author's Note.
+ * @property {any[]} ANAfterEntries The entries after Author's Note.
+ * @property {Set<any>} allActivatedEntries All entries.
  * @returns {Promise<WIActivated>} The world info activated.
  */
 export async function checkWorldInfo(chat, maxContext, isDryRun) {
@@ -3902,7 +3922,7 @@ export async function checkWorldInfo(chat, maxContext, isDryRun) {
     timedEffects.checkTimedEffects();
 
     if (sortedEntries.length === 0) {
-        return { worldInfoBefore: '', worldInfoAfter: '', WIDepthEntries: [], EMEntries: [], allActivatedEntries: new Set() };
+        return { worldInfoBefore: '', worldInfoAfter: '', WIDepthEntries: [], EMEntries: [], ANBeforeEntries: [], ANAfterEntries: [], allActivatedEntries: new Set() };
     }
 
     /** @type {number[]} Represents the delay levels for entries that are delayed until recursion */
@@ -4351,7 +4371,7 @@ export async function checkWorldInfo(chat, maxContext, isDryRun) {
     console.log(`[WI] ${isDryRun ? 'Hypothetically adding' : 'Adding'} ${allActivatedEntries.size} entries to prompt`, Array.from(allActivatedEntries.values()));
     console.debug(`[WI] --- DONE${isDryRun ? ' (DRY RUN)' : ''} ---`);
 
-    return { worldInfoBefore, worldInfoAfter, EMEntries, WIDepthEntries, allActivatedEntries: new Set(allActivatedEntries.values()) };
+    return { worldInfoBefore, worldInfoAfter, EMEntries, WIDepthEntries, ANBeforeEntries: ANTopEntries, ANAfterEntries: ANBottomEntries, allActivatedEntries: new Set(allActivatedEntries.values()) };
 }
 
 /**

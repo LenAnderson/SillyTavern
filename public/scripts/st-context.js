@@ -48,6 +48,8 @@ import {
     printMessages,
     clearChat,
     unshallowCharacter,
+    deleteLastMessage,
+    getCharacterCardFields,
 } from '../script.js';
 import {
     extension_settings,
@@ -77,9 +79,10 @@ import { ToolManager } from './tool-calling.js';
 import { accountStorage } from './util/AccountStorage.js';
 import { timestampToMoment, uuidv4 } from './utils.js';
 import { getGlobalVariable, getLocalVariable, setGlobalVariable, setLocalVariable } from './variables.js';
-import { convertCharacterBook, loadWorldInfo, saveWorldInfo, updateWorldInfoList } from './world-info.js';
+import { convertCharacterBook, getWorldInfoPrompt, loadWorldInfo, saveWorldInfo, updateWorldInfoList } from './world-info.js';
 import { ChatCompletionService, TextCompletionService } from './custom-request.js';
-import { updateReasoningUI } from './reasoning.js';
+import { ConnectionManagerRequestService } from './extensions/shared.js';
+import { updateReasoningUI, parseReasoningFromString } from './reasoning.js';
 
 export function getContext() {
     return {
@@ -106,6 +109,7 @@ export function getContext() {
         eventSource,
         eventTypes: event_types,
         addOneMessage,
+        deleteLastMessage,
         generate: Generate,
         sendStreamingRequest,
         sendGenerationRequest,
@@ -147,6 +151,7 @@ export function getContext() {
         unregisterFunctionTool: ToolManager.unregisterFunctionTool.bind(ToolManager),
         isToolCallingSupported: ToolManager.isToolCallingSupported.bind(ToolManager),
         canPerformToolCalls: ToolManager.canPerformToolCalls.bind(ToolManager),
+        ToolManager,
         registerDebugFunction,
         /** @deprecated Use renderExtensionTemplateAsync instead. */
         renderExtensionTemplate,
@@ -185,6 +190,7 @@ export function getContext() {
         textCompletionSettings: textgenerationwebui_settings,
         powerUserSettings: power_user,
         getCharacters,
+        getCharacterCardFields,
         uuidv4,
         humanizedDateTime,
         updateMessageBlock,
@@ -203,6 +209,7 @@ export function getContext() {
         saveWorldInfo,
         updateWorldInfoList,
         convertCharacterBook,
+        getWorldInfoPrompt,
         CONNECT_API_MAP,
         getTextGenServer,
         extractMessageFromData,
@@ -212,7 +219,9 @@ export function getContext() {
         clearChat,
         ChatCompletionService,
         TextCompletionService,
+        ConnectionManagerRequestService,
         updateReasoningUI,
+        parseReasoningFromString,
         unshallowCharacter,
         unshallowGroupMembers,
     };

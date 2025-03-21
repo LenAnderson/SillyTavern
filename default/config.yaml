@@ -114,6 +114,8 @@ backups:
   chat:
     # Enable automatic chat backups
     enabled: true
+    # Verify integrity of chat files before saving
+    checkIntegrity: true
     # Maximum number of chat backups to keep per user (starting from the most recent). Set to -1 to keep all backups.
     maxTotalBackups: -1
     # Interval in milliseconds to throttle chat backups per user

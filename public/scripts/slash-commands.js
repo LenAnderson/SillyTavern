@@ -69,12 +69,15 @@ import { SlashCommand } from './slash-commands/SlashCommand.js';
 import { SlashCommandAbortController } from './slash-commands/SlashCommandAbortController.js';
 import { SlashCommandNamedArgumentAssignment } from './slash-commands/SlashCommandNamedArgumentAssignment.js';
 import { SlashCommandEnumValue, enumTypes } from './slash-commands/SlashCommandEnumValue.js';
-import { POPUP_TYPE, Popup, callGenericPopup } from './popup.js';
+import { POPUP_RESULT, POPUP_TYPE, Popup, callGenericPopup } from './popup.js';
 import { commonEnumProviders, enumIcons } from './slash-commands/SlashCommandCommonEnumsProvider.js';
 import { SlashCommandBreakController } from './slash-commands/SlashCommandBreakController.js';
 import { SlashCommandExecutionError } from './slash-commands/SlashCommandExecutionError.js';
 import { slashCommandReturnHelper } from './slash-commands/SlashCommandReturnHelper.js';
 import { accountStorage } from './util/AccountStorage.js';
+import { SlashCommandDebugController } from './slash-commands/SlashCommandDebugController.js';
+import { SlashCommandScope } from './slash-commands/SlashCommandScope.js';
+import { t } from './i18n.js';
 export {
     executeSlashCommands, executeSlashCommandsWithOptions, getSlashCommandsHelp, registerSlashCommand,
 };
@@ -667,11 +670,21 @@ export function initDefaultSlashCommands() {
     SlashCommandParser.addCommandObject(SlashCommand.fromProps({
         name: 'hide',
         callback: hideMessageCallback,
+        namedArgumentList: [
+            SlashCommandNamedArgument.fromProps({
+                name: 'name',
+                description: 'only hide messages from a certain character or persona',
+                typeList: [ARGUMENT_TYPE.STRING],
+                enumProvider: commonEnumProviders.messageNames,
+                isRequired: false,
+                acceptsMultiple: false,
+            }),
+        ],
         unnamedArgumentList: [
             SlashCommandArgument.fromProps({
-                description: 'message index (starts with 0) or range',
+                description: 'message index (starts with 0) or range, defaults to the last message index if not provided',
                 typeList: [ARGUMENT_TYPE.NUMBER, ARGUMENT_TYPE.RANGE],
-                isRequired: true,
+                isRequired: false,
                 enumProvider: commonEnumProviders.messages(),
             }),
         ],
@@ -680,11 +693,21 @@ export function initDefaultSlashCommands() {
     SlashCommandParser.addCommandObject(SlashCommand.fromProps({
         name: 'unhide',
         callback: unhideMessageCallback,
+        namedArgumentList: [
+            SlashCommandNamedArgument.fromProps({
+                name: 'name',
+                description: 'only unhide messages from a certain character or persona',
+                typeList: [ARGUMENT_TYPE.STRING],
+                enumProvider: commonEnumProviders.messageNames,
+                isRequired: false,
+                acceptsMultiple: false,
+            }),
+        ],
         unnamedArgumentList: [
             SlashCommandArgument.fromProps({
-                description: 'message index (starts with 0) or range',
+                description: 'message index (starts with 0) or range, defaults to the last message index if not provided',
                 typeList: [ARGUMENT_TYPE.NUMBER, ARGUMENT_TYPE.RANGE],
-                isRequired: true,
+                isRequired: false,
                 enumProvider: commonEnumProviders.messages(),
             }),
         ],
@@ -1287,26 +1310,52 @@ export function initDefaultSlashCommands() {
         callback: inputCallback,
         returns: 'user input',
         namedArgumentList: [
-            new SlashCommandNamedArgument(
-                'default', 'default value of the input field', [ARGUMENT_TYPE.STRING], false, false, '"string"',
-            ),
-            new SlashCommandNamedArgument(
-                'large', 'show large input field', [ARGUMENT_TYPE.BOOLEAN], false, false, 'off', commonEnumProviders.boolean('onOff')(),
-            ),
-            new SlashCommandNamedArgument(
-                'wide', 'show wide input field', [ARGUMENT_TYPE.BOOLEAN], false, false, 'off', commonEnumProviders.boolean('onOff')(),
-            ),
-            new SlashCommandNamedArgument(
-                'okButton', 'text for the ok button', [ARGUMENT_TYPE.STRING], false,
-            ),
-            new SlashCommandNamedArgument(
-                'rows', 'number of rows for the input field', [ARGUMENT_TYPE.NUMBER], false,
-            ),
+            SlashCommandNamedArgument.fromProps({
+                name: 'default',
+                description: 'default value of the input field',
+                typeList: [ARGUMENT_TYPE.STRING],
+            }),
+            SlashCommandNamedArgument.fromProps({
+                name: 'large',
+                description: 'popup window will be shown larger in height, with more space for content (input field needs to be sized via \'rows\' argument)',
+                typeList: [ARGUMENT_TYPE.BOOLEAN],
+                defaultValue: 'off',
+                enumList: commonEnumProviders.boolean('onOff')(),
+            }),
+            SlashCommandNamedArgument.fromProps({
+                name: 'wide',
+                description: 'popup window will be shown wider, with a wider input field',
+                typeList: [ARGUMENT_TYPE.BOOLEAN],
+                defaultValue: 'off',
+                enumList: commonEnumProviders.boolean('onOff')(),
+            }),
+            SlashCommandNamedArgument.fromProps({
+                name: 'okButton',
+                description: 'text for the ok button',
+                typeList: [ARGUMENT_TYPE.STRING],
+                defaultValue: 'Ok',
+            }),
+            SlashCommandNamedArgument.fromProps({
+                name: 'rows',
+                description: 'number of rows for the input field (lines being displayed)',
+                typeList: [ARGUMENT_TYPE.NUMBER],
+            }),
+            SlashCommandNamedArgument.fromProps({
+                name: 'onSuccess',
+                description: 'closure to execute when the ok button is clicked or the input is closed as successful (via Enter, etc)',
+                typeList: [ARGUMENT_TYPE.CLOSURE],
+            }),
+            SlashCommandNamedArgument.fromProps({
+                name: 'onCancel',
+                description: 'closure to execute when the cancel button is clicked or the input is closed as cancelled (via Escape, etc)',
+                typeList: [ARGUMENT_TYPE.CLOSURE],
+            }),
         ],
         unnamedArgumentList: [
-            new SlashCommandArgument(
-                'text to display', [ARGUMENT_TYPE.STRING], false,
-            ),
+            SlashCommandArgument.fromProps({
+                description: 'text to display',
+                typeList: [ARGUMENT_TYPE.STRING],
+            }),
         ],
         helpString: `
         <div>
@@ -1508,16 +1557,28 @@ export function initDefaultSlashCommands() {
     SlashCommandParser.addCommandObject(SlashCommand.fromProps({
         name: 'buttons',
         callback: buttonsCallback,
-        returns: 'clicked button label',
+        returns: 'clicked button label (or array of labels if multiple is enabled)',
         namedArgumentList: [
-            new SlashCommandNamedArgument(
-                'labels', 'button labels', [ARGUMENT_TYPE.LIST], true,
-            ),
+            SlashCommandNamedArgument.fromProps({
+                name: 'labels',
+                description: 'button labels',
+                typeList: [ARGUMENT_TYPE.LIST],
+                isRequired: true,
+            }),
+            SlashCommandNamedArgument.fromProps({
+                name: 'multiple',
+                description: 'if enabled multiple buttons can be clicked/toggled, and all clicked buttons are returned as an array',
+                typeList: [ARGUMENT_TYPE.BOOLEAN],
+                enumList: commonEnumProviders.boolean('trueFalse')(),
+                defaultValue: 'false',
+            }),
         ],
         unnamedArgumentList: [
-            new SlashCommandArgument(
-                'text', [ARGUMENT_TYPE.STRING], true,
-            ),
+            SlashCommandArgument.fromProps({
+                description: 'text',
+                typeList: [ARGUMENT_TYPE.STRING],
+                isRequired: true,
+            }),
         ],
         helpString: `
         <div>
@@ -2090,8 +2151,8 @@ function injectCallback(args, value) {
         'assistant': extension_prompt_roles.ASSISTANT,
     };
 
-    const id = String(args?.id);
-    const ephemeral = isTrueBoolean(String(args?.ephemeral));
+    const id = String(args?.id ?? '');
+    const ephemeral = isTrueBoolean(String(args?.ephemeral ?? ''));
 
     if (!id) {
         console.warn('WARN: No ID provided for /inject command');
@@ -2329,6 +2390,18 @@ async function trimTokensCallback(arg, value) {
     }
 }
 
+/**
+ * Displays a popup with buttons based on provided labels and handles button interactions.
+ *
+ * @param {object} args - Named arguments for the command
+ * @param {string} args.labels - JSON string of an array of button labels
+ * @param {string} [args.multiple=false] - Flag indicating if multiple buttons can be toggled
+ * @param {string} text - The text content to be displayed within the popup
+ *
+ * @returns {Promise<string>} - A promise that resolves to a string of the button labels selected
+ *                              If 'multiple' is true, returns a JSON string array of labels.
+ *                              If 'multiple' is false, returns a single label string.
+ */
 async function buttonsCallback(args, text) {
     try {
         /** @type {string[]} */
@@ -2338,6 +2411,10 @@ async function buttonsCallback(args, text) {
             console.warn('WARN: Invalid labels provided for /buttons command');
             return '';
         }
+
+        /** @type {Set<number>} */
+        const multipleToggledState = new Set();
+        const multiple = isTrueBoolean(args?.multiple);
 
         // Map custom buttons to results. Start at 2 because 1 and 0 are reserved for ok and cancel
         const resultToButtonMap = new Map(buttons.map((button, index) => [index + 2, button]));
@@ -2356,11 +2433,24 @@ async function buttonsCallback(args, text) {
 
             for (const [result, button] of resultToButtonMap) {
                 const buttonElement = document.createElement('div');
-                buttonElement.classList.add('menu_button', 'result-control', 'wide100p');
-                buttonElement.dataset.result = String(result);
-                buttonElement.addEventListener('click', async () => {
-                    await popup.complete(result);
-                });
+                buttonElement.classList.add('menu_button', 'wide100p');
+
+                if (multiple) {
+                    buttonElement.classList.add('toggleable');
+                    buttonElement.dataset.toggleValue = String(result);
+                    buttonElement.addEventListener('click', async () => {
+                        buttonElement.classList.toggle('toggled');
+                        if (buttonElement.classList.contains('toggled')) {
+                            multipleToggledState.add(result);
+                        } else {
+                            multipleToggledState.delete(result);
+                        }
+                    });
+                } else {
+                    buttonElement.classList.add('result-control');
+                    buttonElement.dataset.result = String(result);
+                }
+
                 buttonElement.innerText = button;
                 buttonContainer.appendChild(buttonElement);
             }
@@ -2376,10 +2466,19 @@ async function buttonsCallback(args, text) {
             popupContainer.style.flexDirection = 'column';
             popupContainer.style.maxHeight = '80vh'; // Limit the overall height of the popup
 
-            popup = new Popup(popupContainer, POPUP_TYPE.TEXT, '', { okButton: 'Cancel', allowVerticalScrolling: true });
+            popup = new Popup(popupContainer, POPUP_TYPE.TEXT, '', { okButton: multiple ? t`Ok` : t`Cancel`, allowVerticalScrolling: true });
             popup.show()
-                .then((result => resolve(typeof result === 'number' ? resultToButtonMap.get(result) ?? '' : '')))
+                .then((result => resolve(getResult(result))))
                 .catch(() => resolve(''));
+
+            /** @returns {string} @param {string|number|boolean} result */
+            function getResult(result) {
+                if (multiple) {
+                    const array = result === POPUP_RESULT.AFFIRMATIVE ? Array.from(multipleToggledState).map(r => resultToButtonMap.get(r) ?? '') : [];
+                    return JSON.stringify(array);
+                }
+                return typeof result === 'number' ? resultToButtonMap.get(result) ?? '' : '';
+            }
         });
     } catch {
         return '';
@@ -2546,6 +2645,7 @@ async function delayCallback(_, amount) {
     return '';
 }
 
+
 async function inputCallback(args, prompt) {
     const safeValue = DOMPurify.sanitize(prompt || '');
     const defaultInput = args?.default !== undefined && typeof args?.default === 'string' ? args.default : '';
@@ -2559,6 +2659,26 @@ async function inputCallback(args, prompt) {
     await delay(1);
     const result = await callGenericPopup(safeValue, POPUP_TYPE.INPUT, defaultInput, popupOptions);
     await delay(1);
+
+    // Input will return null on nothing entered, and false on cancel clicked
+    if (result === null || result === false) {
+        // Veryify if a cancel handler exists and it is valid
+        if (args?.onCancel) {
+            if (!(args.onCancel instanceof SlashCommandClosure)) {
+                throw new Error('argument \'onCancel\' must be a closure for command /input');
+            }
+            await args.onCancel.execute();
+        }
+    } else {
+        // Verify if an ok handler exists and it is valid
+        if (args?.onSuccess) {
+            if (!(args.onSuccess instanceof SlashCommandClosure)) {
+                throw new Error('argument \'onSuccess\' must be a closure for command /input');
+            }
+            await args.onSuccess.execute();
+        }
+    }
+
     return String(result || '');
 }
 
@@ -2987,37 +3107,29 @@ async function askCharacter(args, text) {
     return await slashCommandReturnHelper.doReturn(args.return ?? 'pipe', message, { objectToStringFunc: x => x.mes });
 }
 
-async function hideMessageCallback(_, arg) {
-    if (!arg) {
-        console.warn('WARN: No argument provided for /hide command');
-        return '';
-    }
-
-    const range = stringToRange(arg, 0, chat.length - 1);
+async function hideMessageCallback(args, value) {
+    const range = value ? stringToRange(value, 0, chat.length - 1) : { start: chat.length - 1, end: chat.length - 1 };
 
     if (!range) {
-        console.warn(`WARN: Invalid range provided for /hide command: ${arg}`);
+        console.warn(`WARN: Invalid range provided for /hide command: ${value}`);
         return '';
     }
 
-    await hideChatMessageRange(range.start, range.end, false);
+    const nameFilter = String(args.name ?? '').trim();
+    await hideChatMessageRange(range.start, range.end, false, nameFilter);
     return '';
 }
 
-async function unhideMessageCallback(_, arg) {
-    if (!arg) {
-        console.warn('WARN: No argument provided for /unhide command');
-        return '';
-    }
-
-    const range = stringToRange(arg, 0, chat.length - 1);
+async function unhideMessageCallback(args, value) {
+    const range = value ? stringToRange(value, 0, chat.length - 1) : { start: chat.length - 1, end: chat.length - 1 };
 
     if (!range) {
-        console.warn(`WARN: Invalid range provided for /unhide command: ${arg}`);
+        console.warn(`WARN: Invalid range provided for /unhide command: ${value}`);
         return '';
     }
 
-    await hideChatMessageRange(range.start, range.end, true);
+    const nameFilter = String(args.name ?? '').trim();
+    await hideChatMessageRange(range.start, range.end, true, nameFilter);
     return '';
 }
 
@@ -3569,14 +3681,14 @@ export async function sendMessageAs(args, text) {
     if (!isNaN(insertAt) && insertAt >= 0 && insertAt <= chat.length) {
         chat.splice(insertAt, 0, message);
         await saveChatConditional();
-        await eventSource.emit(event_types.MESSAGE_RECEIVED, insertAt);
+        await eventSource.emit(event_types.MESSAGE_RECEIVED, insertAt, 'command');
         await reloadCurrentChat();
-        await eventSource.emit(event_types.CHARACTER_MESSAGE_RENDERED, insertAt);
+        await eventSource.emit(event_types.CHARACTER_MESSAGE_RENDERED, insertAt, 'command');
     } else {
         chat.push(message);
-        await eventSource.emit(event_types.MESSAGE_RECEIVED, (chat.length - 1));
+        await eventSource.emit(event_types.MESSAGE_RECEIVED, (chat.length - 1), 'command');
         addOneMessage(message);
-        await eventSource.emit(event_types.CHARACTER_MESSAGE_RENDERED, (chat.length - 1));
+        await eventSource.emit(event_types.CHARACTER_MESSAGE_RENDERED, (chat.length - 1), 'command');
         await saveChatConditional();
     }
 
@@ -4286,7 +4398,7 @@ const clearCommandProgressDebounced = debounce(clearCommandProgress);
  * @prop {boolean} [handleParserErrors] (true) Whether to handle parser errors (show toast on error) or throw.
  * @prop {SlashCommandScope} [scope] (null) The scope to be used when executing the commands.
  * @prop {boolean} [handleExecutionErrors] (false) Whether to handle execution errors (show toast on error) or throw
- * @prop {{[id:PARSER_FLAG]:boolean}} [parserFlags] (null) Parser flags to apply
+ * @prop {import('./slash-commands/SlashCommandParser.js').ParserFlags} [parserFlags] (null) Parser flags to apply
  * @prop {SlashCommandAbortController} [abortController] (null) Controller used to abort or pause command execution
  * @prop {SlashCommandDebugController} [debugController] (null) Controller used to control debug execution
  * @prop {(done:number, total:number)=>void} [onProgress] (null) Callback to handle progress events
@@ -4296,7 +4408,7 @@ const clearCommandProgressDebounced = debounce(clearCommandProgress);
 /**
  * @typedef ExecuteSlashCommandsOnChatInputOptions
  * @prop {SlashCommandScope} [scope] (null) The scope to be used when executing the commands.
- * @prop {{[id:PARSER_FLAG]:boolean}} [parserFlags] (null) Parser flags to apply
+ * @prop {import('./slash-commands/SlashCommandParser.js').ParserFlags} [parserFlags] (null) Parser flags to apply
  * @prop {boolean} [clearChatInput] (false) Whether to clear the chat input textarea
  * @prop {string} [source] (null) String indicating where the code come from (e.g., QR name)
  */

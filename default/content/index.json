@@ -786,5 +786,13 @@
     {
         "filename": "presets/context/DeepSeek-V2.5.json",
         "type": "context"
+    },
+    {
+        "filename": "presets/reasoning/DeepSeek.json",
+        "type": "reasoning"
+    },
+    {
+        "filename": "presets/reasoning/Blank.json",
+        "type": "reasoning"
     }
 ]

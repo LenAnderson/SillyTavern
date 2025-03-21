@@ -1957,7 +1957,7 @@
                                             <span data-i18n="Enable web search">Enable web search</span>
                                         </label>
                                         <div class="flexBasis100p toggle-description justifyLeft">
-                                            <span>
+                                            <span data-i18n="Use search capabilities provided by the backend.">
                                                 Use search capabilities provided by the backend.
                                             </span>
                                         </div>
@@ -1995,6 +1995,23 @@
                                                     <option data-i18n="openai_inline_image_quality_high" value="high">High</option>
                                                 </select>
                                             </div>
+                                        </div>
+                                    </div>
+                                    <div class="range-block" data-source="makersuite">
+                                        <label for="openai_request_images" class="checkbox_label widthFreeExpand">
+                                            <input id="openai_request_images" type="checkbox" />
+                                            <span>
+                                                <span data-i18n="Request inline images">Request inline images</span>
+                                                <i class="opacity50p fa-solid fa-circle-info" title="Gemini 2.0 Flash Experimental"></i>
+                                            </span>
+                                        </label>
+                                        <div class="toggle-description justifyLeft marginBot5">
+                                            <span data-i18n="Allows the model to return image attachments.">
+                                                Allows the model to return image attachments.
+                                            </span>
+                                            <em data-source="makersuite" data-i18n="Request inline images_desc_2">
+                                                Incompatible with the following features: function calling, web search, system prompt.
+                                            </em>
                                         </div>
                                     </div>
                                     <div class="range-block" data-source="makersuite">
@@ -2171,7 +2188,7 @@
                                     <input id="horde_trusted_workers_only" type="checkbox" />
                                     <span data-i18n="Trusted workers only">Trusted workers only</span>
                                 </label>
-                                <small id="adjustedHordeParams">Context: --, Response: --</small>
+                                <small id="adjustedHordeParams"><span data-i18n="Context">Context</span>: --, <span data-i18n="Response">Response</span>: --</small>
                                 <h4 data-i18n="API key">API key</h4>
                                 <small>
                                     <span data-i18n="Get it here:">Get it here: </span> <a target="_blank" href="https://aihorde.net/register" data-i18n="Register">Register</a> (<a id="horde_kudos" href="javascript:void(0);" data-i18n="View my Kudos">View my Kudos</a>)<br>
@@ -3117,6 +3134,9 @@
                                         <option value="gemini-ultra">Gemini Ultra (1.0)</option>
                                         <option value="gemini-1.0-ultra-latest">Gemini 1.0 Ultra</option>
                                     </optgroup>
+                                    <optgroup label="Gemma">
+                                        <option value="gemma-3-27b-it">Gemma 3 27B</option>
+                                    </optgroup>
                                     <optgroup label="Subversions">
                                         <option value="gemini-2.0-pro-exp">Gemini 2.0 Pro Experimental</option>
                                         <option value="gemini-2.0-pro-exp-02-05">Gemini 2.0 Pro Experimental 2025-02-05</option>
@@ -3127,6 +3147,7 @@
                                         <option value="gemini-2.0-flash-thinking-exp-01-21">Gemini 2.0 Flash Thinking Experimental 2025-01-21</option>
                                         <option value="gemini-2.0-flash-thinking-exp-1219">Gemini 2.0 Flash Thinking Experimental 2024-12-19</option>
                                         <option value="gemini-2.0-flash-exp">Gemini 2.0 Flash Experimental</option>
+                                        <option value="gemini-2.0-flash-exp-image-generation">Gemini 2.0 Flash (Image Generation) Experimental</option>
                                         <option value="gemini-exp-1114">Gemini Experimental 2024-11-14</option>
                                         <option value="gemini-exp-1121">Gemini Experimental 2024-11-21</option>
                                         <option value="gemini-exp-1206">Gemini Experimental 2024-12-06</option>
@@ -3172,6 +3193,7 @@
                                         <option value="mistral-small-latest">mistral-small-latest</option>
                                         <option value="mistral-medium-latest">mistral-medium-latest</option>
                                         <option value="mistral-large-latest">mistral-large-latest</option>
+                                        <option value="mistral-saba-latest">mistral-saba-latest</option>
                                         <option value="codestral-latest">codestral-latest</option>
                                         <option value="codestral-mamba-latest">codestral-mamba-latest</option>
                                         <option value="pixtral-12b-latest">pixtral-12b-latest</option>
@@ -3187,13 +3209,20 @@
                                         <option value="mistral-small-2312">mistral-small-2312</option>
                                         <option value="mistral-small-2402">mistral-small-2402</option>
                                         <option value="mistral-small-2409">mistral-small-2409</option>
+                                        <option value="mistral-small-2501">mistral-small-2501</option>
+                                        <option value="mistral-small-2503">mistral-small-2503</option>
                                         <option value="mistral-medium-2312">mistral-medium-2312</option>
                                         <option value="mistral-large-2402">mistral-large-2402</option>
                                         <option value="mistral-large-2407">mistral-large-2407</option>
                                         <option value="mistral-large-2411">mistral-large-2411</option>
+                                        <option value="mistral-large-pixtral-2411">mistral-large-pixtral-2411</option>
+                                        <option value="mistral-saba-2502">mistral-saba-2502</option>
                                         <option value="codestral-2405">codestral-2405</option>
                                         <option value="codestral-2405-blue">codestral-2405-blue</option>
                                         <option value="codestral-mamba-2407">codestral-mamba-2407</option>
+                                        <option value="codestral-2411-rc5">codestral-2411-rc5</option>
+                                        <option value="codestral-2412">codestral-2412</option>
+                                        <option value="codestral-2501">codestral-2501</option>
                                         <option value="pixtral-12b-2409">pixtral-12b-2409</option>
                                         <option value="pixtral-large-2411">pixtral-large-2411</option>
                                     </optgroup>
@@ -3333,6 +3362,7 @@
                                         <option value="command-r-08-2024">command-r-08-2024</option>
                                         <option value="command-r-plus-08-2024">command-r-plus-08-2024</option>
                                         <option value="command-r7b-12-2024">command-r7b-12-2024</option>
+                                        <option value="command-a-03-2025">command-a-03-2025</option>
                                     </optgroup>
                                     <optgroup label="Nightly">
                                         <option value="command-light-nightly">command-light-nightly</option>
@@ -3385,17 +3415,10 @@
                             <div class="flex-container">
                                 <select id="model_custom_select" class="text_pole model_custom_select"></select>
                             </div>
-                            <h4 data-i18n="Prompt Post-Processing">Prompt Post-Processing</h4>
-                            <select id="custom_prompt_post_processing" class="text_pole" title="Applies additional processing to the prompt before sending it to the API." data-i18n="[title]Applies additional processing to the prompt before sending it to the API.">
-                                <option data-i18n="prompt_post_processing_none" value="">None</option>
-                                <option data-i18n="prompt_post_processing_merge" value="merge">Merge consecutive roles</option>
-                                <option data-i18n="prompt_post_processing_semi" value="semi">Semi-strict (alternating roles)</option>
-                                <option data-i18n="prompt_post_processing_strict" value="strict">Strict (user first, alternating roles)</option>
-                            </select>
                         </form>
                         <div id="01ai_form" data-source="01ai">
                             <h4>
-                                <a data-i18n="01.AI API Key" href="https://platform.01.ai/" target="_blank" rel="noopener noreferrer">
+                                <a data-i18n="01.AI API Key" href="https://platform.lingyiwanwu.com/" target="_blank" rel="noopener noreferrer">
                                     01.AI API Key
                                 </a>
                             </h4>
@@ -3408,6 +3431,15 @@
                             </div>
                             <h4 data-i18n="01.AI Model">01.AI Model</h4>
                             <select id="model_01ai_select">
+                            </select>
+                        </div>
+                        <div id="prompt_post_porcessing_form" data-source="custom,openrouter">
+                            <h4 data-i18n="Prompt Post-Processing">Prompt Post-Processing</h4>
+                            <select id="custom_prompt_post_processing" class="text_pole" title="Applies additional processing to the prompt before sending it to the API." data-i18n="[title]Applies additional processing to the prompt before sending it to the API.">
+                                <option data-i18n="prompt_post_processing_none" value="">None</option>
+                                <option data-i18n="prompt_post_processing_merge" value="merge">Merge consecutive roles</option>
+                                <option data-i18n="prompt_post_processing_semi" value="semi">Semi-strict (alternating roles)</option>
+                                <option data-i18n="prompt_post_processing_strict" value="strict">Strict (user first, alternating roles)</option>
                             </select>
                         </div>
                         <div class="flex-container flex">
@@ -3834,6 +3866,7 @@
                                     <option value="14">Jamba</option>
                                     <option value="15">Qwen2</option>
                                     <option value="16">Command-R</option>
+                                    <option value="19">Command-A</option>
                                     <option value="4">NerdStash (NovelAI Clio)</option>
                                     <option value="5">NerdStash v2 (NovelAI Kayra)</option>
                                     <option value="7">Mistral V1</option>
@@ -3894,6 +3927,19 @@
                                     <summary data-i18n="Reasoning Formatting">
                                         Reasoning Formatting
                                     </summary>
+                                    <div class="flex-container" title="Select your current Reasoning Template" data-i18n="[title]Select your current Reasoning Template">
+                                        <select id="reasoning_select" data-preset-manager-for="reasoning" class="flex1 text_pole"></select>
+                                        <div class="flex-container margin0 justifyCenter gap3px">
+                                            <input type="file" hidden data-preset-manager-file="reasoning" accept=".json, .settings">
+                                            <i data-preset-manager-update="reasoning" class="menu_button fa-solid fa-save" title="Update current template" data-i18n="[title]Update current template"></i>
+                                            <i data-preset-manager-rename="reasoning" class="menu_button fa-pencil fa-solid" title="Rename current template" data-i18n="[title]Rename current template"></i>
+                                            <i data-preset-manager-new="reasoning" class="menu_button fa-solid fa-file-circle-plus" title="Save template as" data-i18n="[title]Save template as"></i>
+                                            <i data-preset-manager-import="reasoning" class="displayNone menu_button fa-solid fa-file-import" title="Import template" data-i18n="[title]Import template"></i>
+                                            <i data-preset-manager-export="reasoning" class="displayNone menu_button fa-solid fa-file-export" title="Export template" data-i18n="[title]Export template"></i>
+                                            <i data-preset-manager-restore="reasoning" class="menu_button fa-solid fa-recycle" title="Restore current template" data-i18n="[title]Restore current template"></i>
+                                            <i data-preset-manager-delete="reasoning" class="menu_button fa-solid fa-trash-can" title="Delete template" data-i18n="[title]Delete template"></i>
+                                        </div>
+                                    </div>
                                     <div class="flex-container">
                                         <div class="flex1" title="Inserted before the reasoning content." data-i18n="[title]reasoning_prefix">
                                             <small data-i18n="Prefix">Prefix</small>
@@ -5382,6 +5428,7 @@
                                                 <option value="2" data-i18n="Manual">Manual</option>
                                                 <option value="0" data-i18n="Natural order">Natural order</option>
                                                 <option value="1" data-i18n="List order">List order</option>
+                                                <option value="3" data-i18n="Pooled order">Pooled order</option>
                                             </select>
                                         </div>
                                         <div class="flex1 flexGap5">
@@ -6539,7 +6586,7 @@
                         <div class="ch_name"></div>
                         <small class="ch_additional_info group_select_counter"></small>
                     </div>
-                    <small class="character_name_block_sub_line">in this group</small>
+                    <small class="character_name_block_sub_line" data-i18n="in this group">in this group</small>
                     <i class='group_fav_icon fa-solid fa-star'></i>
                     <input class="ch_fav" value="" hidden />
                     <div class="group_select_block_list ch_description"></div>

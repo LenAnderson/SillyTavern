@@ -800,7 +800,7 @@ async function selectCurrentPersona({ toastPersonaNameChange = true } = {}) {
             chat_metadata['persona'] = user_avatar;
             console.log(`Auto locked persona to ${user_avatar}`);
             if (toastPersonaNameChange && power_user.persona_show_notifications) {
-                toastr.success(`Persona ${personaName} selected and auto-locked to current chat`, t`Persona Selected`);
+                toastr.success(t`Persona ${personaName} selected and auto-locked to current chat`, t`Persona Selected`);
             }
             saveMetadataDebounced();
             updatePersonaUIStates();
@@ -1463,6 +1463,10 @@ async function loadPersonaForCurrentChat({ doRender = false } = {}) {
             }
             toastr.success(message, t`Persona Auto Selected`, { escapeHtml: false });
         }
+    }
+    // Even if it's the same persona, we still might need to auto-lock to chat if that's enabled
+    else if (chatPersona && power_user.persona_auto_lock && !chat_metadata['persona']) {
+        lockPersona('chat');
     }
 
     updatePersonaUIStates();

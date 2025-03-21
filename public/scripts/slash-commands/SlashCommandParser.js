@@ -8,11 +8,9 @@ import { SlashCommandExecutor } from './SlashCommandExecutor.js';
 import { SlashCommandParserError } from './SlashCommandParserError.js';
 import { AutoCompleteNameResult } from '../autocomplete/AutoCompleteNameResult.js';
 import { SlashCommandQuickReplyAutoCompleteOption } from './SlashCommandQuickReplyAutoCompleteOption.js';
-// eslint-disable-next-line no-unused-vars
 import { SlashCommandScope } from './SlashCommandScope.js';
 import { SlashCommandVariableAutoCompleteOption } from './SlashCommandVariableAutoCompleteOption.js';
 import { SlashCommandNamedArgumentAssignment } from './SlashCommandNamedArgumentAssignment.js';
-// eslint-disable-next-line no-unused-vars
 import { SlashCommandAbortController } from './SlashCommandAbortController.js';
 import { SlashCommandAutoCompleteNameResult } from './SlashCommandAutoCompleteNameResult.js';
 import { SlashCommandUnnamedArgumentAssignment } from './SlashCommandUnnamedArgumentAssignment.js';
@@ -28,16 +26,18 @@ import { t } from '../i18n.js';
 /** @typedef {import('./SlashCommand.js').NamedArgumentsCapture} NamedArgumentsCapture */
 /** @typedef {import('./SlashCommand.js').NamedArguments} NamedArguments */
 
-/**@readonly*/
-/**@enum {Number}*/
+/**
+ * @enum {Number}
+ * @readonly
+ * @typedef {{[id:PARSER_FLAG]:boolean}} ParserFlags
+ */
 export const PARSER_FLAG = {
     'STRICT_ESCAPING': 1,
     'REPLACE_GETVAR': 2,
 };
 
 export class SlashCommandParser {
-    // @ts-ignore
-    /**@type {Object.<string, SlashCommand>}*/ static commands = {};
+    /** @type {Object.<string, SlashCommand>} */ static commands = {};
 
     /**
      * @deprecated Use SlashCommandParser.addCommandObject() instead.
@@ -101,26 +101,25 @@ export class SlashCommandParser {
     get commands() {
         return SlashCommandParser.commands;
     }
-    // @ts-ignore
-    /**@type {Object.<string, string>}*/ helpStrings = {};
-    /**@type {boolean}*/ verifyCommandNames = true;
-    /**@type {string}*/ text;
-    /**@type {number}*/ index;
-    /**@type {SlashCommandAbortController}*/ abortController;
-    /**@type {SlashCommandDebugController}*/ debugController;
-    /**@type {SlashCommandScope}*/ scope;
-    /**@type {SlashCommandClosure}*/ closure;
+    /** @type {Object.<string, string>} */ helpStrings = {};
+    /** @type {boolean} */ verifyCommandNames = true;
+    /** @type {string} */ text;
+    /** @type {number} */ index;
+    /** @type {SlashCommandAbortController} */ abortController;
+    /** @type {SlashCommandDebugController} */ debugController;
+    /** @type {SlashCommandScope} */ scope;
+    /** @type {SlashCommandClosure} */ closure;
 
-    /**@type {Object.<PARSER_FLAG,boolean>}*/ flags = {};
+    /** @type {Object.<PARSER_FLAG,boolean>} */ flags = {};
 
-    /**@type {boolean}*/ jumpedEscapeSequence = false;
+    /** @type {boolean} */ jumpedEscapeSequence = false;
 
-    /**@type {{start:number, end:number}[]}*/ closureIndex;
-    /**@type {{start:number, end:number, name:string}[]}*/ macroIndex;
-    /**@type {SlashCommandExecutor[]}*/ commandIndex;
-    /**@type {SlashCommandScope[]}*/ scopeIndex;
+    /** @type {{start:number, end:number}[]} */ closureIndex;
+    /** @type {{start:number, end:number, name:string}[]} */ macroIndex;
+    /** @type {SlashCommandExecutor[]} */ commandIndex;
+    /** @type {SlashCommandScope[]} */ scopeIndex;
 
-    /**@type {string}*/ parserContext;
+    /** @type {string} */ parserContext;
 
     get userIndex() { return this.index; }
 

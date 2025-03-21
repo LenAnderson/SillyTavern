@@ -8,7 +8,6 @@ import sanitize from 'sanitize-filename';
 import { sync as writeFileAtomicSync } from 'write-file-atomic';
 import _ from 'lodash';
 
-import { jsonParser, urlencodedParser } from '../express-common.js';
 import validateAvatarUrlMiddleware from '../middleware/validateFileName.js';
 import {
     getConfigValue,
@@ -22,6 +21,7 @@ import {
 const isBackupEnabled = !!getConfigValue('backups.chat.enabled', true, 'boolean');
 const maxTotalChatBackups = Number(getConfigValue('backups.chat.maxTotalBackups', -1, 'number'));
 const throttleInterval = Number(getConfigValue('backups.chat.throttleInterval', 10_000, 'number'));
+const checkIntegrity = !!getConfigValue('backups.chat.checkIntegrity', true, 'boolean');
 
 /**
  * Saves a chat to the backups directory.
@@ -293,15 +293,81 @@ function importRisuChat(userName, characterName, jsonData) {
     return chat.map(obj => JSON.stringify(obj)).join('\n');
 }
 
+/**
+ * Reads the first line of a file asynchronously.
+ * @param {string} filePath Path to the file
+ * @returns {Promise<string>} The first line of the file
+ */
+function readFirstLine(filePath) {
+    const stream = fs.createReadStream(filePath, { encoding: 'utf8' });
+    const rl = readline.createInterface({ input: stream });
+    return new Promise((resolve, reject) => {
+        let resolved = false;
+        rl.on('line', line => {
+            resolved = true;
+            rl.close();
+            stream.close();
+            resolve(line);
+        });
+
+        rl.on('error', error => {
+            resolved = true;
+            reject(error);
+        });
+
+        // Handle empty files
+        stream.on('end', () => {
+            if (!resolved) {
+                resolved = true;
+                resolve('');
+            }
+        });
+    });
+}
+
+/**
+ * Checks if the chat being saved has the same integrity as the one being loaded.
+ * @param {string} filePath Path to the chat file
+ * @param {string} integritySlug Integrity slug
+ * @returns {Promise<boolean>} Whether the chat is intact
+ */
+async function checkChatIntegrity(filePath, integritySlug) {
+    // If the chat file doesn't exist, assume it's intact
+    if (!fs.existsSync(filePath)) {
+        return true;
+    }
+
+    // Parse the first line of the chat file as JSON
+    const firstLine = await readFirstLine(filePath);
+    const jsonData = tryParse(firstLine);
+    const chatIntegrity = jsonData?.chat_metadata?.integrity;
+
+    // If the chat has no integrity metadata, assume it's intact
+    if (!chatIntegrity) {
+        return true;
+    }
+
+    // Check if the integrity matches
+    return chatIntegrity === integritySlug;
+}
+
 export const router = express.Router();
 
-router.post('/save', jsonParser, validateAvatarUrlMiddleware, function (request, response) {
+router.post('/save', validateAvatarUrlMiddleware, async function (request, response) {
     try {
         const directoryName = String(request.body.avatar_url).replace('.png', '');
         const chatData = request.body.chat;
         const jsonlData = chatData.map(JSON.stringify).join('\n');
         const fileName = `${String(request.body.file_name)}.jsonl`;
         const filePath = path.join(request.user.directories.chats, directoryName, sanitize(fileName));
+        if (checkIntegrity && !request.body.force) {
+            const integritySlug = chatData?.[0]?.chat_metadata?.integrity;
+            const isIntact = await checkChatIntegrity(filePath, integritySlug);
+            if (!isIntact) {
+                console.error(`Chat integrity check failed for ${filePath}`);
+                return response.status(400).send({ error: 'integrity' });
+            }
+        }
         writeFileAtomicSync(filePath, jsonlData, 'utf8');
         getBackupFunction(request.user.profile.handle)(request.user.directories.backups, directoryName, jsonlData);
         return response.send({ result: 'ok' });
@@ -311,7 +377,7 @@ router.post('/save', jsonParser, validateAvatarUrlMiddleware, function (request,
     }
 });
 
-router.post('/get', jsonParser, validateAvatarUrlMiddleware, function (request, response) {
+router.post('/get', validateAvatarUrlMiddleware, function (request, response) {
     try {
         const dirName = String(request.body.avatar_url).replace('.png', '');
         const directoryPath = path.join(request.user.directories.chats, dirName);
@@ -347,8 +413,7 @@ router.post('/get', jsonParser, validateAvatarUrlMiddleware, function (request, 
     }
 });
 
-
-router.post('/rename', jsonParser, validateAvatarUrlMiddleware, async function (request, response) {
+router.post('/rename', validateAvatarUrlMiddleware, async function (request, response) {
     if (!request.body || !request.body.original_file || !request.body.renamed_file) {
         return response.sendStatus(400);
     }
@@ -373,7 +438,7 @@ router.post('/rename', jsonParser, validateAvatarUrlMiddleware, async function (
     return response.send({ ok: true, sanitizedFileName });
 });
 
-router.post('/delete', jsonParser, validateAvatarUrlMiddleware, function (request, response) {
+router.post('/delete', validateAvatarUrlMiddleware, function (request, response) {
     const dirName = String(request.body.avatar_url).replace('.png', '');
     const fileName = String(request.body.chatfile);
     const filePath = path.join(request.user.directories.chats, dirName, sanitize(fileName));
@@ -389,7 +454,7 @@ router.post('/delete', jsonParser, validateAvatarUrlMiddleware, function (reques
     return response.send('ok');
 });
 
-router.post('/export', jsonParser, validateAvatarUrlMiddleware, async function (request, response) {
+router.post('/export', validateAvatarUrlMiddleware, async function (request, response) {
     if (!request.body.file || (!request.body.avatar_url && request.body.is_group === false)) {
         return response.sendStatus(400);
     }
@@ -458,7 +523,7 @@ router.post('/export', jsonParser, validateAvatarUrlMiddleware, async function (
     }
 });
 
-router.post('/group/import', urlencodedParser, function (request, response) {
+router.post('/group/import', function (request, response) {
     try {
         const filedata = request.file;
 
@@ -478,7 +543,7 @@ router.post('/group/import', urlencodedParser, function (request, response) {
     }
 });
 
-router.post('/import', urlencodedParser, validateAvatarUrlMiddleware, function (request, response) {
+router.post('/import', validateAvatarUrlMiddleware, function (request, response) {
     if (!request.body) return response.sendStatus(400);
 
     const format = request.body.file_type;
@@ -571,7 +636,7 @@ router.post('/import', urlencodedParser, validateAvatarUrlMiddleware, function (
     }
 });
 
-router.post('/group/get', jsonParser, (request, response) => {
+router.post('/group/get', (request, response) => {
     if (!request.body || !request.body.id) {
         return response.sendStatus(400);
     }
@@ -591,7 +656,7 @@ router.post('/group/get', jsonParser, (request, response) => {
     }
 });
 
-router.post('/group/delete', jsonParser, (request, response) => {
+router.post('/group/delete', (request, response) => {
     if (!request.body || !request.body.id) {
         return response.sendStatus(400);
     }
@@ -607,7 +672,7 @@ router.post('/group/delete', jsonParser, (request, response) => {
     return response.send({ error: true });
 });
 
-router.post('/group/save', jsonParser, (request, response) => {
+router.post('/group/save', (request, response) => {
     if (!request.body || !request.body.id) {
         return response.sendStatus(400);
     }
@@ -626,7 +691,7 @@ router.post('/group/save', jsonParser, (request, response) => {
     return response.send({ ok: true });
 });
 
-router.post('/search', jsonParser, validateAvatarUrlMiddleware, function (request, response) {
+router.post('/search', validateAvatarUrlMiddleware, function (request, response) {
     try {
         const { query, avatar_url, group_id } = request.body;
         let chatFiles = [];
@@ -718,12 +783,11 @@ router.post('/search', jsonParser, validateAvatarUrlMiddleware, function (reques
                 continue;
             }
 
-            // Search through messages
+            // Search through title and messages of the chat
             const fragments = query.trim().toLowerCase().split(/\s+/).filter(x => x);
-            const hasMatch = messages.some(message => {
-                const text = message?.mes?.toLowerCase();
-                return text && fragments.every(fragment => text.includes(fragment));
-            });
+            const text = [path.parse(chatFile.path).name,
+                ...messages.map(message => message?.mes)].join('\n').toLowerCase();
+            const hasMatch = fragments.every(fragment => text.includes(fragment));
 
             if (hasMatch) {
                 results.push({

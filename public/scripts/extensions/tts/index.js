@@ -1,5 +1,5 @@
 import { cancelTtsPlay, eventSource, event_types, getCurrentChatId, isStreamingEnabled, name2, saveSettingsDebounced, substituteParams } from '../../../script.js';
-import { ModuleWorkerWrapper, doExtrasFetch, extension_settings, getApiUrl, getContext, modules, renderExtensionTemplateAsync } from '../../extensions.js';
+import { ModuleWorkerWrapper, extension_settings, getContext, renderExtensionTemplateAsync } from '../../extensions.js';
 import { delay, escapeRegex, getBase64Async, getStringHash, onlyUnique } from '../../utils.js';
 import { EdgeTtsProvider } from './edge.js';
 import { ElevenLabsTtsProvider } from './elevenlabs.js';
@@ -27,6 +27,7 @@ import { SlashCommandEnumValue, enumTypes } from '../../slash-commands/SlashComm
 import { enumIcons } from '../../slash-commands/SlashCommandCommonEnumsProvider.js';
 import { POPUP_TYPE, callGenericPopup } from '../../popup.js';
 import { GoogleTranslateTtsProvider } from './google-translate.js';
+import { KokoroTtsProvider } from './kokoro.js';
 
 const UPDATE_INTERVAL = 1000;
 const wrapper = new ModuleWorkerWrapper(moduleWorker);
@@ -94,6 +95,7 @@ const ttsProviders = {
     'Google Translate': GoogleTranslateTtsProvider,
     GSVI: GSVITtsProvider,
     'GPT-SoVITS-V2 (Unofficial)': GptSovitsV2Provider,
+    Kokoro: KokoroTtsProvider,
     Novel: NovelTtsProvider,
     OpenAI: OpenAITtsProvider,
     'OpenAI Compatible': OpenAICompatibleTtsProvider,
@@ -716,6 +718,9 @@ async function loadTtsProvider(provider) {
 }
 
 function onTtsProviderChange() {
+    if (typeof ttsProvider?.dispose === 'function') {
+        ttsProvider.dispose();
+    }
     const ttsProviderSelection = $('#tts_provider').val();
     extension_settings.tts.currentProvider = ttsProviderSelection;
     $('#playback_rate_block').toggle(extension_settings.tts.currentProvider !== 'System');
@@ -1202,8 +1207,8 @@ jQuery(async function () {
     eventSource.on(event_types.GROUP_UPDATED, onChatChanged);
     eventSource.on(event_types.GENERATION_STARTED, onGenerationStarted);
     eventSource.on(event_types.GENERATION_ENDED, onGenerationEnded);
-    eventSource.makeLast(event_types.CHARACTER_MESSAGE_RENDERED, onMessageEvent);
-    eventSource.makeLast(event_types.USER_MESSAGE_RENDERED, onMessageEvent);
+    eventSource.makeLast(event_types.CHARACTER_MESSAGE_RENDERED, (messageId) => onMessageEvent(messageId));
+    eventSource.makeLast(event_types.USER_MESSAGE_RENDERED, (messageId) => onMessageEvent(messageId));
     SlashCommandParser.addCommandObject(SlashCommand.fromProps({
         name: 'speak',
         callback: async (args, value) => {
