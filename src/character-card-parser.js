@@ -81,14 +81,14 @@ export const read = (image) => {
  * Parses a card image and returns the character metadata.
  * @param {string} cardUrl Path to the card image
  * @param {string} format File format
- * @returns {string} Character data
+ * @returns {Promise<string>} Character data
  */
-export const parse = (cardUrl, format) => {
+export const parse = async (cardUrl, format) => {
     let fileFormat = format === undefined ? 'png' : format;
 
     switch (fileFormat) {
         case 'png': {
-            const buffer = fs.readFileSync(cardUrl);
+            const buffer = await fs.promises.readFile(cardUrl);
             return read(buffer);
         }
     }

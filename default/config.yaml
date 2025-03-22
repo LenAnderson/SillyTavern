@@ -142,6 +142,8 @@ performance:
   lazyLoadCharacters: false
   # The maximum amount of memory that parsed character cards can use. Set to 0 to disable memory caching.
   memoryCacheCapacity: '100mb'
+  # Enables disk caching for character cards. Improves performances with large card libraries.
+  useDiskCache: true
 
 # Allow secret keys exposure via API
 allowKeysExposure: false

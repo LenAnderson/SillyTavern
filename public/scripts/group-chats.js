@@ -882,7 +882,7 @@ async function generateGroupWrapper(by_auto_mode, type = null, params = {}) {
             activatedMembers = activateListOrder(enabledMembers);
         }
         else if (activationStrategy === group_activation_strategy.POOLED) {
-            activatedMembers = activatePooledOrder(enabledMembers, lastMessage);
+            activatedMembers = activatePooledOrder(enabledMembers, lastMessage, isUserInput);
         }
         else if (activationStrategy === group_activation_strategy.MANUAL && !isUserInput) {
             activatedMembers = shuffle(enabledMembers).slice(0, 1).map(x => characters.findIndex(y => y.avatar === x)).filter(x => x !== -1);
@@ -1030,16 +1030,17 @@ function activateListOrder(members) {
  * Activate group members based on the last message.
  * @param {string[]} members List of member avatars
  * @param {Object} lastMessage Last message
+ * @param {boolean} isUserInput Whether the user has input text
  * @returns {number[]} List of character ids
  */
-function activatePooledOrder(members, lastMessage) {
+function activatePooledOrder(members, lastMessage, isUserInput) {
     /** @type {string} */
     let activatedMember = null;
     /** @type {string[]} */
     const spokenSinceUser = [];
 
     for (const message of chat.slice().reverse()) {
-        if (message.is_user) {
+        if (message.is_user || isUserInput) {
             break;
         }
 

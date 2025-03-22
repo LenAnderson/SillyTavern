@@ -276,10 +276,12 @@ export async function getWebLlmContextSize() {
 }
 
 /**
- * It uses the profiles to send a generate request to the API. Doesn't support streaming.
+ * It uses the profiles to send a generate request to the API.
  */
 export class ConnectionManagerRequestService {
     static defaultSendRequestParams = {
+        stream: false,
+        signal: null,
         extractData: true,
         includePreset: true,
         includeInstruct: true,
@@ -296,11 +298,11 @@ export class ConnectionManagerRequestService {
      * @param {string} profileId
      * @param {string | (import('../custom-request.js').ChatCompletionMessage & {ignoreInstruct?: boolean})[]} prompt
      * @param {number} maxTokens
-     * @param {{extractData?: boolean, includePreset?: boolean, includeInstruct?: boolean}} custom - default values are true
-     * @returns {Promise<import('../custom-request.js').ExtractedData | any>} Extracted data or the raw response
+     * @param {{stream?: boolean, signal?: AbortSignal, extractData?: boolean, includePreset?: boolean, includeInstruct?: boolean}} custom - default values are true
+     * @returns {Promise<import('../custom-request.js').ExtractedData | (() => AsyncGenerator<import('../custom-request.js').StreamResponse>)>} If not streaming, returns extracted data; if streaming, returns a function that creates an AsyncGenerator
      */
     static async sendRequest(profileId, prompt, maxTokens, custom = this.defaultSendRequestParams) {
-        const { extractData, includePreset, includeInstruct } = { ...this.defaultSendRequestParams, ...custom };
+        const { stream, signal, extractData, includePreset, includeInstruct } = { ...this.defaultSendRequestParams, ...custom };
 
         const context = SillyTavern.getContext();
         if (context.extensionSettings.disabledExtensions.includes('connection-manager')) {
@@ -319,6 +321,7 @@ export class ConnectionManagerRequestService {
 
                     const messages = Array.isArray(prompt) ? prompt : [{ role: 'user', content: prompt }];
                     return await context.ChatCompletionService.processRequest({
+                        stream,
                         messages,
                         max_tokens: maxTokens,
                         model: profile.model,
@@ -326,7 +329,7 @@ export class ConnectionManagerRequestService {
                         custom_url: profile['api-url'],
                     }, {
                         presetName: includePreset ? profile.preset : undefined,
-                    }, extractData);
+                    }, extractData, signal);
                 }
                 case 'textgenerationwebui': {
                     if (!selectedApiMap.type) {
@@ -334,6 +337,7 @@ export class ConnectionManagerRequestService {
                     }
 
                     return await context.TextCompletionService.processRequest({
+                        stream,
                         prompt,
                         max_tokens: maxTokens,
                         model: profile.model,
@@ -342,7 +346,7 @@ export class ConnectionManagerRequestService {
                     }, {
                         instructName: includeInstruct ? profile.instruct : undefined,
                         presetName: includePreset ? profile.preset : undefined,
-                    }, extractData);
+                    }, extractData, signal);
                 }
                 default: {
                     throw new Error(`Unknown API type ${selectedApiMap.selected}`);
