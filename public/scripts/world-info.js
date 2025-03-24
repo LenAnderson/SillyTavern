@@ -908,20 +908,20 @@ export function setWorldInfoSettings(settings, data) {
     registerWorldInfoSlashCommands();
 }
 
-function registerWorldInfoSlashCommands() {
-    /**
-     * Reloads the editor with the specified world info file
-     * @param {string} file - The file to load in the editor
-     * @param {boolean} [loadIfNotSelected=false] - Indicates whether to load the file even if it's not currently selected
-     */
-    function reloadEditor(file, loadIfNotSelected = false) {
-        const currentIndex = Number($('#world_editor_select').val());
-        const selectedIndex = world_names.indexOf(file);
-        if (selectedIndex !== -1 && (loadIfNotSelected || currentIndex === selectedIndex)) {
-            $('#world_editor_select').val(selectedIndex).trigger('change');
-        }
+/**
+ * Reloads the editor with the specified world info file
+ * @param {string} file - The file to load in the editor
+ * @param {boolean} [loadIfNotSelected=false] - Indicates whether to load the file even if it's not currently selected
+ */
+export function reloadEditor(file, loadIfNotSelected = false) {
+    const currentIndex = Number($('#world_editor_select').val());
+    const selectedIndex = world_names.indexOf(file);
+    if (selectedIndex !== -1 && (loadIfNotSelected || currentIndex === selectedIndex)) {
+        $('#world_editor_select').val(selectedIndex).trigger('change');
     }
+}
 
+function registerWorldInfoSlashCommands() {
     /**
      * Gets a *rough* approximation of the current chat context.
      * Normally, it is provided externally by the prompt builder.

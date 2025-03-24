@@ -88,7 +88,7 @@ export const parse = async (cardUrl, format) => {
 
     switch (fileFormat) {
         case 'png': {
-            const buffer = await fs.promises.readFile(cardUrl);
+            const buffer = fs.readFileSync(cardUrl);
             return read(buffer);
         }
     }

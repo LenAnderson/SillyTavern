@@ -318,8 +318,12 @@ async function postSetupTasks(result) {
     const autorunUrl = cliArgs.getAutorunUrl(autorunHostname);
 
     if (cliArgs.autorun) {
-        console.log('Launching in a browser...');
-        await open(autorunUrl.toString());
+        try {
+            console.log('Launching in a browser...');
+            await open(autorunUrl.toString());
+        } catch (error) {
+            console.error('Failed to launch the browser. Open the URL manually.');
+        }
     }
 
     setWindowTitle('SillyTavern WebServer');

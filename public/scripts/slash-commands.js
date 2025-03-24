@@ -3140,7 +3140,7 @@ async function unhideMessageCallback(args, value) {
  * @returns {void}
  */
 function performGroupMemberAction(chid, action) {
-    const memberSelector = `.group_member[chid="${chid}"]`;
+    const memberSelector = `.group_member[data-chid="${chid}"]`;
     // Do not optimize. Paginator gets recreated on every action
     const paginationSelector = '#rm_group_members_pagination';
     const pageSizeSelector = '#rm_group_members_pagination select';

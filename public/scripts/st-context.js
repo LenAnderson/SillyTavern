@@ -79,7 +79,7 @@ import { ToolManager } from './tool-calling.js';
 import { accountStorage } from './util/AccountStorage.js';
 import { timestampToMoment, uuidv4 } from './utils.js';
 import { getGlobalVariable, getLocalVariable, setGlobalVariable, setLocalVariable } from './variables.js';
-import { convertCharacterBook, getWorldInfoPrompt, loadWorldInfo, saveWorldInfo, updateWorldInfoList } from './world-info.js';
+import { convertCharacterBook, getWorldInfoPrompt, loadWorldInfo, reloadEditor, saveWorldInfo, updateWorldInfoList } from './world-info.js';
 import { ChatCompletionService, TextCompletionService } from './custom-request.js';
 import { ConnectionManagerRequestService } from './extensions/shared.js';
 import { updateReasoningUI, parseReasoningFromString } from './reasoning.js';
@@ -207,6 +207,7 @@ export function getContext() {
         },
         loadWorldInfo,
         saveWorldInfo,
+        reloadWorldInfoEditor: reloadEditor,
         updateWorldInfoList,
         convertCharacterBook,
         getWorldInfoPrompt,

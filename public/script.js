@@ -3400,11 +3400,23 @@ class StreamingProcessor {
 
         if (!isImpersonate && !isContinue && Array.isArray(this.swipes) && this.swipes.length > 0) {
             for (let i = 0; i < this.swipes.length; i++) {
-                this.swipes[i] = cleanUpMessage(this.swipes[i], false, false, true, this.stoppingStrings);
+                this.swipes[i] = cleanUpMessage({
+                    getMessage: this.swipes[i],
+                    isImpersonate: false,
+                    isContinue: false,
+                    displayIncompleteSentences: true,
+                    stoppingStrings: this.stoppingStrings,
+                });
             }
         }
 
-        let processedText = cleanUpMessage(text, isImpersonate, isContinue, !isFinal, this.stoppingStrings);
+        let processedText = cleanUpMessage({
+            getMessage: text,
+            isImpersonate: isImpersonate,
+            isContinue: isContinue,
+            displayIncompleteSentences: !isFinal,
+            stoppingStrings: this.stoppingStrings,
+        });
 
         const charsToBalance = ['*', '"', '```'];
         for (const char of charsToBalance) {
@@ -3636,9 +3648,10 @@ class StreamingProcessor {
  * @param {boolean} quietToLoud true to generate a message in system mode, false to generate a message in character mode
  * @param {string} [systemPrompt] System prompt to use. Only Instruct mode or OpenAI.
  * @param {number} [responseLength] Maximum response length. If unset, the global default value is used.
+ * @param {boolean} [trimNames] Whether to allow trimming "{{user}}:" and "{{char}}:" from the response.
  * @returns {Promise<string>} Generated message
  */
-export async function generateRaw(prompt, api, instructOverride, quietToLoud, systemPrompt, responseLength) {
+export async function generateRaw(prompt, api, instructOverride, quietToLoud, systemPrompt, responseLength, trimNames = true) {
     if (!api) {
         api = main_api;
     }
@@ -3728,7 +3741,15 @@ export async function generateRaw(prompt, api, instructOverride, quietToLoud, sy
         }
 
         // format result, exclude user prompt bias
-        const message = cleanUpMessage(extractMessageFromData(data), false, false, true, null, false);
+        const message = cleanUpMessage({
+            getMessage: extractMessageFromData(data),
+            isImpersonate: false,
+            isContinue: false,
+            displayIncompleteSentences: true,
+            includeUserPromptBias: false,
+            trimNames: trimNames,
+            trimWrongNames: trimNames,
+        });
 
         if (!message) {
             throw new Error('No message generated');
@@ -4929,7 +4950,12 @@ export async function Generate(type, { automatic_trigger, force_name2, quiet_pro
 
             hideSwipeButtons();
             let getMessage = await streamingProcessor.generate();
-            let messageChunk = cleanUpMessage(getMessage, isImpersonate, isContinue, false);
+            let messageChunk = cleanUpMessage({
+                getMessage: getMessage,
+                isImpersonate: isImpersonate,
+                isContinue: isContinue,
+                displayIncompleteSentences: false,
+            });
 
             if (isContinue) {
                 getMessage = continue_mag + getMessage;
@@ -5013,7 +5039,14 @@ export async function Generate(type, { automatic_trigger, force_name2, quiet_pro
 
         const swipes = extractMultiSwipes(data, type);
 
-        messageChunk = cleanUpMessage(getMessage, isImpersonate, isContinue, false);
+        messageChunk = cleanUpMessage({
+            getMessage: getMessage,
+            isImpersonate: isImpersonate,
+            isContinue: isContinue,
+            displayIncompleteSentences: false,
+        });
+
+
         reasoning = getRegexedString(reasoning, regex_placement.REASONING);
 
         if (power_user.trim_spaces) {
@@ -5027,7 +5060,12 @@ export async function Generate(type, { automatic_trigger, force_name2, quiet_pro
 
         //Formating
         const displayIncomplete = type === 'quiet' && !quietToLoud;
-        getMessage = cleanUpMessage(getMessage, isImpersonate, isContinue, displayIncomplete);
+        getMessage = cleanUpMessage({
+            getMessage: getMessage,
+            isImpersonate: isImpersonate,
+            isContinue: isContinue,
+            displayIncompleteSentences: displayIncomplete,
+        });
 
         if (isImpersonate) {
             $('#send_textarea').val(getMessage)[0].dispatchEvent(new Event('input', { bubbles: true }));
@@ -5993,7 +6031,13 @@ function extractMultiSwipes(data, type) {
 
         for (let i = 1; i < data.choices.length; i++) {
             const text = data?.choices[i]?.message?.content ?? data?.choices[i]?.text ?? '';
-            const cleanedText = cleanUpMessage(text, false, false, false);
+            const cleanedText = cleanUpMessage({
+                getMessage: text,
+                isImpersonate: false,
+                isContinue: false,
+                displayIncompleteSentences: false,
+            });
+
             swipes.push(cleanedText);
         }
     }
@@ -6001,7 +6045,26 @@ function extractMultiSwipes(data, type) {
     return swipes;
 }
 
-export function cleanUpMessage(getMessage, isImpersonate, isContinue, displayIncompleteSentences = false, stoppingStrings = null, includeUserPromptBias = true) {
+/**
+ * Formats a message according to user settings
+ * @param {object} [options] - Additional options.
+ * @param {string} [options.getMessage] The message to clean up
+ * @param {boolean} [options.isImpersonate] Whether this is an impersonated message
+ * @param {boolean} [options.isContinue] Whether this is a continued message
+ * @param {boolean} [options.displayIncompleteSentences] Whether to keep incomplete sentences at the end.
+ * @param {array} [options.stoppingStrings] Array of stopping strings.
+ * @param {boolean} [options.includeUserPromptBias] Whether to permit prepending the user prompt bias at the beginning.
+ * @param {boolean} [options.trimNames] Whether to allow trimming "{{char}}:" or "{{user}}:" from the beginning.
+ * @param {boolean} [options.trimWrongNames] Whether to allow deleting responses prefixed by the incorrect name, depending on isImpersonate
+ *
+ * @returns {string} The formatted message
+ */
+export function cleanUpMessage({ getMessage, isImpersonate, isContinue, displayIncompleteSentences = false, stoppingStrings = null, includeUserPromptBias = true, trimNames = true, trimWrongNames = true } = {}) {
+    if (arguments.length > 0 && typeof arguments[0] !== 'object') {
+        console.trace('cleanUpMessage called with positional arguments. Please use an object instead.');
+        [getMessage, isImpersonate, isContinue, displayIncompleteSentences, stoppingStrings, includeUserPromptBias, trimNames, trimWrongNames] = arguments;
+    }
+
     if (!getMessage) {
         return '';
     }
@@ -6046,21 +6109,32 @@ export function cleanUpMessage(getMessage, isImpersonate, isContinue, displayInc
     // "trailing whitespace on newlines\nevery line of the string\nsample text"
     getMessage = getMessage.replace(/[^\S\r\n]+$/gm, '');
 
-    let nameToTrim = isImpersonate ? name2 : name1;
+    if (trimWrongNames) {
+        // If this is an impersonation, delete the entire response if it starts with "{{char}}:"
+        // If this isn't an impersonation, delete the entire response if it starts with "{{user}}:"
+        // Also delete any trailing text that starts with the wrong name.
+        // This only occurs if the corresponding "power_user.allow_nameX_display" is false.
 
-    if (isImpersonate) {
-        nameToTrim = power_user.allow_name2_display ? '' : name2;
-    }
-    else {
-        nameToTrim = power_user.allow_name1_display ? '' : name1;
+        let wrongName = isImpersonate
+            ? (!power_user.allow_name2_display ? name2 : '')  // char
+            : (!power_user.allow_name1_display ? name1 : '');  // user
+
+        if (wrongName) {
+            // If the message starts with the wrong name, delete the entire response
+            let startIndex = getMessage.indexOf(`${wrongName}:`);
+            if (startIndex === 0) {
+                getMessage = '';
+                console.debug(`Message started with the wrong name: "${wrongName}" - response was deleted.`);
+            }
+
+            // If there is trailing text starting with the wrong name, trim it off.
+            startIndex = getMessage.indexOf(`\n${wrongName}:`);
+            if (startIndex >= 0) {
+                getMessage = getMessage.substring(0, startIndex);
+            }
+        }
     }
 
-    if (nameToTrim && getMessage.indexOf(`${nameToTrim}:`) == 0) {
-        getMessage = getMessage.substring(0, getMessage.indexOf(`${nameToTrim}:`));
-    }
-    if (nameToTrim && getMessage.indexOf(`\n${nameToTrim}:`) >= 0) {
-        getMessage = getMessage.substring(0, getMessage.indexOf(`\n${nameToTrim}:`));
-    }
     if (getMessage.indexOf('<|endoftext|>') != -1) {
         getMessage = getMessage.substring(0, getMessage.indexOf('<|endoftext|>'));
     }
@@ -6120,13 +6194,18 @@ export function cleanUpMessage(getMessage, isImpersonate, isContinue, displayInc
         getMessage = fixMarkdown(getMessage, false);
     }
 
-    const nameToTrim2 = isImpersonate
-        ? (!power_user.allow_name1_display ? name1 : '')
-        : (!power_user.allow_name2_display ? name2 : '');
+    if (trimNames) {
+        // If this is an impersonation, trim "{{user}}:" from the beginning
+        // If this isn't an impersonation, trim "{{char}}:" from the beginning.
+        // Only applied when the corresponding "power_user.allow_nameX_display" is false.
+        const nameToTrim2 = isImpersonate
+            ? (!power_user.allow_name1_display ? name1 : '')  // user
+            : (!power_user.allow_name2_display ? name2 : '');  // char
 
-    if (nameToTrim2 && getMessage.startsWith(nameToTrim2 + ':')) {
-        getMessage = getMessage.replace(nameToTrim2 + ':', '');
-        getMessage = getMessage.trimStart();
+        if (nameToTrim2 && getMessage.startsWith(nameToTrim2 + ':')) {
+            getMessage = getMessage.replace(nameToTrim2 + ':', '');
+            getMessage = getMessage.trimStart();
+        }
     }
 
     if (isImpersonate) {
