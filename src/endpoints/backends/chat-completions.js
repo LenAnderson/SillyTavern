@@ -364,6 +364,7 @@ async function sendMakerSuiteRequest(request, response) {
         }
 
         const useSystemPrompt = !useMultiModal && (
+            model.includes('gemini-2.5-pro') ||
             model.includes('gemini-2.0-pro') ||
             model.includes('gemini-2.0-flash') ||
             model.includes('gemini-2.0-flash-thinking-exp') ||
@@ -399,6 +400,9 @@ async function sendMakerSuiteRequest(request, response) {
                 if (tool.type === 'function') {
                     if (tool.function.parameters?.$schema) {
                         delete tool.function.parameters.$schema;
+                    }
+                    if (tool.function.parameters?.properties && Object.keys(tool.function.parameters.properties).length === 0) {
+                        delete tool.function.parameters;
                     }
                     functionDeclarations.push(tool.function);
                 }

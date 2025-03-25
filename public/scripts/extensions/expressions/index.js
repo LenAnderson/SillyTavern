@@ -2060,7 +2060,7 @@ async function fetchImagesNoCache() {
 
 function migrateSettings() {
     if (extension_settings.expressions.api === undefined) {
-        extension_settings.expressions.api = EXPRESSION_API.extras;
+        extension_settings.expressions.api = EXPRESSION_API.local;
         saveSettingsDebounced();
     }
 
