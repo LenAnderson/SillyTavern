@@ -150,7 +150,7 @@ if (cliArgs.enableCorsProxy) {
 
 app.use(cookieSession({
     name: getCookieSessionName(),
-    sameSite: 'strict',
+    sameSite: 'lax',
     httpOnly: true,
     maxAge: getSessionCookieAge(),
     secret: getCookieSecret(globalThis.DATA_ROOT),
@@ -211,6 +211,17 @@ app.get('/', getCacheBusterMiddleware(), (request, response) => {
     }
 
     return response.sendFile('index.html', { root: path.join(process.cwd(), 'public') });
+});
+
+// Callback endpoint for OAuth PKCE flows (e.g. OpenRouter)
+app.get('/callback/:source?', (request, response) => {
+    const source = request.params.source;
+    const query = request.url.split('?')[1];
+    const searchParams = new URLSearchParams();
+    source && searchParams.set('source', source);
+    query && searchParams.set('query', query);
+    const path = `/?${searchParams.toString()}`;
+    return response.redirect(307, path);
 });
 
 // Host login page

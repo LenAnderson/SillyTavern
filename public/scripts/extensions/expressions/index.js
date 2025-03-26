@@ -83,6 +83,7 @@ const EXPRESSION_API = {
     extras: 1,
     llm: 2,
     webllm: 3,
+    none: 99,
 };
 
 let expressionsList = null;
@@ -274,7 +275,7 @@ async function getLastMessageSprite(avatar) {
     return null;
 }
 
-async function visualNovelUpdateLayers(container) {
+export async function visualNovelUpdateLayers(container) {
     const context = getContext();
     const group = context.groups.find(x => x.id == context.groupId);
     const recentMessages = context.chat.map(x => x.original_avatar).filter(x => x).reverse().filter(onlyUnique);
@@ -692,6 +693,11 @@ async function classifyCallback(/** @type {{api: string?, filter: string?, promp
     const expressionApi = EXPRESSION_API[api] || extension_settings.expressions.api;
     const filterAvailable = !isFalseBoolean(filter);
 
+    if (expressionApi === EXPRESSION_API.none) {
+        toastr.warning('No classifier API selected');
+        return '';
+    }
+
     if (!modules.includes('classify') && expressionApi == EXPRESSION_API.extras) {
         toastr.warning('Text classification is disabled or not available');
         return '';
@@ -1061,7 +1067,7 @@ export async function getExpressionLabel(text, expressionsApi = extension_settin
                 return parseLlmResponse(emotionResponse, expressionsList);
             }
             // Extras
-            default: {
+            case EXPRESSION_API.extras: {
                 const url = new URL(getApiUrl());
                 url.pathname = '/api/classify';
 
@@ -1079,6 +1085,15 @@ export async function getExpressionLabel(text, expressionsApi = extension_settin
                     return data.classification[0].label;
                 }
             } break;
+            // None
+            case EXPRESSION_API.none: {
+                // Return empty, the fallback expression will be used
+                return '';
+            }
+            default: {
+                toastr.error('Invalid API selected');
+                return '';
+            }
         }
     } catch (error) {
         toastr.error('Could not classify expression. Check the console or your backend for more information.');
@@ -2060,7 +2075,7 @@ async function fetchImagesNoCache() {
 
 function migrateSettings() {
     if (extension_settings.expressions.api === undefined) {
-        extension_settings.expressions.api = EXPRESSION_API.local;
+        extension_settings.expressions.api = EXPRESSION_API.none;
         saveSettingsDebounced();
     }
 
@@ -2142,7 +2157,7 @@ function migrateSettings() {
         $('#open_chat_expressions').hide();
 
         await renderAdditionalExpressionSettings();
-        $('#expression_api').val(extension_settings.expressions.api ?? EXPRESSION_API.extras);
+        $('#expression_api').val(extension_settings.expressions.api ?? EXPRESSION_API.none);
         $('.expression_llm_prompt_block').toggle([EXPRESSION_API.llm, EXPRESSION_API.webllm].includes(extension_settings.expressions.api));
         $('#expression_llm_prompt').val(extension_settings.expressions.llmPrompt ?? '');
         $('#expression_llm_prompt').on('input', function () {
