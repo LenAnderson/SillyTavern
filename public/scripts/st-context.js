@@ -83,6 +83,7 @@ import { convertCharacterBook, getWorldInfoPrompt, loadWorldInfo, reloadEditor, 
 import { ChatCompletionService, TextCompletionService } from './custom-request.js';
 import { ConnectionManagerRequestService } from './extensions/shared.js';
 import { updateReasoningUI, parseReasoningFromString } from './reasoning.js';
+import { IGNORE_SYMBOL } from './constants.js';
 
 export function getContext() {
     return {
@@ -225,6 +226,9 @@ export function getContext() {
         parseReasoningFromString,
         unshallowCharacter,
         unshallowGroupMembers,
+        symbols: {
+            ignore: IGNORE_SYMBOL,
+        },
     };
 }
 

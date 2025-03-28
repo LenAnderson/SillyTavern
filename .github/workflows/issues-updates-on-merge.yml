@@ -36,10 +36,10 @@ jobs:
             for ISSUE in $(echo $issues | jq -r '.[]'); do
             if [ "${{ github.ref }}" == "refs/heads/staging" ]; then
               LABEL="✅ Done (staging)"
-              gh issue edit $ISSUE -R ${{ github.repository }} --add-label "$LABEL"
+              gh issue edit $ISSUE -R ${{ github.repository }} --add-label "$LABEL" --remove-label "🧑‍💻 In Progress"
             elif [ "${{ github.ref }}" == "refs/heads/release" ]; then
               LABEL="✅ Done"
-              gh issue edit $ISSUE -R ${{ github.repository }} --add-label "$LABEL"
+              gh issue edit $ISSUE -R ${{ github.repository }} --add-label "$LABEL" --remove-label "🧑‍💻 In Progress"
             fi
-            echo "Added label '$LABEL' to issue #$ISSUE"
+            echo "Added label '$LABEL' (and removed '🧑‍💻 In Progress' if present) in issue #$ISSUE"
             done

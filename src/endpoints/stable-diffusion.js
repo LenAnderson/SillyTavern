@@ -907,89 +907,6 @@ stability.post('/generate', async (request, response) => {
     }
 });
 
-const blockentropy = express.Router();
-
-blockentropy.post('/models', async (request, response) => {
-    try {
-        const key = readSecret(request.user.directories, SECRET_KEYS.BLOCKENTROPY);
-
-        if (!key) {
-            console.warn('Block Entropy key not found.');
-            return response.sendStatus(400);
-        }
-
-        const modelsResponse = await fetch('https://api.blockentropy.ai/sdapi/v1/sd-models', {
-            method: 'GET',
-            headers: {
-                'Authorization': `Bearer ${key}`,
-            },
-        });
-
-        if (!modelsResponse.ok) {
-            console.warn('Block Entropy returned an error.');
-            return response.sendStatus(500);
-        }
-
-        const data = await modelsResponse.json();
-
-        if (!Array.isArray(data)) {
-            console.warn('Block Entropy returned invalid data.');
-            return response.sendStatus(500);
-        }
-        const models = data.map(x => ({ value: x.name, text: x.name }));
-        return response.send(models);
-
-    } catch (error) {
-        console.error(error);
-        return response.sendStatus(500);
-    }
-});
-
-blockentropy.post('/generate', async (request, response) => {
-    try {
-        const key = readSecret(request.user.directories, SECRET_KEYS.BLOCKENTROPY);
-
-        if (!key) {
-            console.warn('Block Entropy key not found.');
-            return response.sendStatus(400);
-        }
-
-        console.debug('Block Entropy request:', request.body);
-
-        const result = await fetch('https://api.blockentropy.ai/sdapi/v1/txt2img', {
-            method: 'POST',
-            body: JSON.stringify({
-                prompt: request.body.prompt,
-                negative_prompt: request.body.negative_prompt,
-                model: request.body.model,
-                steps: request.body.steps,
-                width: request.body.width,
-                height: request.body.height,
-                // Random seed if negative.
-                seed: request.body.seed >= 0 ? request.body.seed : Math.floor(Math.random() * 10_000_000),
-            }),
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${key}`,
-            },
-        });
-
-        if (!result.ok) {
-            console.warn('Block Entropy returned an error.');
-            return response.sendStatus(500);
-        }
-
-        const data = await result.json();
-        console.debug('Block Entropy response:', data);
-
-        return response.send(data);
-    } catch (error) {
-        console.error(error);
-        return response.sendStatus(500);
-    }
-});
-
-
 const huggingface = express.Router();
 
 huggingface.post('/generate', async (request, response) => {
@@ -1358,7 +1275,6 @@ router.use('/together', together);
 router.use('/drawthings', drawthings);
 router.use('/pollinations', pollinations);
 router.use('/stability', stability);
-router.use('/blockentropy', blockentropy);
 router.use('/huggingface', huggingface);
 router.use('/nanogpt', nanogpt);
 router.use('/bfl', bfl);

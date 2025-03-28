@@ -76,6 +76,7 @@ import { Popup, POPUP_RESULT } from './popup.js';
 import { t } from './i18n.js';
 import { ToolManager } from './tool-calling.js';
 import { accountStorage } from './util/AccountStorage.js';
+import { IGNORE_SYMBOL } from './constants.js';
 
 export {
     openai_messages_count,
@@ -120,7 +121,6 @@ const default_bias_presets = {
 const max_2k = 2047;
 const max_4k = 4095;
 const max_8k = 8191;
-const max_12k = 12287;
 const max_16k = 16383;
 const max_32k = 32767;
 const max_64k = 65535;
@@ -183,7 +183,6 @@ export const chat_completion_sources = {
     PERPLEXITY: 'perplexity',
     GROQ: 'groq',
     ZEROONEAI: '01ai',
-    BLOCKENTROPY: 'blockentropy',
     NANOGPT: 'nanogpt',
     DEEPSEEK: 'deepseek',
 };
@@ -259,7 +258,6 @@ export const settingsToUpdate = {
     nanogpt_model: ['#model_nanogpt_select', 'nanogpt_model', false],
     deepseek_model: ['#model_deepseek_select', 'deepseek_model', false],
     zerooneai_model: ['#model_01ai_select', 'zerooneai_model', false],
-    blockentropy_model: ['#model_blockentropy_select', 'blockentropy_model', false],
     custom_model: ['#custom_model_id', 'custom_model', false],
     custom_url: ['#custom_api_url_text', 'custom_url', false],
     custom_include_body: ['#custom_include_body', 'custom_include_body', false],
@@ -347,7 +345,6 @@ const default_settings = {
     groq_model: 'llama-3.3-70b-versatile',
     nanogpt_model: 'gpt-4o-mini',
     zerooneai_model: 'yi-large',
-    blockentropy_model: 'be-70b-base-llama3.1',
     deepseek_model: 'deepseek-chat',
     custom_model: '',
     custom_url: '',
@@ -428,7 +425,6 @@ const oai_settings = {
     groq_model: 'llama-3.1-70b-versatile',
     nanogpt_model: 'gpt-4o-mini',
     zerooneai_model: 'yi-large',
-    blockentropy_model: 'be-70b-base-llama3.1',
     deepseek_model: 'deepseek-chat',
     custom_model: '',
     custom_url: '',
@@ -527,6 +523,13 @@ function setOpenAIMessages(chat) {
     for (let i = chat.length - 1; i >= 0; i--) {
         let role = chat[j]['is_user'] ? 'user' : 'assistant';
         let content = chat[j]['mes'];
+
+        // If this symbol flag is set, completely ignore the message.
+        // This can be used to hide messages without affecting the number of messages in the chat.
+        if (chat[j].extra?.[IGNORE_SYMBOL]) {
+            j++;
+            continue;
+        }
 
         // 100% legal way to send a message as system
         if (chat[j].extra?.type === system_message_types.NARRATOR) {
@@ -1657,8 +1660,6 @@ export function getChatCompletionModel(source = null) {
             return oai_settings.groq_model;
         case chat_completion_sources.ZEROONEAI:
             return oai_settings.zerooneai_model;
-        case chat_completion_sources.BLOCKENTROPY:
-            return oai_settings.blockentropy_model;
         case chat_completion_sources.NANOGPT:
             return oai_settings.nanogpt_model;
         case chat_completion_sources.DEEPSEEK:
@@ -1775,23 +1776,6 @@ function saveModelList(data) {
         }
 
         $('#model_01ai_select').val(oai_settings.zerooneai_model).trigger('change');
-    }
-
-    if (oai_settings.chat_completion_source == chat_completion_sources.BLOCKENTROPY) {
-        $('#model_blockentropy_select').empty();
-        model_list.forEach((model) => {
-            $('#model_blockentropy_select').append(
-                $('<option>', {
-                    value: model.id,
-                    text: model.id,
-                }));
-        });
-
-        if (!oai_settings.blockentropy_model && model_list.length > 0) {
-            oai_settings.blockentropy_model = model_list[0].id;
-        }
-
-        $('#model_blockentropy_select').val(oai_settings.blockentropy_model).trigger('change');
     }
 
     if (oai_settings.chat_completion_source == chat_completion_sources.MISTRALAI) {
@@ -3266,7 +3250,6 @@ function loadOpenAISettings(data, settings) {
     oai_settings.groq_model = settings.groq_model ?? default_settings.groq_model;
     oai_settings.nanogpt_model = settings.nanogpt_model ?? default_settings.nanogpt_model;
     oai_settings.deepseek_model = settings.deepseek_model ?? default_settings.deepseek_model;
-    oai_settings.blockentropy_model = settings.blockentropy_model ?? default_settings.blockentropy_model;
     oai_settings.zerooneai_model = settings.zerooneai_model ?? default_settings.zerooneai_model;
     oai_settings.custom_model = settings.custom_model ?? default_settings.custom_model;
     oai_settings.custom_url = settings.custom_url ?? default_settings.custom_url;
@@ -3353,7 +3336,6 @@ function loadOpenAISettings(data, settings) {
     $('#model_deepseek_select').val(oai_settings.deepseek_model);
     $(`#model_deepseek_select option[value="${oai_settings.deepseek_model}"`).prop('selected', true);
     $('#model_01ai_select').val(oai_settings.zerooneai_model);
-    $('#model_blockentropy_select').val(oai_settings.blockentropy_model);
     $('#custom_model_id').val(oai_settings.custom_model);
     $('#custom_api_url_text').val(oai_settings.custom_url);
     $('#openai_max_context').val(oai_settings.openai_max_context);
@@ -3633,7 +3615,6 @@ async function saveOpenAIPreset(name, settings, triggerUi = true) {
         perplexity_model: settings.perplexity_model,
         groq_model: settings.groq_model,
         zerooneai_model: settings.zerooneai_model,
-        blockentropy_model: settings.blockentropy_model,
         custom_model: settings.custom_model,
         custom_url: settings.custom_url,
         custom_include_body: settings.custom_include_body,
@@ -4342,12 +4323,6 @@ async function onModelChange() {
         oai_settings.zerooneai_model = value;
     }
 
-    if (value && $(this).is('#model_blockentropy_select')) {
-        console.log('Block Entropy model changed to', value);
-        oai_settings.blockentropy_model = value;
-        $('#blockentropy_model_id').val(value).trigger('input');
-    }
-
     if (value && $(this).is('#model_custom_select')) {
         console.log('Custom model changed to', value);
         oai_settings.custom_model = value;
@@ -4589,29 +4564,6 @@ async function onModelChange() {
         }
         else {
             $('#openai_max_context').attr('max', max_16k);
-        }
-
-        oai_settings.openai_max_context = Math.min(oai_settings.openai_max_context, Number($('#openai_max_context').attr('max')));
-        $('#openai_max_context').val(oai_settings.openai_max_context).trigger('input');
-
-        oai_settings.temp_openai = Math.min(oai_max_temp, oai_settings.temp_openai);
-        $('#temp_openai').attr('max', oai_max_temp).val(oai_settings.temp_openai).trigger('input');
-    }
-    if (oai_settings.chat_completion_source === chat_completion_sources.BLOCKENTROPY) {
-        if (oai_settings.max_context_unlocked) {
-            $('#openai_max_context').attr('max', unlocked_max);
-        }
-        else if (oai_settings.blockentropy_model.includes('llama3.1')) {
-            $('#openai_max_context').attr('max', max_16k);
-        }
-        else if (oai_settings.blockentropy_model.includes('72b')) {
-            $('#openai_max_context').attr('max', max_16k);
-        }
-        else if (oai_settings.blockentropy_model.includes('120b')) {
-            $('#openai_max_context').attr('max', max_12k);
-        }
-        else {
-            $('#openai_max_context').attr('max', max_8k);
         }
 
         oai_settings.openai_max_context = Math.min(oai_settings.openai_max_context, Number($('#openai_max_context').attr('max')));
@@ -4886,18 +4838,6 @@ async function onConnectButtonClick(e) {
             return;
         }
     }
-    if (oai_settings.chat_completion_source == chat_completion_sources.BLOCKENTROPY) {
-        const api_key_blockentropy = String($('#api_key_blockentropy').val()).trim();
-
-        if (api_key_blockentropy.length) {
-            await writeSecret(SECRET_KEYS.BLOCKENTROPY, api_key_blockentropy);
-        }
-
-        if (!secret_state[SECRET_KEYS.BLOCKENTROPY]) {
-            console.log('No secret key saved for Block Entropy');
-            return;
-        }
-    }
 
     startStatusLoading();
     saveSettingsDebounced();
@@ -4951,9 +4891,6 @@ function toggleChatCompletionForms() {
     }
     else if (oai_settings.chat_completion_source == chat_completion_sources.CUSTOM) {
         $('#model_custom_select').trigger('change');
-    }
-    else if (oai_settings.chat_completion_source == chat_completion_sources.BLOCKENTROPY) {
-        $('#model_blockentropy_select').trigger('change');
     }
     else if (oai_settings.chat_completion_source == chat_completion_sources.DEEPSEEK) {
         $('#model_deepseek_select').trigger('change');
@@ -5707,7 +5644,6 @@ export function initOpenAI() {
     $('#model_nanogpt_select').on('change', onModelChange);
     $('#model_deepseek_select').on('change', onModelChange);
     $('#model_01ai_select').on('change', onModelChange);
-    $('#model_blockentropy_select').on('change', onModelChange);
     $('#model_custom_select').on('change', onModelChange);
     $('#settings_preset_openai').on('change', onSettingsPresetChange);
     $('#new_oai_preset').on('click', onNewPresetClick);

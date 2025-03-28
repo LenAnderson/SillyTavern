@@ -2745,7 +2745,6 @@
                             <optgroup>
                                 <option value="01ai">01.AI (Yi)</option>
                                 <option value="ai21">AI21</option>
-                                <option value="blockentropy">Block Entropy</option>
                                 <option value="claude">Claude</option>
                                 <option value="cohere">Cohere</option>
                                 <option value="deepseek">DeepSeek</option>
@@ -3373,20 +3372,6 @@
                                         <option value="command-nightly">command-nightly</option>
                                     </optgroup>
                                 </select>
-                            </div>
-                        </form>
-                        <form id="blockentropy_form" data-source="blockentropy">
-                            <h4 data-i18n="Block Entropy API Key">Block Entropy API Key</h4>
-                            <div class="flex-container">
-                                <input id="api_key_blockentropy" name="api_key_blockentropy" class="text_pole flex1" value="" type="text" autocomplete="off">
-                                <div title="Clear your API key" data-i18n="[title]Clear your API key" class="menu_button fa-solid fa-circle-xmark clear-api-key" data-key="api_key_blockentropy"></div>
-                            </div>
-                            <div data-for="api_key_blockentropy" class="neutral_warning" data-i18n="For privacy reasons, your API key will be hidden after you reload the page.">
-                                For privacy reasons, your API key will be hidden after you reload the page.
-                            </div>
-                            <h4 data-i18n="Select a Model">Select a Model</h4>
-                            <div class="flex-container">
-                                <select id="model_blockentropy_select" class="text_pole"></select>
                             </div>
                         </form>
                         <form id="custom_form" data-source="custom">
@@ -6013,6 +5998,7 @@
                                     </div>
                                 </div>
                             </div>
+                            <i class="menu_button move_entry_button fa-solid fa-right-left" title="Move Entry to Another Lorebook" data-i18n="[title]Move Entry to Another Lorebook"></i>
                             <i class="menu_button duplicate_entry_button fa-solid fa-paste" title="Duplicate world info entry" data-i18n="[title]Duplicate world info entry" type="submit" value=""></i>
                             <i class="menu_button delete_entry_button fa-solid fa-trash-can" title="Delete world info entry" data-i18n="[title]Delete world info entry" type="submit" value=""></i>
                         </div>
@@ -6101,8 +6087,11 @@
                                         <label for="content ">
                                             <small>
                                                 <span class="alignitemscenter flex-container flexnowrap wide100p justifySpaceBetween">
-                                                    <span data-i18n="Content" class="alignitemscenter flex-container flexNoGap mdhotkey_location">
-                                                        Content
+                                                    <span class="alignitemscenter flex-container">
+                                                        <span data-i18n="Content" class="mdhotkey_location">
+                                                            Content
+                                                        </span>
+                                                        <i class="editor_maximize fa-solid fa-maximize right_menu_button" title="Expand the editor" data-i18n="[title]Expand the editor"></i>
                                                     </span>
                                                     <span>
                                                         (<span data-i18n="extension_token_counter">Tokens:</span>&nbsp; <span class="world_entry_form_token_counter" data-first-run="true">counting...</span>)&nbsp;

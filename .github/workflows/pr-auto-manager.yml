@@ -262,6 +262,6 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           for ISSUE in $(echo $final_issues | jq -r '.[]'); do
-            gh issue edit $ISSUE -R ${{ github.repository }} --add-label "✅ Done (staging)"
-            echo "Added label '✅ Done (staging)' to issue #$ISSUE"
+            gh issue edit $ISSUE -R ${{ github.repository }} --add-label "✅ Done (staging)" --remove-label "🧑‍💻 In Progress"
+            echo "Added label '✅ Done (staging)' (and removed '🧑‍💻 In Progress' if present) in issue #$ISSUE"
           done

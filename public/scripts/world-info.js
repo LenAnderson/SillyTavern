@@ -2208,7 +2208,7 @@ function verifyWorldInfoSearchSortRule() {
  * Use `originalWIDataKeyMap` to find the correct value to be set.
  *
  * @param {object} data - The data object containing the original data entries.
- * @param {string} uid - The unique identifier of the data entry.
+ * @param {number} uid - The unique identifier of the data entry.
  * @param {string} key - The key of the value to be set.
  * @param {any} value - The value to be set.
  */
@@ -2232,7 +2232,9 @@ export function setWIOriginalDataValue(data, uid, key, value) {
  */
 export function deleteWIOriginalDataValue(data, uid) {
     if (data.originalData && Array.isArray(data.originalData.entries)) {
-        const originalIndex = data.originalData.entries.findIndex(x => x.uid === uid);
+        // Non-strict equality is used here to allow for both string and number comparisons
+        // @eslint-disable-next-line eqeqeq
+        const originalIndex = data.originalData.entries.findIndex(x => x.uid == uid);
 
         if (originalIndex >= 0) {
             data.originalData.entries.splice(originalIndex, 1);
@@ -2680,8 +2682,10 @@ export async function getWorldEntry(name, data, entry) {
         $(counter).text(numberOfTokens);
     }, debounce_timeout.relaxed);
 
+    const contentInputId = `world_entry_content_${entry.uid}`;
     const contentInput = template.find('textarea[name="content"]');
     contentInput.data('uid', entry.uid);
+    contentInput.attr('id', contentInputId);
     contentInput.on('input', async function (_, { skipCount } = {}) {
         const uid = $(this).data('uid');
         const value = $(this).val();
@@ -2698,7 +2702,9 @@ export async function getWorldEntry(name, data, entry) {
         countTokensDebounced(counter, value);
     });
     contentInput.val(entry.content).trigger('input', { skipCount: true });
-    //initScrollHeight(contentInput);
+
+    const contentExpandButton = template.find('.editor_maximize');
+    contentExpandButton.attr('data-for', contentInputId);
 
     template.find('.inline-drawer-toggle').on('click', function () {
         if (counter.data('first-run')) {
@@ -3137,6 +3143,84 @@ export async function getWorldEntry(name, data, entry) {
         deleteWIOriginalDataValue(data, uid);
         await saveWorldInfo(name, data);
         updateEditor(navigation_option.previous);
+    });
+
+    // move button
+    const moveButton = template.find('.move_entry_button');
+    moveButton.attr('data-uid', entry.uid);
+    moveButton.attr('data-current-world', name);
+    moveButton.on('click', async function (e) {
+        e.stopPropagation();
+        const sourceUid = $(this).attr('data-uid');
+        const sourceWorld = $(this).attr('data-current-world');
+        const sourceWorldInfo = await loadWorldInfo(sourceWorld);
+        if (!sourceWorldInfo) {
+            return;
+        }
+        const sourceName = sourceWorldInfo.entries[sourceUid]?.comment;
+        if (sourceName === undefined) {
+            return;
+        }
+
+        const select = document.createElement('select');
+        select.id = 'move_entry_target_select';
+        select.classList.add('text_pole', 'wide100p', 'marginTop10');
+
+        const defaultOption = document.createElement('option');
+        defaultOption.value = '';
+        defaultOption.textContent = `-- ${t`Select Target Lorebook`} --`;
+        select.appendChild(defaultOption);
+
+        let selectableWorldCount = 0;
+        world_names.forEach(worldName => {
+            if (worldName !== sourceWorld) { // Exclude current world
+                const option = document.createElement('option');
+                option.value = world_names.indexOf(worldName).toString();
+                option.textContent = worldName;
+                select.appendChild(option);
+                selectableWorldCount++;
+            }
+        });
+
+        if (selectableWorldCount === 0) {
+            toastr.warning(t`There are no other lorebooks to move to.`);
+            return;
+        }
+
+        // Create wrapper div
+        const wrapper = document.createElement('div');
+        wrapper.textContent = t`Move "${sourceName}" to:`;
+
+        // Create container and append elements
+        const container = document.createElement('div');
+        container.appendChild(wrapper);
+        container.appendChild(select);
+
+        let selectedWorldIndex = -1;
+        select.addEventListener('change', function() {
+            selectedWorldIndex = this.value === '' ? -1 : Number(this.value);
+        });
+
+        const popupConfirm = await callGenericPopup(container, POPUP_TYPE.CONFIRM, '', {
+            okButton: t`Move`,
+            cancelButton: t`Cancel`,
+        });
+        if (!popupConfirm) {
+            return;
+        }
+
+        if (selectedWorldIndex === -1) {
+            return;
+        }
+
+        const selectedValue = world_names[selectedWorldIndex];
+
+        if (!selectedValue) {
+            toastr.warning(t`Please select a target lorebook.`);
+            return;
+        }
+
+        await moveWorldInfoEntry(sourceWorld, selectedValue, sourceUid);
     });
 
     // scan depth
@@ -5267,3 +5351,99 @@ jQuery(() => {
         });
     });
 });
+
+/**
+ * Moves a World Info entry from a source lorebook to a target lorebook.
+ *
+ * @param {string} sourceName - The name of the source lorebook file.
+ * @param {string} targetName - The name of the target lorebook file.
+ * @param {string|number} uid - The UID of the entry to move from the source lorebook.
+ * @returns {Promise<boolean>} True if the move was successful, false otherwise.
+ */
+export async function moveWorldInfoEntry(sourceName, targetName, uid) {
+    if (sourceName === targetName) {
+        return false;
+    }
+
+    if (!world_names.includes(sourceName)) {
+        toastr.error(t`Source lorebook '${sourceName}' not found.`);
+        console.error(`[WI Move] Source lorebook '${sourceName}' does not exist.`);
+        return false;
+    }
+
+    if (!world_names.includes(targetName)) {
+        toastr.error(t`Target lorebook '${targetName}' not found.`);
+        console.error(`[WI Move] Target lorebook '${targetName}' does not exist.`);
+        return false;
+    }
+
+    const entryUidString = String(uid);
+
+    try {
+        const sourceData = await loadWorldInfo(sourceName);
+        const targetData = await loadWorldInfo(targetName);
+
+        if (!sourceData || !sourceData.entries) {
+            toastr.error(t`Failed to load data for source lorebook '${sourceName}'.`);
+            console.error(`[WI Move] Could not load source data for '${sourceName}'.`);
+            return false;
+        }
+        if (!targetData || !targetData.entries) {
+            toastr.error(t`Failed to load data for target lorebook '${targetName}'.`);
+            console.error(`[WI Move] Could not load target data for '${targetName}'.`);
+            return false;
+        }
+
+        if (!sourceData.entries[entryUidString]) {
+            toastr.error(t`Entry not found in source lorebook '${sourceName}'.`);
+            console.error(`[WI Move] Entry UID ${entryUidString} not found in '${sourceName}'.`);
+            return false;
+        }
+
+        const entryToMove = structuredClone(sourceData.entries[entryUidString]);
+
+
+        const newUid = getFreeWorldEntryUid(targetData);
+        if (newUid === null) {
+            console.error(`[WI Move] Failed to get a free UID in '${targetName}'.`);
+            return false;
+        }
+
+        entryToMove.uid = newUid;
+        // Place the entry at the end of the target lorebook
+        const maxDisplayIndex = Object.values(targetData.entries).reduce((max, entry) => Math.max(max, entry.displayIndex ?? -1), -1);
+        entryToMove.displayIndex = maxDisplayIndex + 1;
+
+        targetData.entries[newUid] = entryToMove;
+
+        delete sourceData.entries[entryUidString];
+        // Remove from originalData if it exists
+        deleteWIOriginalDataValue(sourceData, entryUidString);
+        // TODO: setWIOriginalDataValue
+        console.debug(`[WI Move] Removed entry UID ${entryUidString} from source '${sourceName}'.`);
+
+
+        await saveWorldInfo(targetName, targetData, true);
+        console.debug(`[WI Move] Saved target lorebook '${targetName}'.`);
+        await saveWorldInfo(sourceName, sourceData, true);
+        console.debug(`[WI Move] Saved source lorebook '${sourceName}'.`);
+
+
+        console.log(`[WI Move] ${entryToMove.comment} moved successfully to '${targetName}'.`);
+
+        // Check if the currently viewed book in the editor is the source or target and reload it
+        const currentEditorBookIndex = Number($('#world_editor_select').val());
+        if (!isNaN(currentEditorBookIndex)) {
+            const currentEditorBookName = world_names[currentEditorBookIndex];
+            if (currentEditorBookName === sourceName || currentEditorBookName === targetName) {
+                reloadEditor(currentEditorBookName);
+            }
+        }
+
+        return true;
+    } catch (error) {
+        toastr.error(t`An unexpected error occurred while moving the entry: ${error.message}`);
+        console.error('[WI Move] Unexpected error:', error);
+        return false;
+    }
+}

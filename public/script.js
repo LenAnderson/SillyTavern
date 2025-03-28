@@ -174,7 +174,7 @@ import {
     saveBase64AsFile,
     uuidv4,
 } from './scripts/utils.js';
-import { debounce_timeout } from './scripts/constants.js';
+import { debounce_timeout, IGNORE_SYMBOL } from './scripts/constants.js';
 
 import { doDailyExtensionUpdatesCheck, extension_settings, initExtensions, loadExtensionSettings, runGenerationInterceptors, saveMetadataDebounced } from './scripts/extensions.js';
 import { COMMENT_NAME_DEFAULT, executeSlashCommandsOnChatInput, getSlashCommandsHelp, initDefaultSlashCommands, isExecutingCommandsFromChatInput, pauseScriptExecution, processChatSlashCommands, stopScriptExecution } from './scripts/slash-commands.js';
@@ -5385,6 +5385,12 @@ function formatMessageHistoryItem(chatItem, isInstruct, forceOutputSequence) {
     const characterName = chatItem?.name ? chatItem.name : name2;
     const itemName = chatItem.is_user ? chatItem['name'] : characterName;
     const shouldPrependName = !isNarratorType;
+
+    // If this symbol flag is set, completely ignore the message.
+    // This can be used to hide messages without affecting the number of messages in the chat.
+    if (chatItem.extra?.[IGNORE_SYMBOL]) {
+        return '';
+    }
 
     // Don't include a name if it's empty
     let textResult = chatItem?.name && shouldPrependName ? `${itemName}: ${chatItem.mes}\n` : `${chatItem.mes}\n`;

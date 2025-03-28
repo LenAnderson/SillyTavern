@@ -50,7 +50,6 @@ const API_PERPLEXITY = 'https://api.perplexity.ai';
 const API_GROQ = 'https://api.groq.com/openai/v1';
 const API_MAKERSUITE = 'https://generativelanguage.googleapis.com';
 const API_01AI = 'https://api.lingyiwanwu.com/v1';
-const API_BLOCKENTROPY = 'https://api.blockentropy.ai/v1';
 const API_AI21 = 'https://api.ai21.com/studio/v1';
 const API_NANOGPT = 'https://nano-gpt.com/api/v1';
 const API_DEEPSEEK = 'https://api.deepseek.com/beta';
@@ -865,10 +864,6 @@ router.post('/status', async function (request, response_getstatus_openai) {
         api_url = API_01AI;
         api_key_openai = readSecret(request.user.directories, SECRET_KEYS.ZEROONEAI);
         headers = {};
-    } else if (request.body.chat_completion_source === CHAT_COMPLETION_SOURCES.BLOCKENTROPY) {
-        api_url = API_BLOCKENTROPY;
-        api_key_openai = readSecret(request.user.directories, SECRET_KEYS.BLOCKENTROPY);
-        headers = {};
     } else if (request.body.chat_completion_source === CHAT_COMPLETION_SOURCES.NANOGPT) {
         api_url = API_NANOGPT;
         api_key_openai = readSecret(request.user.directories, SECRET_KEYS.NANOGPT);
@@ -1153,11 +1148,6 @@ router.post('/generate', function (request, response) {
     } else if (request.body.chat_completion_source === CHAT_COMPLETION_SOURCES.ZEROONEAI) {
         apiUrl = API_01AI;
         apiKey = readSecret(request.user.directories, SECRET_KEYS.ZEROONEAI);
-        headers = {};
-        bodyParams = {};
-    } else if (request.body.chat_completion_source === CHAT_COMPLETION_SOURCES.BLOCKENTROPY) {
-        apiUrl = API_BLOCKENTROPY;
-        apiKey = readSecret(request.user.directories, SECRET_KEYS.BLOCKENTROPY);
         headers = {};
         bodyParams = {};
     } else {

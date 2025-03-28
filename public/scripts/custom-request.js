@@ -2,7 +2,7 @@ import { getPresetManager } from './preset-manager.js';
 import { extractMessageFromData, getGenerateUrl, getRequestHeaders } from '../script.js';
 import { getTextGenServer } from './textgen-settings.js';
 import { extractReasoningFromData } from './reasoning.js';
-import { formatInstructModeChat, formatInstructModePrompt, names_behavior_types } from './instruct-mode.js';
+import { formatInstructModeChat, formatInstructModePrompt, getInstructStoppingSequences, names_behavior_types } from './instruct-mode.js';
 import { getStreamingReply, tryParseStreamingError } from './openai.js';
 import EventSourceStream from './sse-stream.js';
 
@@ -190,6 +190,7 @@ export class TextCompletionService {
      * @param {Object} options - Configuration options
      * @param {string?} [options.presetName] - Name of the preset to use for generation settings
      * @param {string?} [options.instructName] - Name of instruct preset for message formatting
+     * @param {Partial<InstructSettings>?} [options.instructSettings] - Override instruct settings
      * @param {boolean} extractData - Whether to extract structured data from response
      * @param {AbortSignal?} [signal]
      * @returns {Promise<ExtractedData | (() => AsyncGenerator<StreamResponse>)>} If not streaming, returns extracted data; if streaming, returns a function that creates an AsyncGenerator
@@ -222,15 +223,20 @@ export class TextCompletionService {
             }
         }
 
+
+        /** @type {InstructSettings | undefined} */
+        let instructPreset;
         // Handle instruct formatting if requested
         if (Array.isArray(prompt) && instructName) {
             const instructPresetManager = getPresetManager('instruct');
-            let instructPreset = instructPresetManager?.getCompletionPresetByName(instructName);
+            instructPreset = instructPresetManager?.getCompletionPresetByName(instructName);
             if (instructPreset) {
                 // Clone the preset to avoid modifying the original
                 instructPreset = structuredClone(instructPreset);
-                instructPreset.macro = false;
                 instructPreset.names_behavior = names_behavior_types.NONE;
+                if (options.instructSettings) {
+                    Object.assign(instructPreset, options.instructSettings);
+                }
 
                 // Format messages using instruct formatting
                 const formattedMessages = [];
@@ -266,10 +272,9 @@ export class TextCompletionService {
                     formattedMessages.push(messageContent);
                 }
                 requestData.prompt = formattedMessages.join('');
-                if (instructPreset.output_suffix) {
-                    requestData.stop = [instructPreset.output_suffix];
-                    requestData.stopping_strings = [instructPreset.output_suffix];
-                }
+                const stoppingStrings = getInstructStoppingSequences({ customInstruct: instructPreset, useStopStrings: false });
+                requestData.stop = stoppingStrings;
+                requestData.stopping_strings = stoppingStrings;
             } else {
                 console.warn(`Instruct preset "${instructName}" not found, using basic formatting`);
                 requestData.prompt = prompt.map(x => x.content).join('\n\n');
@@ -283,7 +288,61 @@ export class TextCompletionService {
         // @ts-ignore
         const data = this.createRequestData(requestData);
 
-        return await this.sendRequest(data, extractData, signal);
+        const response = await this.sendRequest(data, extractData, signal);
+        // Remove stopping strings from the end
+        if (!data.stream && extractData) {
+            /** @type {ExtractedData} */
+            // @ts-ignore
+            const extractedData = response;
+
+            let message = extractedData.content;
+
+            message = message.replace(/[^\S\r\n]+$/gm, '');
+
+            if (requestData.stopping_strings) {
+                for (const stoppingString of requestData.stopping_strings) {
+                    if (stoppingString.length) {
+                        for (let j = stoppingString.length; j > 0; j--) {
+                            if (message.slice(-j) === stoppingString.slice(0, j)) {
+                                message = message.slice(0, -j);
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (instructPreset) {
+                [
+                    instructPreset.stop_sequence,
+                    instructPreset.input_sequence,
+                ].forEach(sequence => {
+                    if (sequence?.trim()) {
+                        const index = message.indexOf(sequence);
+                        if (index !== -1) {
+                            message = message.substring(0, index);
+                        }
+                    }
+                });
+
+                [
+                    instructPreset.output_sequence,
+                    instructPreset.last_output_sequence,
+                ].forEach(sequences => {
+                    if (sequences) {
+                        sequences.split('\n')
+                            .filter(line => line.trim() !== '')
+                            .forEach(line => {
+                                message = message.replaceAll(line, '');
+                            });
+                    }
+                });
+            }
+
+            extractedData.content = message;
+        }
+
+        return response;
     }
 
     /**

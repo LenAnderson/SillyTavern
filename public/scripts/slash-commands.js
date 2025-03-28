@@ -3936,7 +3936,6 @@ function getModelOptions(quiet) {
         { id: 'model_groq_select', api: 'openai', type: chat_completion_sources.GROQ },
         { id: 'model_nanogpt_select', api: 'openai', type: chat_completion_sources.NANOGPT },
         { id: 'model_01ai_select', api: 'openai', type: chat_completion_sources.ZEROONEAI },
-        { id: 'model_blockentropy_select', api: 'openai', type: chat_completion_sources.BLOCKENTROPY },
         { id: 'model_deepseek_select', api: 'openai', type: chat_completion_sources.DEEPSEEK },
         { id: 'model_novel_select', api: 'novel', type: null },
         { id: 'horde_model', api: 'koboldhorde', type: null },

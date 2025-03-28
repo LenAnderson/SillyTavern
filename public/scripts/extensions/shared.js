@@ -285,6 +285,7 @@ export class ConnectionManagerRequestService {
         extractData: true,
         includePreset: true,
         includeInstruct: true,
+        instructSettings: {},
     };
 
     static getAllowedTypes() {
@@ -298,11 +299,17 @@ export class ConnectionManagerRequestService {
      * @param {string} profileId
      * @param {string | (import('../custom-request.js').ChatCompletionMessage & {ignoreInstruct?: boolean})[]} prompt
      * @param {number} maxTokens
-     * @param {{stream?: boolean, signal?: AbortSignal, extractData?: boolean, includePreset?: boolean, includeInstruct?: boolean}} custom - default values are true
+     * @param {Object} custom
+     * @param {boolean?} [custom.stream=false]
+     * @param {AbortSignal?} [custom.signal]
+     * @param {boolean?} [custom.extractData=true]
+     * @param {boolean?} [custom.includePreset=true]
+     * @param {boolean?} [custom.includeInstruct=true]
+     * @param {Partial<InstructSettings>?} [custom.instructSettings] Override instruct settings
      * @returns {Promise<import('../custom-request.js').ExtractedData | (() => AsyncGenerator<import('../custom-request.js').StreamResponse>)>} If not streaming, returns extracted data; if streaming, returns a function that creates an AsyncGenerator
      */
     static async sendRequest(profileId, prompt, maxTokens, custom = this.defaultSendRequestParams) {
-        const { stream, signal, extractData, includePreset, includeInstruct } = { ...this.defaultSendRequestParams, ...custom };
+        const { stream, signal, extractData, includePreset, includeInstruct, instructSettings } = { ...this.defaultSendRequestParams, ...custom };
 
         const context = SillyTavern.getContext();
         if (context.extensionSettings.disabledExtensions.includes('connection-manager')) {
@@ -346,6 +353,7 @@ export class ConnectionManagerRequestService {
                     }, {
                         instructName: includeInstruct ? profile.instruct : undefined,
                         presetName: includePreset ? profile.preset : undefined,
+                        instructSettings: includeInstruct ? instructSettings : undefined,
                     }, extractData, signal);
                 }
                 default: {
