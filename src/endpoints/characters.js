@@ -10,14 +10,14 @@ import { sync as writeFileAtomicSync } from 'write-file-atomic';
 import yaml from 'yaml';
 import _ from 'lodash';
 import mime from 'mime-types';
-import jimp from 'jimp';
+import { Jimp, JimpMime } from '../jimp.js';
 import storage from 'node-persist';
 
 import { AVATAR_WIDTH, AVATAR_HEIGHT } from '../constants.js';
 import { default as validateAvatarUrlMiddleware, getFileNameValidationFunction } from '../middleware/validateFileName.js';
-import { deepMerge, humanizedISO8601DateTime, tryParse, extractFileFromZipBuffer, MemoryLimitedMap, getConfigValue } from '../util.js';
+import { deepMerge, humanizedISO8601DateTime, tryParse, extractFileFromZipBuffer, MemoryLimitedMap, getConfigValue, mutateJsonString } from '../util.js';
 import { TavernCardValidator } from '../validator/TavernCardValidator.js';
-import { parse, write } from '../character-card-parser.js';
+import { parse, read, write } from '../character-card-parser.js';
 import { readWorldInfoFile } from './worldinfo.js';
 import { invalidateThumbnail } from './thumbnails.js';
 import { importRisuSprites } from './sprites.js';
@@ -277,12 +277,12 @@ async function writeCharacterData(inputFile, data, outputFile, request, crop = u
  * @returns {Promise<Buffer>} Image buffer
  */
 async function parseImageBuffer(buffer, crop) {
-    const image = await jimp.read(buffer);
+    const image = await Jimp.fromBuffer(buffer);
     let finalWidth = image.bitmap.width, finalHeight = image.bitmap.height;
 
     // Apply crop if defined
     if (typeof crop == 'object' && [crop.x, crop.y, crop.width, crop.height].every(x => typeof x === 'number')) {
-        image.crop(crop.x, crop.y, crop.width, crop.height);
+        image.crop({ x: crop.x, y: crop.y, w: crop.width, h: crop.height });
         // Apply standard resize if requested
         if (crop.want_resize) {
             finalWidth = AVATAR_WIDTH;
@@ -293,7 +293,8 @@ async function parseImageBuffer(buffer, crop) {
         }
     }
 
-    return image.cover(finalWidth, finalHeight).getBufferAsync(jimp.MIME_PNG);
+    image.cover({ w: finalWidth, h: finalHeight });
+    return await image.getBuffer(JimpMime.png);
 }
 
 /**
@@ -304,12 +305,12 @@ async function parseImageBuffer(buffer, crop) {
  */
 async function tryReadImage(imgPath, crop) {
     try {
-        let rawImg = await jimp.read(imgPath);
+        const rawImg = await Jimp.read(imgPath);
         let finalWidth = rawImg.bitmap.width, finalHeight = rawImg.bitmap.height;
 
         // Apply crop if defined
         if (typeof crop == 'object' && [crop.x, crop.y, crop.width, crop.height].every(x => typeof x === 'number')) {
-            rawImg = rawImg.crop(crop.x, crop.y, crop.width, crop.height);
+            rawImg.crop({ x: crop.x, y: crop.y, w: crop.width, h: crop.height });
             // Apply standard resize if requested
             if (crop.want_resize) {
                 finalWidth = AVATAR_WIDTH;
@@ -320,8 +321,8 @@ async function tryReadImage(imgPath, crop) {
             }
         }
 
-        const image = await rawImg.cover(finalWidth, finalHeight).getBufferAsync(jimp.MIME_PNG);
-        return image;
+        rawImg.cover({ w: finalWidth, h: finalHeight });
+        return await rawImg.getBuffer(JimpMime.png);
     }
     // If it's an unsupported type of image (APNG) - just read the file as buffer
     catch (error) {
@@ -489,10 +490,13 @@ function convertToV2(char, directories) {
     return result;
 }
 
-
-function unsetFavFlag(char) {
+/**
+ * Removes fields that are not meant to be shared.
+ */
+function unsetPrivateFields(char) {
     _.set(char, 'fav', false);
     _.set(char, 'data.extensions.fav', false);
+    _.unset(char, 'chat');
 }
 
 function readFromV2(char) {
@@ -778,7 +782,7 @@ async function importFromCharX(uploadPath, { request }, preservedFileName) {
         }
     }
 
-    unsetFavFlag(card);
+    unsetPrivateFields(card);
     card['create_date'] = humanizedISO8601DateTime();
     card.name = sanitize(card.name);
     const fileName = preservedFileName || getPngName(card.name, request.user.directories);
@@ -802,7 +806,7 @@ async function importFromJson(uploadPath, { request }, preservedFileName) {
     if (jsonData.spec !== undefined) {
         console.info(`Importing from ${jsonData.spec} json`);
         importRisuSprites(request.user.directories, jsonData);
-        unsetFavFlag(jsonData);
+        unsetPrivateFields(jsonData);
         jsonData = readFromV2(jsonData);
         jsonData['create_date'] = humanizedISO8601DateTime();
         const pngName = preservedFileName || getPngName(jsonData.data?.name || jsonData.name, request.user.directories);
@@ -885,7 +889,7 @@ async function importFromPng(uploadPath, { request }, preservedFileName) {
     if (jsonData.spec !== undefined) {
         console.info(`Found a ${jsonData.spec} character file.`);
         importRisuSprites(request.user.directories, jsonData);
-        unsetFavFlag(jsonData);
+        unsetPrivateFields(jsonData);
         jsonData = readFromV2(jsonData);
         jsonData['create_date'] = humanizedISO8601DateTime();
         const char = JSON.stringify(jsonData);
@@ -1422,17 +1426,21 @@ router.post('/export', validateAvatarUrlMiddleware, async function (request, res
 
         switch (request.body.format) {
             case 'png': {
-                const fileContent = await fsPromises.readFile(filename);
+                const rawBuffer = await fsPromises.readFile(filename);
+                const rawData = read(rawBuffer);
+                const mutatedData = mutateJsonString(rawData, unsetPrivateFields);
+                const mutatedBuffer = write(rawBuffer, mutatedData);
                 const contentType = mime.lookup(filename) || 'image/png';
                 response.setHeader('Content-Type', contentType);
                 response.setHeader('Content-Disposition', `attachment; filename="${encodeURI(path.basename(filename))}"`);
-                return response.send(fileContent);
+                return response.send(mutatedBuffer);
             }
             case 'json': {
                 try {
-                    let json = await readCharacterData(filename);
+                    const json = await readCharacterData(filename);
                     if (json === undefined) return response.sendStatus(400);
-                    let jsonObject = getCharaCardV2(JSON.parse(json), request.user.directories);
+                    const jsonObject = getCharaCardV2(JSON.parse(json), request.user.directories);
+                    unsetPrivateFields(jsonObject);
                     return response.type('json').send(JSON.stringify(jsonObject, null, 4));
                 }
                 catch {
