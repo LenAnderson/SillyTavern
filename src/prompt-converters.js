@@ -360,6 +360,7 @@ export function convertCohereMessages(messages, names) {
  */
 export function convertGooglePrompt(messages, model, useSysPrompt, names) {
     const visionSupportedModels = [
+        'gemini-2.5-pro-preview-03-25',
         'gemini-2.5-pro-exp-03-25',
         'gemini-2.0-pro-exp',
         'gemini-2.0-pro-exp-02-05',
@@ -412,7 +413,7 @@ export function convertGooglePrompt(messages, model, useSysPrompt, names) {
         }
     }
 
-    const system_instruction = { parts: { text: sys_prompt.trim() } };
+    const system_instruction = { parts: [{ text: sys_prompt.trim() }]};
     const toolNameMap = {};
 
     const contents = [];
