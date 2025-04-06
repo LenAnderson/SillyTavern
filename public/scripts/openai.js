@@ -2248,8 +2248,28 @@ async function sendOpenAIRequest(type, messages, signal) {
         checkModerationError(data);
 
         if (data.error) {
-            const message = data.error.message || response.statusText || t`Unknown error`;
-            toastr.error(message, t`API returned an error`);
+            console.warn('[API]', data.error);
+            let rawError = null;
+            let options = {};
+            if (data.error.metadata?.raw) {
+                try {
+                    rawError = JSON.parse(data.error.metadata.raw).error;
+                    if (rawError.details?.length) {
+                        options = {
+                            timeOut: 0,
+                            onclick: ()=>{
+                                Popup.show.input(null, null, JSON.stringify(rawError.details, null, 4), {
+                                    wider: true,
+                                    rows: 25,
+                                });
+                            },
+                        };
+                    }
+                } catch { /* empty */ }
+            }
+            const message = rawError?.message || data.error.message || response.statusText || t`Unknown error`;
+            console.warn('error toast:', message, options);
+            toastr.error(message, t`API returned an error`, options);
             throw new Error(message);
         }
 
