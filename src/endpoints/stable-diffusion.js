@@ -1166,7 +1166,8 @@ falai.post('/models', async (_request, response) => {
         const models = data
             .filter(x => !x.title.toLowerCase().includes('inpainting') &&
                 !x.title.toLowerCase().includes('control') &&
-                !x.title.toLowerCase().includes('upscale'))
+                !x.title.toLowerCase().includes('upscale') &&
+                !x.title.toLowerCase().includes('lora'))
             .sort((a, b) => a.title.localeCompare(b.title))
             .map(x => ({ value: x.modelUrl.split('fal-ai/')[1], text: x.title }));
         return response.send(models);

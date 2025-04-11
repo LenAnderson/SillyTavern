@@ -832,6 +832,12 @@ function registerReasoningSlashCommands() {
                 typeList: ARGUMENT_TYPE.NUMBER,
                 enumProvider: commonEnumProviders.messages(),
             }),
+            SlashCommandNamedArgument.fromProps({
+                name: 'collapse',
+                description: 'Whether to collapse the reasoning block. (If not provided, uses the default expand setting)',
+                typeList: [ARGUMENT_TYPE.BOOLEAN],
+                enumList: commonEnumProviders.boolean('trueFalse')(),
+            }),
         ],
         unnamedArgumentList: [
             SlashCommandArgument.fromProps({
@@ -856,6 +862,9 @@ function registerReasoningSlashCommands() {
 
             closeMessageEditor('reasoning');
             updateMessageBlock(messageId, message);
+
+            if (isTrueBoolean(String(args.collapse))) $(`#chat [mesid="${messageId}"] .mes_reasoning_details`).removeAttr('open');
+            if (isFalseBoolean(String(args.collapse))) $(`#chat [mesid="${messageId}"] .mes_reasoning_details`).attr('open', '');
             return message.extra.reasoning;
         },
     }));
