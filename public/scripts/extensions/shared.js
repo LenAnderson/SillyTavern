@@ -153,6 +153,10 @@ function throwIfInvalidModel(useReverseProxy) {
         throw new Error('Cohere API key is not set.');
     }
 
+    if (extension_settings.caption.multimodal_api === 'xai' && !secret_state[SECRET_KEYS.XAI]) {
+        throw new Error('xAI API key is not set.');
+    }
+
     if (extension_settings.caption.multimodal_api === 'ollama' && !textgenerationwebui_settings.server_urls[textgen_types.OLLAMA]) {
         throw new Error('Ollama server URL is not set.');
     }
