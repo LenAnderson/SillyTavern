@@ -564,6 +564,10 @@
         "type": "context"
     },
     {
+        "filename": "presets/context/Llama 4 Instruct.json",
+        "type": "context"
+    },
+    {
         "filename": "presets/context/Phi.json",
         "type": "context"
     },
@@ -661,6 +665,10 @@
     },
     {
         "filename": "presets/instruct/Llama 3 Instruct.json",
+        "type": "instruct"
+    },
+    {
+        "filename": "presets/instruct/Llama 4 Instruct.json",
         "type": "instruct"
     },
     {

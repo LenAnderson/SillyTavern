@@ -411,7 +411,7 @@ export function getTokenizerModel(requestModel) {
         return 'gpt-4o';
     }
 
-    if (requestModel.includes('gpt-4.5')) {
+    if (requestModel.includes('gpt-4.1') || requestModel.includes('gpt-4.5')) {
         return 'gpt-4o';
     }
 

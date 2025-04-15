@@ -16,12 +16,12 @@ import {
     Generate,
     getExtensionPrompt,
     getExtensionPromptList,
+    getExtensionPromptMaxDepth,
     getNextMessageId,
     getRequestHeaders,
     getStoppingStrings,
     is_send_press,
     main_api,
-    MAX_INJECTION_DEPTH,
     name1,
     name2,
     replaceItemizedPromptText,
@@ -743,7 +743,8 @@ async function populationInjectionPrompts(prompts, messages) {
         'assistant': extension_prompt_roles.ASSISTANT,
     };
 
-    for (let i = 0; i <= MAX_INJECTION_DEPTH; i++) {
+    const maxDepth = getExtensionPromptMaxDepth();
+    for (let i = 0; i <= maxDepth; i++) {
         // Get prompts for current depth
         const depthPrompts = prompts.filter(prompt => prompt.injection_depth === i && prompt.content);
 
@@ -1999,7 +2000,7 @@ async function sendOpenAIRequest(type, messages, signal) {
     const isContinue = type === 'continue';
     const stream = oai_settings.stream_openai && !isQuiet && !isScale && !(isOAI && ['o1-2024-12-17', 'o1'].includes(oai_settings.openai_model));
     const useLogprobs = !!power_user.request_token_probabilities;
-    const canMultiSwipe = oai_settings.n > 1 && !isContinue && !isImpersonate && !isQuiet && (isOAI || isCustom);
+    const canMultiSwipe = oai_settings.n > 1 && !isContinue && !isImpersonate && !isQuiet && (isOAI || isCustom || isXAI);
 
     // If we're using the window.ai extension, use that instead
     // Doesn't support logit bias yet
@@ -4164,6 +4165,9 @@ function getMaxContextOpenAI(value) {
     if (oai_settings.max_context_unlocked) {
         return unlocked_max;
     }
+    else if (value.includes('gpt-4.1')) {
+        return max_1mil;
+    }
     else if (value.startsWith('o1') || value.startsWith('o3')) {
         return max_128k;
     }
@@ -5184,6 +5188,7 @@ export function isImageInliningSupported() {
         'c4ai-aya-vision-32b',
         'grok-2-vision',
         'grok-vision',
+        'gpt-4.1',
     ];
 
     switch (oai_settings.chat_completion_source) {
