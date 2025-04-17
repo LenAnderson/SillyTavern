@@ -11942,8 +11942,8 @@ jQuery(async function () {
             return;
         }
         const drawer = $(this).closest('.inline-drawer');
-        const icon = drawer.find('.inline-drawer-icon');
-        const drawerContent = drawer.find('.inline-drawer-content');
+        const icon = drawer.find('>.inline-drawer-header .inline-drawer-icon');
+        const drawerContent = drawer.find('>.inline-drawer-content');
         icon.toggleClass('down up');
         icon.toggleClass('fa-circle-chevron-down fa-circle-chevron-up');
         drawerContent.stop().slideToggle({

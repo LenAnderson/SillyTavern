@@ -25,6 +25,16 @@
                     <option value="webllm" data-i18n="WebLLM Extension">WebLLM Extension</option>
                 </select>
             </div>
+            <div class="flex-container flexFlowColumn" id="vector_altEndpointUrl">
+                <label class="checkbox_label" for="vector_altEndpointUrl_enabled" title="Enable secondary endpoint URL usage, instead of the main one.">
+                    <input id="vector_altEndpointUrl_enabled" type="checkbox" class="checkbox">
+                    <span data-i18n="Use secondary URL">Use secondary URL</span>
+                </label>
+                <label for="vector_altEndpoint_address" data-i18n="Secondary Embedding endpoint URL">
+                    Secondary Embedding endpoint URL
+                </label>
+                <input id="vector_altEndpoint_address" class="text_pole" type="text" placeholder="e.g. http://localhost:5001" />
+            </div>
             <div class="flex-container flexFlowColumn" id="webllm_vectorsModel">
                 <label for="vectors_webllm_model" data-i18n="Vectorization Model">
                     Vectorization Model

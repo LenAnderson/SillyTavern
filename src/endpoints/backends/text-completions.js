@@ -450,7 +450,7 @@ ollama.post('/download', async function (request, response) {
 
         if (!fetchResponse.ok) {
             console.error('Download error:', fetchResponse.status, fetchResponse.statusText);
-            return response.status(fetchResponse.status).send({ error: true });
+            return response.status(500).send({ error: true });
         }
 
         console.debug('Ollama pull response:', await fetchResponse.json());
@@ -659,14 +659,14 @@ tabby.post('/download', async function (request, response) {
             }
         } else {
             console.error('API Permission error:', permissionResponse.status, permissionResponse.statusText);
-            return response.status(permissionResponse.status).send({ error: true });
+            return response.status(500).send({ error: true });
         }
 
         const fetchResponse = await fetch(`${baseUrl}/v1/download`, args);
 
         if (!fetchResponse.ok) {
             console.error('Download error:', fetchResponse.status, fetchResponse.statusText);
-            return response.status(fetchResponse.status).send({ error: true });
+            return response.status(500).send({ error: true });
         }
 
         return response.send({ ok: true });

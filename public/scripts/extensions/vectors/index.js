@@ -55,6 +55,8 @@ const getBatchSize = () => ['transformers', 'palm', 'ollama'].includes(settings.
 const settings = {
     // For both
     source: 'transformers',
+    alt_endpoint_url: '',
+    use_alt_endpoint: false,
     include_wi: false,
     togetherai_model: 'togethercomputer/m2-bert-80M-32k-retrieval',
     openai_model: 'text-embedding-ada-002',
@@ -109,6 +111,7 @@ const settings = {
 const moduleWorker = new ModuleWorkerWrapper(synchronizeChat);
 const webllmProvider = new WebLlmVectorProvider();
 const cachedSummaries = new Map();
+const vectorApiRequiresUrl = ['llamacpp', 'vllm', 'ollama', 'koboldcpp'];
 
 /**
  * Gets the Collection ID for a file embedded in the chat.
@@ -777,14 +780,14 @@ function getVectorsRequestBody(args = {}) {
             break;
         case 'ollama':
             body.model = extension_settings.vectors.ollama_model;
-            body.apiUrl = textgenerationwebui_settings.server_urls[textgen_types.OLLAMA];
+            body.apiUrl = settings.use_alt_endpoint ? settings.alt_endpoint_url : textgenerationwebui_settings.server_urls[textgen_types.OLLAMA];
             body.keep = !!extension_settings.vectors.ollama_keep;
             break;
         case 'llamacpp':
-            body.apiUrl = textgenerationwebui_settings.server_urls[textgen_types.LLAMACPP];
+            body.apiUrl = settings.use_alt_endpoint ? settings.alt_endpoint_url : textgenerationwebui_settings.server_urls[textgen_types.LLAMACPP];
             break;
         case 'vllm':
-            body.apiUrl = textgenerationwebui_settings.server_urls[textgen_types.VLLM];
+            body.apiUrl = settings.use_alt_endpoint ? settings.alt_endpoint_url : textgenerationwebui_settings.server_urls[textgen_types.VLLM];
             body.model = extension_settings.vectors.vllm_model;
             break;
         case 'webllm':
@@ -883,11 +886,18 @@ function throwIfSourceInvalid() {
         throw new Error('Vectors: API key missing', { cause: 'api_key_missing' });
     }
 
-    if (settings.source === 'ollama' && !textgenerationwebui_settings.server_urls[textgen_types.OLLAMA] ||
-        settings.source === 'vllm' && !textgenerationwebui_settings.server_urls[textgen_types.VLLM] ||
-        settings.source === 'koboldcpp' && !textgenerationwebui_settings.server_urls[textgen_types.KOBOLDCPP] ||
-        settings.source === 'llamacpp' && !textgenerationwebui_settings.server_urls[textgen_types.LLAMACPP]) {
-        throw new Error('Vectors: API URL missing', { cause: 'api_url_missing' });
+    if (vectorApiRequiresUrl.includes(settings.source) && settings.use_alt_endpoint) {
+        if (!settings.alt_endpoint_url) {
+            throw new Error('Vectors: API URL missing', { cause: 'api_url_missing' });
+        }
+    }
+    else {
+        if (settings.source === 'ollama' && !textgenerationwebui_settings.server_urls[textgen_types.OLLAMA] ||
+            settings.source === 'vllm' && !textgenerationwebui_settings.server_urls[textgen_types.VLLM] ||
+            settings.source === 'koboldcpp' && !textgenerationwebui_settings.server_urls[textgen_types.KOBOLDCPP] ||
+            settings.source === 'llamacpp' && !textgenerationwebui_settings.server_urls[textgen_types.LLAMACPP]) {
+            throw new Error('Vectors: API URL missing', { cause: 'api_url_missing' });
+        }
     }
 
     if (settings.source === 'ollama' && !settings.ollama_model || settings.source === 'vllm' && !settings.vllm_model) {
@@ -1087,6 +1097,7 @@ function toggleSettings() {
     $('#webllm_vectorsModel').toggle(settings.source === 'webllm');
     $('#koboldcpp_vectorsModel').toggle(settings.source === 'koboldcpp');
     $('#google_vectorsModel').toggle(settings.source === 'palm');
+    $('#vector_altEndpointUrl').toggle(vectorApiRequiresUrl.includes(settings.source));
     if (settings.source === 'webllm') {
         loadWebLlmModels();
     }
@@ -1165,7 +1176,7 @@ async function createKoboldCppEmbeddings(items) {
         headers: getRequestHeaders(),
         body: JSON.stringify({
             items: items,
-            server: textgenerationwebui_settings.server_urls[textgen_types.KOBOLDCPP],
+            server: settings.use_alt_endpoint ? settings.alt_endpoint_url : textgenerationwebui_settings.server_urls[textgen_types.KOBOLDCPP],
         }),
     });
 
@@ -1466,6 +1477,16 @@ jQuery(async () => {
         Object.assign(extension_settings.vectors, settings);
         saveSettingsDebounced();
         toggleSettings();
+    });
+    $('#vector_altEndpointUrl_enabled').prop('checked', settings.use_alt_endpoint).on('input', () => {
+        settings.use_alt_endpoint = $('#vector_altEndpointUrl_enabled').prop('checked');
+        Object.assign(extension_settings.vectors, settings);
+        saveSettingsDebounced();
+    });
+    $('#vector_altEndpoint_address').val(settings.alt_endpoint_url).on('change', () => {
+        settings.alt_endpoint_url = String($('#vector_altEndpoint_address').val());
+        Object.assign(extension_settings.vectors, settings);
+        saveSettingsDebounced();
     });
     $('#api_key_nomicai').on('click', async () => {
         const popupText = 'NomicAI API Key:';

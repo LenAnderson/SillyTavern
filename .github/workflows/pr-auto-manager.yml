@@ -30,7 +30,8 @@ jobs:
         # https://github.com/marketplace/actions/checkout
         uses: actions/checkout@v4.2.2
         with:
-            ref: ${{ github.head_ref }}
+            ref: ${{ github.event.pull_request.head.sha }}
+            repository: ${{ github.event.pull_request.head.repo.full_name }}
 
       - name: Setup Node.js
         # Setup Node.js environment

@@ -250,7 +250,7 @@ async function sendClaudeRequest(request, response) {
             if (!generateResponse.ok) {
                 const generateResponseText = await generateResponse.text();
                 console.warn(color.red(`Claude API returned error: ${generateResponse.status} ${generateResponse.statusText}\n${generateResponseText}\n${divider}`));
-                return response.status(generateResponse.status).send({ error: true });
+                return response.status(500).send({ error: true });
             }
 
             /** @type {any} */
@@ -463,7 +463,7 @@ async function sendMakerSuiteRequest(request, response) {
         } else {
             if (!generateResponse.ok) {
                 console.warn(`Google AI Studio API returned error: ${generateResponse.status} ${generateResponse.statusText} ${await generateResponse.text()}`);
-                return response.status(generateResponse.status).send({ error: true });
+                return response.status(500).send({ error: true });
             }
 
             /** @type {any} */
@@ -830,6 +830,100 @@ async function sendDeepSeekRequest(request, response) {
     }
 }
 
+/**
+ * Sends a request to XAI API.
+ * @param {express.Request} request Express request
+ * @param {express.Response} response Express response
+ */
+async function sendXaiRequest(request, response) {
+    const apiUrl = new URL(request.body.reverse_proxy || API_XAI).toString();
+    const apiKey = request.body.reverse_proxy ? request.body.proxy_password : readSecret(request.user.directories, SECRET_KEYS.XAI);
+
+    if (!apiKey && !request.body.reverse_proxy) {
+        console.warn('xAI API key is missing.');
+        return response.status(400).send({ error: true });
+    }
+
+    const controller = new AbortController();
+    request.socket.removeAllListeners('close');
+    request.socket.on('close', function () {
+        controller.abort();
+    });
+
+    try {
+        let bodyParams = {};
+
+        if (request.body.logprobs > 0) {
+            bodyParams['top_logprobs'] = request.body.logprobs;
+            bodyParams['logprobs'] = true;
+        }
+
+        if (Array.isArray(request.body.tools) && request.body.tools.length > 0) {
+            bodyParams['tools'] = request.body.tools;
+            bodyParams['tool_choice'] = request.body.tool_choice;
+        }
+
+        if (Array.isArray(request.body.stop) && request.body.stop.length > 0) {
+            bodyParams['stop'] = request.body.stop;
+        }
+
+        if (['grok-3-mini-beta', 'grok-3-mini-fast-beta'].includes(request.body.model)) {
+            bodyParams['reasoning_effort'] = request.body.reasoning_effort === 'high' ? 'high' : 'low';
+        }
+
+        const processedMessages = request.body.messages = convertXAIMessages(request.body.messages, getPromptNames(request));
+
+        const requestBody = {
+            'messages': processedMessages,
+            'model': request.body.model,
+            'temperature': request.body.temperature,
+            'max_tokens': request.body.max_tokens,
+            'max_completion_tokens': request.body.max_completion_tokens,
+            'stream': request.body.stream,
+            'presence_penalty': request.body.presence_penalty,
+            'frequency_penalty': request.body.frequency_penalty,
+            'top_p': request.body.top_p,
+            'seed': request.body.seed,
+            'n': request.body.n,
+            ...bodyParams,
+        };
+
+        const config = {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + apiKey,
+            },
+            body: JSON.stringify(requestBody),
+            signal: controller.signal,
+        };
+
+        console.debug('xAI request:', requestBody);
+
+        const generateResponse = await fetch(apiUrl + '/chat/completions', config);
+
+        if (request.body.stream) {
+            forwardFetchResponse(generateResponse, response);
+        } else {
+            if (!generateResponse.ok) {
+                const errorText = await generateResponse.text();
+                console.warn(`xAI API returned error: ${generateResponse.status} ${generateResponse.statusText} ${errorText}`);
+                const errorJson = tryParse(errorText) ?? { error: true };
+                return response.status(500).send(errorJson);
+            }
+            const generateResponseJson = await generateResponse.json();
+            console.debug('xAI response:', generateResponseJson);
+            return response.send(generateResponseJson);
+        }
+    } catch (error) {
+        console.error('Error communicating with xAI API: ', error);
+        if (!response.headersSent) {
+            response.send({ error: true });
+        } else {
+            response.end();
+        }
+    }
+}
 
 export const router = express.Router();
 
@@ -875,8 +969,9 @@ router.post('/status', async function (request, response_getstatus_openai) {
         api_key_openai = request.body.reverse_proxy ? request.body.proxy_password : readSecret(request.user.directories, SECRET_KEYS.DEEPSEEK);
         headers = {};
     } else if (request.body.chat_completion_source === CHAT_COMPLETION_SOURCES.XAI) {
-        api_url = API_XAI;
-        api_key_openai = readSecret(request.user.directories, SECRET_KEYS.XAI);
+        api_url = new URL(request.body.reverse_proxy || API_XAI);
+        api_key_openai = request.body.reverse_proxy ? request.body.proxy_password : readSecret(request.user.directories, SECRET_KEYS.XAI);
+        headers = {};
     } else {
         console.warn('This chat completion source is not supported yet.');
         return response_getstatus_openai.status(400).send({ error: true });
@@ -1044,6 +1139,7 @@ router.post('/generate', function (request, response) {
         case CHAT_COMPLETION_SOURCES.MISTRALAI: return sendMistralAIRequest(request, response);
         case CHAT_COMPLETION_SOURCES.COHERE: return sendCohereRequest(request, response);
         case CHAT_COMPLETION_SOURCES.DEEPSEEK: return sendDeepSeekRequest(request, response);
+        case CHAT_COMPLETION_SOURCES.XAI: return sendXaiRequest(request, response);
     }
 
     let apiUrl;
@@ -1155,12 +1251,6 @@ router.post('/generate', function (request, response) {
         apiKey = readSecret(request.user.directories, SECRET_KEYS.ZEROONEAI);
         headers = {};
         bodyParams = {};
-    } else if (request.body.chat_completion_source === CHAT_COMPLETION_SOURCES.XAI) {
-        apiUrl = API_XAI;
-        apiKey = readSecret(request.user.directories, SECRET_KEYS.XAI);
-        headers = {};
-        bodyParams = {};
-        request.body.messages = convertXAIMessages(request.body.messages, getPromptNames(request));
     } else {
         console.warn('This chat completion source is not supported yet.');
         return response.status(400).send({ error: true });
@@ -1168,14 +1258,8 @@ router.post('/generate', function (request, response) {
 
     // A few of OpenAIs reasoning models support reasoning effort
     if ([CHAT_COMPLETION_SOURCES.CUSTOM, CHAT_COMPLETION_SOURCES.OPENAI].includes(request.body.chat_completion_source)) {
-        if (['o1', 'o3-mini', 'o3-mini-2025-01-31'].includes(request.body.model)) {
+        if (['o1', 'o3-mini', 'o3-mini-2025-01-31', 'o4-mini', 'o4-mini-2025-04-16', 'o3', 'o3-2025-04-16'].includes(request.body.model)) {
             bodyParams['reasoning_effort'] = request.body.reasoning_effort;
-        }
-    }
-
-    if ([CHAT_COMPLETION_SOURCES.XAI].includes(request.body.chat_completion_source)) {
-        if (['grok-3-mini-beta', 'grok-3-mini-fast-beta'].includes(request.body.model)) {
-            bodyParams['reasoning_effort'] = request.body.reasoning_effort === 'high' ? 'high' : 'low';
         }
     }
 

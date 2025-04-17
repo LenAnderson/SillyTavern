@@ -2059,7 +2059,7 @@ async function sendOpenAIRequest(type, messages, signal) {
     }
 
     // Proxy is only supported for Claude, OpenAI, Mistral, and Google MakerSuite
-    if (oai_settings.reverse_proxy && [chat_completion_sources.CLAUDE, chat_completion_sources.OPENAI, chat_completion_sources.MISTRALAI, chat_completion_sources.MAKERSUITE, chat_completion_sources.DEEPSEEK].includes(oai_settings.chat_completion_source)) {
+    if (oai_settings.reverse_proxy && [chat_completion_sources.CLAUDE, chat_completion_sources.OPENAI, chat_completion_sources.MISTRALAI, chat_completion_sources.MAKERSUITE, chat_completion_sources.DEEPSEEK, chat_completion_sources.XAI].includes(oai_settings.chat_completion_source)) {
         await validateReverseProxy();
         generate_data['reverse_proxy'] = oai_settings.reverse_proxy;
         generate_data['proxy_password'] = oai_settings.proxy_password;
@@ -2200,25 +2200,27 @@ async function sendOpenAIRequest(type, messages, signal) {
         generate_data['seed'] = oai_settings.seed;
     }
 
-    if (isOAI && (oai_settings.openai_model.startsWith('o1') || oai_settings.openai_model.startsWith('o3'))) {
-        generate_data.messages.forEach((msg) => {
-            if (msg.role === 'system') {
-                msg.role = 'user';
-            }
-        });
+    if (isOAI && /^(o1|o3|o4)/.test(oai_settings.openai_model)) {
         generate_data.max_completion_tokens = generate_data.max_tokens;
         delete generate_data.max_tokens;
         delete generate_data.logprobs;
         delete generate_data.top_logprobs;
-        delete generate_data.n;
+        delete generate_data.stop;
+        delete generate_data.logit_bias;
         delete generate_data.temperature;
         delete generate_data.top_p;
         delete generate_data.frequency_penalty;
         delete generate_data.presence_penalty;
-        delete generate_data.tools;
-        delete generate_data.tool_choice;
-        delete generate_data.stop;
-        delete generate_data.logit_bias;
+        if (oai_settings.openai_model.startsWith('o1')) {
+            generate_data.messages.forEach((msg) => {
+                if (msg.role === 'system') {
+                    msg.role = 'user';
+                }
+            });
+            delete generate_data.n;
+            delete generate_data.tools;
+            delete generate_data.tool_choice;
+        }
     }
 
     await eventSource.emit(event_types.CHAT_COMPLETION_SETTINGS_READY, generate_data);
@@ -2254,7 +2256,8 @@ async function sendOpenAIRequest(type, messages, signal) {
 
                 if (Array.isArray(parsed?.choices) && parsed?.choices?.[0]?.index > 0) {
                     const swipeIndex = parsed.choices[0].index - 1;
-                    swipes[swipeIndex] = (swipes[swipeIndex] || '') + getStreamingReply(parsed, state);
+                    // FIXME: state.reasoning should be an array to support multi-swipe
+                    swipes[swipeIndex] = (swipes[swipeIndex] || '') + getStreamingReply(parsed, state, { overrideShowThoughts: false });
                 } else {
                     text += getStreamingReply(parsed, state);
                 }
@@ -3585,7 +3588,7 @@ async function getStatusOpen() {
         chat_completion_source: oai_settings.chat_completion_source,
     };
 
-    if (oai_settings.reverse_proxy && [chat_completion_sources.CLAUDE, chat_completion_sources.OPENAI, chat_completion_sources.MISTRALAI, chat_completion_sources.MAKERSUITE, chat_completion_sources.DEEPSEEK].includes(oai_settings.chat_completion_source)) {
+    if (oai_settings.reverse_proxy && [chat_completion_sources.CLAUDE, chat_completion_sources.OPENAI, chat_completion_sources.MISTRALAI, chat_completion_sources.MAKERSUITE, chat_completion_sources.DEEPSEEK, chat_completion_sources.XAI].includes(oai_settings.chat_completion_source)) {
         await validateReverseProxy();
     }
 
@@ -4168,8 +4171,11 @@ function getMaxContextOpenAI(value) {
     else if (value.includes('gpt-4.1')) {
         return max_1mil;
     }
-    else if (value.startsWith('o1') || value.startsWith('o3')) {
+    else if (value.startsWith('o1')) {
         return max_128k;
+    }
+    else if (value.startsWith('o4') || value.startsWith('o3')) {
+        return max_200k;
     }
     else if (value.includes('chatgpt-4o-latest') || value.includes('gpt-4-turbo') || value.includes('gpt-4o') || value.includes('gpt-4-1106') || value.includes('gpt-4-0125') || value.includes('gpt-4-vision')) {
         return max_128k;
@@ -4983,7 +4989,7 @@ async function onConnectButtonClick(e) {
             await writeSecret(SECRET_KEYS.XAI, api_key_xai);
         }
 
-        if (!secret_state[SECRET_KEYS.XAI]) {
+        if (!secret_state[SECRET_KEYS.XAI] && !oai_settings.reverse_proxy) {
             console.log('No secret key saved for XAI');
             return;
         }
@@ -5189,11 +5195,15 @@ export function isImageInliningSupported() {
         'grok-2-vision',
         'grok-vision',
         'gpt-4.1',
+        'o3',
+        'o3-2025-04-16',
+        'o4-mini',
+        'o4-mini-2025-04-16',
     ];
 
     switch (oai_settings.chat_completion_source) {
         case chat_completion_sources.OPENAI:
-            return visionSupportedModels.some(model => oai_settings.openai_model.includes(model) && !oai_settings.openai_model.includes('gpt-4-turbo-preview'));
+            return visionSupportedModels.some(model => oai_settings.openai_model.includes(model) && !oai_settings.openai_model.includes('gpt-4-turbo-preview') && !oai_settings.openai_model.includes('o3-mini'));
         case chat_completion_sources.MAKERSUITE:
             return visionSupportedModels.some(model => oai_settings.google_model.includes(model));
         case chat_completion_sources.CLAUDE:

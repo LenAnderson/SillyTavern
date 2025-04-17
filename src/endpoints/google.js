@@ -45,7 +45,7 @@ router.post('/caption-image', async (request, response) => {
         if (!result.ok) {
             const error = await result.json();
             console.error(`Google AI Studio API returned error: ${result.status} ${result.statusText}`, error);
-            return response.status(result.status).send({ error: true });
+            return response.status(500).send({ error: true });
         }
 
         /** @type {any} */
