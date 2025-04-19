@@ -546,6 +546,7 @@ class WorldInfoTimedEffects {
                     console.log(`[WI] Removing ${type} entry from timedWorldInfo: entry not found and interval passed`, entry);
                     delete chat_metadata.timedWorldInfo[type][key];
                 }
+                console.log(`[WI] Removing ${type} entry from timedWorldInfo: entry not found`, entry);
                 continue;
             }
 
