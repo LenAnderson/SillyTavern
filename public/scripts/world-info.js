@@ -2651,7 +2651,7 @@ export async function getWorldEntry(name, data, entry) {
     commentInput.on('input', async function (_, { skipReset } = {}) {
         const uid = $(this).data('uid');
         const value = $(this).val();
-        !skipReset && await resetScrollHeight(this);
+        //.!skipReset && await resetScrollHeight(this);
         data.entries[uid].comment = value;
 
         setWIOriginalDataValue(data, uid, 'comment', data.entries[uid].comment);
