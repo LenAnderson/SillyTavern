@@ -4491,7 +4491,7 @@ async function onModelChange() {
             $('#openai_max_context').attr('max', max_32k);
         } else if (value.includes('gemini-1.5-pro') || value.includes('gemini-exp-1206') || value.includes('gemini-2.0-pro')) {
             $('#openai_max_context').attr('max', max_2mil);
-        } else if (value.includes('gemini-1.5-flash') || value.includes('gemini-2.0-flash') || value.includes('gemini-2.5-pro-exp-03-25') || value.includes('gemini-2.5-pro-preview-03-25')) {
+        } else if (value.includes('gemini-1.5-flash') || value.includes('gemini-2.0-flash') || value.includes('gemini-2.5-flash-preview-04-17') || value.includes('gemini-2.5-pro-exp-03-25') || value.includes('gemini-2.5-pro-preview-03-25')) {
             $('#openai_max_context').attr('max', max_1mil);
         } else if (value.includes('gemini-1.0-pro') || value === 'gemini-pro') {
             $('#openai_max_context').attr('max', max_32k);
@@ -5143,6 +5143,7 @@ export function isImageInliningSupported() {
         'gemini-2.5-pro-preview-03-25',
         'gemini-2.0-pro-exp',
         'gemini-2.0-pro-exp-02-05',
+        'gemini-2.5-flash-preview-04-17',
         'gemini-2.0-flash-lite-preview',
         'gemini-2.0-flash-lite-preview-02-05',
         'gemini-2.0-flash',

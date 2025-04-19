@@ -366,6 +366,7 @@ async function sendMakerSuiteRequest(request, response) {
 
         const useSystemPrompt = !useMultiModal && (
             model.includes('gemini-2.5-pro') ||
+            model.includes('gemini-2.5-flash') ||
             model.includes('gemini-2.0-pro') ||
             model.includes('gemini-2.0-flash') ||
             model.includes('gemini-2.0-flash-thinking-exp') ||
