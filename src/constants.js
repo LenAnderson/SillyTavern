@@ -268,23 +268,6 @@ export const FEATHERLESS_KEYS = [
     'guided_whitespace_pattern',
 ];
 
-// https://dreamgen.com/docs/api#openai-text
-export const DREAMGEN_KEYS = [
-    'model',
-    'prompt',
-    'max_tokens',
-    'temperature',
-    'top_p',
-    'top_k',
-    'min_p',
-    'repetition_penalty',
-    'frequency_penalty',
-    'presence_penalty',
-    'stop',
-    'stream',
-    'minimum_message_content_tokens',
-];
-
 // https://docs.together.ai/reference/completions
 export const TOGETHERAI_KEYS = [
     'model',
