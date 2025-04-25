@@ -463,8 +463,9 @@ async function sendMakerSuiteRequest(request, response) {
             }
         } else {
             if (!generateResponse.ok) {
-                console.warn(`Google AI Studio API returned error: ${generateResponse.status} ${generateResponse.statusText} ${await generateResponse.text()}`);
-                return response.status(500).send({ error: true });
+                const text = await generateResponse.text();
+                console.warn(`Google AI Studio API returned error: ${generateResponse.status} ${generateResponse.statusText} ${text}`);
+                return response.status(500).send({ error: true, status: generateResponse.status, statusText: generateResponse.statusText, text });
             }
 
             /** @type {any} */
