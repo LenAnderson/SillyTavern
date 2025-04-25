@@ -2730,7 +2730,7 @@ export function scrollChatToBottom() {
             }
         }
 
-        chatElement.scrollTop(position);
+        chatElement[0].scrollTop = position;
     }
 }
 
@@ -8579,8 +8579,9 @@ export function showSwipeButtons() {
     }
 
     //allows for writing individual swipe counters for past messages
-    const lastSwipeCounter = $('.last_mes .swipes-counter');
-    lastSwipeCounter.text(swipeCounterText).show();
+    const lastSwipeCounter = /**@type {HTMLElement}*/(document.querySelector('.last_mes .swipes-counter'));
+    lastSwipeCounter.textContent = swipeCounterText;
+    lastSwipeCounter.style.display = '';
 }
 
 export function hideSwipeButtons() {
