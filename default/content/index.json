@@ -796,6 +796,14 @@
         "type": "context"
     },
     {
+        "filename": "presets/instruct/GLM-4.json",
+        "type": "instruct"
+    },
+    {
+        "filename": "presets/context/GLM-4.json",
+        "type": "context"
+    },
+    {
         "filename": "presets/reasoning/DeepSeek.json",
         "type": "reasoning"
     },

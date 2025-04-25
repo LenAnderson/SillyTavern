@@ -7040,15 +7040,23 @@ export async function saveChat({ chatName, withMetadata, mesId, force = false } 
             throw new Error(result.statusText);
         }
 
-        const forceSaveConfirmed = await Popup.show.confirm(
-            t`ERROR: Chat integrity check failed.`,
-            t`Continuing the operation may result in data loss. Would you like to overwrite the chat file anyway? Pressing "NO" will cancel the save operation.`,
-            { okButton: t`Yes, overwrite`, cancelButton: t`No, cancel` },
-        ) === POPUP_RESULT.AFFIRMATIVE;
+        const popupResult = await Popup.show.input(
+            t`ERROR: Chat integrity check failed while saving the file.`,
+            t`<p>After you click OK, the page will be reloaded to prevent data corruption.</p>
+              <p>To confirm an overwrite (and potentially <b>LOSE YOUR DATA</b>), enter <code>OVERWRITE</code> (in all caps) in the box below before clicking OK.</p>`,
+            '',
+            { okButton: 'OK', cancelButton: false },
+        );
 
-        if (forceSaveConfirmed) {
-            await saveChat({ chatName, withMetadata, mesId, force: true });
+        const forceSaveConfirmed = popupResult === 'OVERWRITE';
+
+        if (!forceSaveConfirmed) {
+            console.warn('Chat integrity check failed, and user did not confirm the overwrite. Reloading the page.');
+            window.location.reload();
+            return;
         }
+
+        await saveChat({ chatName, withMetadata, mesId, force: true });
     } catch (error) {
         console.error(error);
         toastr.error(t`Check the server connection and reload the page to prevent data loss.`, t`Chat could not be saved`);

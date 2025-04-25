@@ -28,7 +28,8 @@ import {
     cachingAtDepthForOpenRouterClaude,
     cachingAtDepthForClaude,
     getPromptNames,
-    calculateBudgetTokens,
+    calculateClaudeBudgetTokens,
+    calculateGoogleBudgetTokens,
 } from '../../prompt-converters.js';
 
 import { readSecret, SECRET_KEYS } from '../secrets.js';
@@ -202,7 +203,7 @@ async function sendClaudeRequest(request, response) {
             // No prefill when thinking
             voidPrefill = true;
             const reasoningEffort = request.body.reasoning_effort;
-            const budgetTokens = calculateBudgetTokens(requestBody.max_tokens, reasoningEffort, requestBody.stream);
+            const budgetTokens = calculateClaudeBudgetTokens(requestBody.max_tokens, reasoningEffort, requestBody.stream);
             const minThinkTokens = 1024;
             if (requestBody.max_tokens <= minThinkTokens) {
                 const newValue = requestBody.max_tokens + minThinkTokens;
@@ -340,6 +341,7 @@ async function sendMakerSuiteRequest(request, response) {
     const stream = Boolean(request.body.stream);
     const enableWebSearch = Boolean(request.body.enable_web_search);
     const requestImages = Boolean(request.body.request_images);
+    const reasoningEffort = String(request.body.reasoning_effort);
     const isThinking = model.includes('thinking');
     const isGemma = model.includes('gemma');
 
@@ -412,13 +414,26 @@ async function sendMakerSuiteRequest(request, response) {
             tools.push({ function_declarations: functionDeclarations });
         }
 
+        // One more models list to maintain, yay
+        const thinkingBudgetModels = [
+            'gemini-2.5-flash-preview-04-17',
+        ];
+
+        if (thinkingBudgetModels.includes(model)) {
+            const thinkingBudget = calculateGoogleBudgetTokens(generationConfig.maxOutputTokens, reasoningEffort);
+
+            if (Number.isInteger(thinkingBudget)) {
+                generationConfig.thinkingConfig = { thinkingBudget: thinkingBudget };
+            }
+        }
+
         let body = {
             contents: prompt.contents,
             safetySettings: safetySettings,
             generationConfig: generationConfig,
         };
 
-        if (useSystemPrompt) {
+        if (useSystemPrompt && Array.isArray(prompt.system_instruction.parts) && prompt.system_instruction.parts.length) {
             body.systemInstruction = prompt.system_instruction;
         }
 
@@ -869,7 +884,7 @@ async function sendXaiRequest(request, response) {
             bodyParams['stop'] = request.body.stop;
         }
 
-        if (['grok-3-mini-beta', 'grok-3-mini-fast-beta'].includes(request.body.model)) {
+        if (request.body.reasoning_effort && ['grok-3-mini-beta', 'grok-3-mini-fast-beta'].includes(request.body.model)) {
             bodyParams['reasoning_effort'] = request.body.reasoning_effort === 'high' ? 'high' : 'low';
         }
 
@@ -1211,6 +1226,10 @@ router.post('/generate', function (request, response) {
             bodyParams['route'] = 'fallback';
         }
 
+        if (request.body.reasoning_effort) {
+            bodyParams['reasoning'] = { effort: request.body.reasoning_effort };
+        }
+
         let cachingAtDepth = getConfigValue('claude.cachingAtDepth', -1, 'number');
         if (Number.isInteger(cachingAtDepth) && cachingAtDepth >= 0 && request.body.model?.startsWith('anthropic/claude-3')) {
             cachingAtDepthForOpenRouterClaude(request.body.messages, cachingAtDepth);
@@ -1259,7 +1278,7 @@ router.post('/generate', function (request, response) {
     }
 
     // A few of OpenAIs reasoning models support reasoning effort
-    if ([CHAT_COMPLETION_SOURCES.CUSTOM, CHAT_COMPLETION_SOURCES.OPENAI].includes(request.body.chat_completion_source)) {
+    if (request.body.reasoning_effort && [CHAT_COMPLETION_SOURCES.CUSTOM, CHAT_COMPLETION_SOURCES.OPENAI].includes(request.body.chat_completion_source)) {
         if (['o1', 'o3-mini', 'o3-mini-2025-01-31', 'o4-mini', 'o4-mini-2025-04-16', 'o3', 'o3-2025-04-16'].includes(request.body.model)) {
             bodyParams['reasoning_effort'] = request.body.reasoning_effort;
         }

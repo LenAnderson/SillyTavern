@@ -74,6 +74,11 @@ const hash_derivations = {
     'b6835114b7303ddd78919a82e4d9f7d8c26ed0d7dfc36beeb12d524f6144eab1':
         'DeepSeek-V2.5'
     ,
+
+    // THUDM-GLM 4
+    '854b703e44ca06bdb196cc471c728d15dbab61e744fe6cdce980086b61646ed1':
+        'GLM-4'
+    ,
 };
 
 const substr_derivations = {
