@@ -230,6 +230,7 @@ function handleGlobalKeyDown(event) {
  * Initializes several keyboard functionalities for ST
  */
 export function initKeyboard() {
+    return;
     // Start observing the body for added elements and attribute changes
     observer.observe(document.body, {
         childList: true,
