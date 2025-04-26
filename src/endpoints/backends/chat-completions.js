@@ -1,4 +1,5 @@
 import process from 'node:process';
+import util from 'node:util';
 import express from 'express';
 import fetch from 'node-fetch';
 
@@ -499,7 +500,7 @@ async function sendMakerSuiteRequest(request, response) {
             const responseContent = candidates[0].content ?? candidates[0].output;
             const functionCall = (candidates?.[0]?.content?.parts ?? []).some(part => part.functionCall);
             const inlineData = (candidates?.[0]?.content?.parts ?? []).some(part => part.inlineData);
-            console.warn('Google AI Studio response:', responseContent);
+            console.debug('Google AI Studio response:', util.inspect(generateResponseJson, { depth: 5, colors: true }));
 
             const responseText = typeof responseContent === 'string' ? responseContent : responseContent?.parts?.filter(part => !part.thought)?.map(part => part.text)?.join('\n\n');
             if (!responseText && !functionCall && !inlineData) {

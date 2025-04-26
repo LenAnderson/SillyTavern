@@ -1047,7 +1047,7 @@ export function getImageSizeFromDataURL(dataUrl) {
 
 /**
  * Gets the filename of the character avatar without extension
- * @param {number?} [chid=null] - Character ID. If not provided, uses the current character ID
+ * @param {string|number?} [chid=null] - Character ID. If not provided, uses the current character ID
  * @param {object} [options={}] - Options arguments
  * @param {string?} [options.manualAvatarKey=null] - Manually take the following avatar key, instead of using the chid to determine the name
  * @returns {string?} The filename of the character avatar without extension, or null if the character ID is invalid

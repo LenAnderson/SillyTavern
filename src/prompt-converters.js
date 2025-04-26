@@ -357,47 +357,12 @@ export function convertCohereMessages(messages, names) {
 /**
  * Convert a prompt from the ChatML objects to the format used by Google MakerSuite models.
  * @param {object[]} messages Array of messages
- * @param {string} model Model name
+ * @param {string} _model Model name
  * @param {boolean} useSysPrompt Use system prompt
  * @param {PromptNames} names Prompt names
  * @returns {{contents: *[], system_instruction: {parts: {text: string}[]}}} Prompt for Google MakerSuite models
  */
-export function convertGooglePrompt(messages, model, useSysPrompt, names) {
-    const visionSupportedModels = [
-        'gemini-2.5-pro-preview-03-25',
-        'gemini-2.5-pro-exp-03-25',
-        'gemini-2.0-pro-exp',
-        'gemini-2.0-pro-exp-02-05',
-        'gemini-2.5-flash-preview-04-17',
-        'gemini-2.0-flash-lite-preview',
-        'gemini-2.0-flash-lite-preview-02-05',
-        'gemini-2.0-flash',
-        'gemini-2.0-flash-001',
-        'gemini-2.0-flash-thinking-exp',
-        'gemini-2.0-flash-thinking-exp-01-21',
-        'gemini-2.0-flash-thinking-exp-1219',
-        'gemini-2.0-flash-exp',
-        'gemini-2.0-flash-exp-image-generation',
-        'gemini-1.5-flash',
-        'gemini-1.5-flash-latest',
-        'gemini-1.5-flash-001',
-        'gemini-1.5-flash-002',
-        'gemini-1.5-flash-exp-0827',
-        'gemini-1.5-flash-8b',
-        'gemini-1.5-flash-8b-exp-0827',
-        'gemini-1.5-flash-8b-exp-0924',
-        'gemini-exp-1114',
-        'gemini-exp-1121',
-        'gemini-exp-1206',
-        'gemini-1.5-pro',
-        'gemini-1.5-pro-latest',
-        'gemini-1.5-pro-001',
-        'gemini-1.5-pro-002',
-        'gemini-1.5-pro-exp-0801',
-        'gemini-1.5-pro-exp-0827',
-    ];
-
-    const isMultimodal = visionSupportedModels.includes(model);
+export function convertGooglePrompt(messages, _model, useSysPrompt, names) {
     const sysPrompt = [];
 
     if (useSysPrompt) {
@@ -497,7 +462,7 @@ export function convertGooglePrompt(messages, model, useSysPrompt, names) {
 
                     toolNameMap[toolCall.id] = toolCall.function.name;
                 });
-            } else if (part.type === 'image_url' && isMultimodal) {
+            } else if (part.type === 'image_url') {
                 const mimeType = part.image_url.url.split(';')[0].split(':')[1];
                 const base64Data = part.image_url.url.split(',')[1];
                 parts.push({

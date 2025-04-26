@@ -756,6 +756,10 @@
         "type": "sysprompt"
     },
     {
+        "filename": "presets/sysprompt/Lightning 1.1.json",
+        "type": "sysprompt"
+    },
+    {
         "filename": "presets/instruct/Mistral V1.json",
         "type": "instruct"
     },

@@ -5172,73 +5172,44 @@ export function isImageInliningSupported() {
 
     // gultra just isn't being offered as multimodal, thanks google.
     const visionSupportedModels = [
+        // OpenAI
+        'chatgpt-4o-latest',
+        'gpt-4-turbo',
         'gpt-4-vision',
-        'gemini-2.5-pro-exp-03-25',
-        'gemini-2.5-pro-preview-03-25',
-        'gemini-2.0-pro-exp',
-        'gemini-2.0-pro-exp-02-05',
-        'gemini-2.5-flash-preview-04-17',
-        'gemini-2.0-flash-lite-preview',
-        'gemini-2.0-flash-lite-preview-02-05',
-        'gemini-2.0-flash',
-        'gemini-2.0-flash-001',
-        'gemini-2.0-flash-thinking-exp-1219',
-        'gemini-2.0-flash-thinking-exp-01-21',
-        'gemini-2.0-flash-thinking-exp',
-        'gemini-2.0-flash-exp',
-        'gemini-2.0-flash-exp-image-generation',
-        'gemini-1.5-flash',
-        'gemini-1.5-flash-latest',
-        'gemini-1.5-flash-001',
-        'gemini-1.5-flash-002',
-        'gemini-1.5-flash-exp-0827',
-        'gemini-1.5-flash-8b',
-        'gemini-1.5-flash-8b-exp-0827',
-        'gemini-1.5-flash-8b-exp-0924',
+        'gpt-4.1',
+        'gpt-4.5-preview',
+        'gpt-4o',
+        'o1',
+        'o3',
+        'o4-mini',
+        // 01.AI (Yi)
+        'yi-vision',
+        // Claude
+        'claude-3',
+        // Cohere
+        'c4ai-aya-vision',
+        // Google AI Studio
+        'gemini-1.5',
+        'gemini-2.0',
+        'gemini-2.5',
         'gemini-exp-1114',
         'gemini-exp-1121',
         'gemini-exp-1206',
-        'gemini-1.0-pro-vision-latest',
-        'gemini-1.5-pro',
-        'gemini-1.5-pro-latest',
-        'gemini-1.5-pro-001',
-        'gemini-1.5-pro-002',
-        'gemini-1.5-pro-exp-0801',
-        'gemini-1.5-pro-exp-0827',
-        'claude-3',
-        'claude-3-5',
-        'claude-3-7',
-        'gpt-4-turbo',
-        'gpt-4o',
-        'gpt-4o-mini',
-        'gpt-4.5-preview',
-        'gpt-4.5-preview-2025-02-27',
-        'o1',
-        'o1-2024-12-17',
-        'chatgpt-4o-latest',
-        'yi-vision',
-        'mistral-large-pixtral-2411',
+        // MistralAI
         'mistral-small-2503',
         'mistral-small-latest',
-        'pixtral-12b-latest',
-        'pixtral-12b',
-        'pixtral-12b-2409',
-        'pixtral-large-latest',
-        'pixtral-large-2411',
-        'c4ai-aya-vision-8b',
-        'c4ai-aya-vision-32b',
+        'pixtral',
+        // xAI (Grok)
         'grok-2-vision',
         'grok-vision',
-        'gpt-4.1',
-        'o3',
-        'o3-2025-04-16',
-        'o4-mini',
-        'o4-mini-2025-04-16',
     ];
 
     switch (oai_settings.chat_completion_source) {
         case chat_completion_sources.OPENAI:
-            return visionSupportedModels.some(model => oai_settings.openai_model.includes(model) && !oai_settings.openai_model.includes('gpt-4-turbo-preview') && !oai_settings.openai_model.includes('o3-mini'));
+            return visionSupportedModels.some(model =>
+                oai_settings.openai_model.includes(model)
+                && ['gpt-4-turbo-preview', 'o1-mini', 'o3-mini'].some(x => !oai_settings.openai_model.includes(x))
+            );
         case chat_completion_sources.MAKERSUITE:
             return visionSupportedModels.some(model => oai_settings.google_model.includes(model));
         case chat_completion_sources.CLAUDE:
