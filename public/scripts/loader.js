@@ -135,7 +135,7 @@ export async function updateLoaderStatus(message, ...promises) {
             `Preparing automated sequences...`,
             `Infusing routines with speed magic...`
         ],
-        'loading user avatar': [
+        'loading user avatars': [
             `Dusting off the portraits of our esteemed guests...`,
             `Hanging your likeness on the wall...`,
             `Revealing your heroic visage...`,
@@ -226,11 +226,32 @@ export async function updateLoaderStatus(message, ...promises) {
             `Preparing the dynamic lore...`,
             `Gathering the world's tales...`
         ],
+        'determining client version': [
+            `Checking your adventurer's guild ID...`,
+            `Reading the inscription on your tavern key...`,
+            `Identifying your crest...`,
+            `Verifying the age of your map...`,
+            `Confirming your membership scroll...`
+        ],
+        'checking API keys': [
+            `Showing your pass to the bouncer...`,
+            `Testing the arcane sigils...`,
+            `Ensuring your key fits the lock...`,
+            `Verifying the guild's credentials...`,
+            `Checking the seals on the pact...`
+        ],
+        'loading UI translations': [
+            `Teaching the parrot new phrases...`,
+            `Consulting the Orb of Tongues...`,
+            `Translating the ancient tavern script...`,
+            `Loading the linguistic charms...`,
+            `Preparing the common tongue dictionary...`
+        ],
     };
     const msg = loaderPopup?.content?.querySelector('#load-spinner-message');
     if (!msg) return;
     const el = document.createElement('div'); {
-        el.textContent = msgDict[message][Math.floor(Math.random() * msgDict[message].length)] ?? message;
+        el.textContent = msgDict[message]?.[Math.floor(Math.random() * msgDict[message].length)] ?? message;
         el.title = message;
         msg.append(el);
     }

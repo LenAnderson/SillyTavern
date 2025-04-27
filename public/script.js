@@ -973,9 +973,9 @@ async function firstLoadInit() {
         reloadMarkdownProcessor(),
         applyBrowserFixes(),
     );
-    await getClientVersion();
-    await readSecretState();
-    await initLocales();
+    await updateLoaderStatus('determining client version', getClientVersion());
+    await updateLoaderStatus('checking API keys', readSecretState());
+    await updateLoaderStatus('loading UI translations', initLocales());
     updateLoaderStatus('registering additional slash commands',
         initDefaultSlashCommands(),
     );
@@ -991,20 +991,11 @@ async function firstLoadInit() {
     updateLoaderStatus('registering tool call slash commands',
         ToolManager.initToolSlashCommands(),
     );
-    const { promise:presetPromise, resolve:presetResolve } = Promise.withResolvers();
-    updateLoaderStatus('initializing preset manager', presetPromise);
-    await initPresetManager();
-    presetResolve();
-    const { promise:welcomePromise, resolve:welcomeResolve } = Promise.withResolvers();
-    updateLoaderStatus('loading welcome message', welcomePromise);
-    await getSystemMessages();
-    welcomeResolve();
+    await updateLoaderStatus('initializing preset manager', initPresetManager());
+    await updateLoaderStatus('loading welcome message', getSystemMessages());
     sendSystemMessage(system_message_types.WELCOME);
     sendSystemMessage(system_message_types.WELCOME_PROMPT);
-    const { promise:settingsPromise, resolve:settingsResolve } = Promise.withResolvers();
-    updateLoaderStatus('loading user settings', settingsPromise);
-    await getSettings();
-    settingsResolve();
+    await updateLoaderStatus('loading user settings', getSettings());
     updateLoaderStatus('registering keyboard shortcuts',
         initKeyboard(),
     );
