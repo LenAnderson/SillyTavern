@@ -2811,6 +2811,7 @@ export function substituteParams(content, _name1, _name2, _original, _group, _re
         environment.charVersion = fields.version || '';
         environment.char_version = fields.version || '';
         environment.charDepthPrompt = fields.charDepthPrompt || '';
+        environment.creatorNotes = fields.creatorNotes || '';
     }
 
     // Must be substituted last so that they're replaced inside {{description}}
@@ -3209,6 +3210,7 @@ export function baseChatReplace(value, name1, name2) {
  * @property {string} jailbreak Jailbreak instructions
  * @property {string} version Character version
  * @property {string} charDepthPrompt Character depth note
+ * @property {string} creatorNotes Character creator notes
  * @returns {CharacterCardFields} Character card fields
  */
 export function getCharacterCardFields({ chid = null } = {}) {
@@ -3224,6 +3226,7 @@ export function getCharacterCardFields({ chid = null } = {}) {
         jailbreak: '',
         version: '',
         charDepthPrompt: '',
+        creatorNotes: '',
     };
     result.persona = baseChatReplace(power_user.persona_description?.trim(), name1, name2);
 
@@ -3242,6 +3245,7 @@ export function getCharacterCardFields({ chid = null } = {}) {
     result.jailbreak = power_user.prefer_character_jailbreak ? baseChatReplace(character.data?.post_history_instructions?.trim(), name1, name2) : '';
     result.version = character.data?.character_version ?? '';
     result.charDepthPrompt = baseChatReplace(character.data?.extensions?.depth_prompt?.prompt?.trim(), name1, name2);
+    result.creatorNotes = baseChatReplace(character.data?.creator_notes?.trim(), name1, name2);
 
     if (selected_group) {
         const groupCards = getGroupCharacterCards(selected_group, Number(currentChid));
@@ -4069,6 +4073,7 @@ export async function Generate(type, { automatic_trigger, force_name2, quiet_pro
         system,
         jailbreak,
         charDepthPrompt,
+        creatorNotes,
     } = getCharacterCardFields();
 
     if (main_api !== 'openai') {
@@ -4223,7 +4228,15 @@ export async function Generate(type, { automatic_trigger, force_name2, quiet_pro
     // Make quiet prompt available for WIAN
     setExtensionPrompt('QUIET_PROMPT', quiet_prompt || '', extension_prompt_types.IN_PROMPT, 0, true);
     const chatForWI = coreChat.map(x => world_info_include_names ? `${x.name}: ${x.mes}` : x.mes).reverse();
-    const { worldInfoString, worldInfoBefore, worldInfoAfter, worldInfoExamples, worldInfoDepth } = await getWorldInfoPrompt(chatForWI, this_max_context, dryRun);
+    const globalScanData = {
+        personaDescription: persona,
+        characterDescription: description,
+        characterPersonality: personality,
+        characterDepthPrompt: charDepthPrompt,
+        scenario: scenario,
+        creatorNotes: creatorNotes,
+    };
+    const { worldInfoString, worldInfoBefore, worldInfoAfter, worldInfoExamples, worldInfoDepth } = await getWorldInfoPrompt(chatForWI, this_max_context, dryRun, globalScanData);
     setExtensionPrompt('QUIET_PROMPT', '', extension_prompt_types.IN_PROMPT, 0, true);
 
     // Add message example WI
@@ -4942,6 +4955,8 @@ export async function Generate(type, { automatic_trigger, force_name2, quiet_pro
             userPersona: (power_user.persona_description_position == persona_description_positions.IN_PROMPT ? (persona || '') : ''),
             tokenizer: getFriendlyTokenizerName(main_api).tokenizerName || '',
             presetName: getPresetManager()?.getSelectedPresetName() || '',
+            messagesCount: main_api !== 'openai' ? mesSend.length : oaiMessages.length,
+            examplesCount: main_api !== 'openai' ? (pinExmString ? mesExamplesArray.length : count_exm_add) : oaiMessageExamples.length,
         };
 
         //console.log(additionalPromptStuff);
@@ -5625,6 +5640,8 @@ export async function itemizedParams(itemizedPrompts, thisPromptSet, incomingMes
         modelUsed: chat[incomingMesId]?.extra?.model,
         apiUsed: chat[incomingMesId]?.extra?.api,
         presetName: itemizedPrompts[thisPromptSet].presetName || t`(Unknown)`,
+        messagesCount: String(itemizedPrompts[thisPromptSet].messagesCount ?? ''),
+        examplesCount: String(itemizedPrompts[thisPromptSet].examplesCount ?? ''),
     };
 
     const getFriendlyName = (value) => $(`#rm_api_block select option[value="${value}"]`).first().text() || value;

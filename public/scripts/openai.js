@@ -4521,20 +4521,16 @@ async function onModelChange() {
     if (oai_settings.chat_completion_source == chat_completion_sources.MAKERSUITE) {
         if (oai_settings.max_context_unlocked) {
             $('#openai_max_context').attr('max', max_2mil);
-        } else if (value.includes('gemini-exp-1114') || value.includes('gemini-exp-1121') || value.includes('gemini-2.0-flash-thinking-exp-1219')) {
-            $('#openai_max_context').attr('max', max_32k);
-        } else if (value.includes('gemini-1.5-pro') || value.includes('gemini-exp-1206') || value.includes('gemini-2.0-pro')) {
+        } else if (value.includes('gemini-1.5-pro')) {
             $('#openai_max_context').attr('max', max_2mil);
-        } else if (value.includes('gemini-1.5-flash') || value.includes('gemini-2.0-flash') || value.includes('gemini-2.5-flash-preview-04-17') || value.includes('gemini-2.5-pro-exp-03-25') || value.includes('gemini-2.5-pro-preview-03-25')) {
+        } else if (value.includes('gemini-1.5-flash') || value.includes('gemini-2.0-flash') || value.includes('gemini-2.0-pro') || value.includes('gemini-exp') || value.includes('gemini-2.5-flash') || value.includes('gemini-2.5-pro') || value.includes('learnlm-2.0-flash')) {
             $('#openai_max_context').attr('max', max_1mil);
-        } else if (value.includes('gemini-1.0-pro') || value === 'gemini-pro') {
-            $('#openai_max_context').attr('max', max_32k);
-        } else if (value.includes('gemini-1.0-ultra') || value === 'gemini-ultra') {
-            $('#openai_max_context').attr('max', max_32k);
-        } else if (value.includes('gemma-3')) {
+        } else if (value.includes('gemma-3-27b-it')) {
             $('#openai_max_context').attr('max', max_128k);
+        } else if (value.includes('gemma-3') || value.includes('learnlm-1.5-pro-experimental')) {
+            $('#openai_max_context').attr('max', max_32k);
         } else {
-            $('#openai_max_context').attr('max', max_4k);
+            $('#openai_max_context').attr('max', max_32k);
         }
         let makersuite_max_temp = (value.includes('vision') || value.includes('ultra') || value.includes('gemma')) ? 1.0 : 2.0;
         oai_settings.temp_openai = Math.min(makersuite_max_temp, oai_settings.temp_openai);
@@ -5192,9 +5188,8 @@ export function isImageInliningSupported() {
         'gemini-1.5',
         'gemini-2.0',
         'gemini-2.5',
-        'gemini-exp-1114',
-        'gemini-exp-1121',
         'gemini-exp-1206',
+        'learnlm',
         // MistralAI
         'mistral-small-2503',
         'mistral-small-latest',
@@ -5208,7 +5203,7 @@ export function isImageInliningSupported() {
         case chat_completion_sources.OPENAI:
             return visionSupportedModels.some(model =>
                 oai_settings.openai_model.includes(model)
-                && ['gpt-4-turbo-preview', 'o1-mini', 'o3-mini'].some(x => !oai_settings.openai_model.includes(x))
+                && ['gpt-4-turbo-preview', 'o1-mini', 'o3-mini'].some(x => !oai_settings.openai_model.includes(x)),
             );
         case chat_completion_sources.MAKERSUITE:
             return visionSupportedModels.some(model => oai_settings.google_model.includes(model));

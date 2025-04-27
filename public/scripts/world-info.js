@@ -98,11 +98,28 @@ const KNOWN_DECORATORS = ['@@activate', '@@dont_activate'];
 
 // Typedef area
 /**
+ * @typedef {object} WIGlobalScanData The chat-independent data to be scanned. Each of
+ *     these fields can be enabled for scanning per entry.
+ * @property {string} personaDescription User persona description
+ * @property {string} characterDescription Character description
+ * @property {string} characterPersonality Character personality
+ * @property {string} characterDepthPrompt Character depth prompt (sometimes referred to as character notes)
+ * @property {string} scenario Character defined scenario
+ * @property {string} creatorNotes Character creator notes
+ */
+
+/**
  * @typedef {object} WIScanEntry The entry that triggered the scan
  * @property {number} [scanDepth] The depth of the scan
  * @property {boolean} [caseSensitive] If the scan is case sensitive
  * @property {boolean} [matchWholeWords] If the scan should match whole words
  * @property {boolean} [useGroupScoring] If the scan should use group scoring
+ * @property {boolean} [matchPersonaDescription] If the scan should match against the persona description
+ * @property {boolean} [matchCharacterDescription] If the scan should match against the character description
+ * @property {boolean} [matchCharacterPersonality] If the scan should match against the character personality
+ * @property {boolean} [matchCharacterDepthPrompt] If the scan should match against the character depth prompt
+ * @property {boolean} [matchScenario] If the scan should match against the character scenario
+ * @property {boolean} [matchCreatorNotes] If the scan should match against the creator notes
  * @property {number} [uid] The UID of the entry that triggered the scan
  * @property {string} [world] The world info book of origin of the entry
  * @property {string[]} [key] The primary keys to scan for
@@ -139,6 +156,11 @@ class WorldInfoBuffer {
     static externalActivations = new Map();
 
     /**
+     * @type {WIGlobalScanData} Chat independent data to be scanned, such as persona and character descriptions
+     */
+    #globalScanData = null;
+
+    /**
      * @type {string[]} Array of messages sorted by ascending depth
      */
     #depthBuffer = [];
@@ -166,9 +188,11 @@ class WorldInfoBuffer {
     /**
      * Initialize the buffer with the given messages.
      * @param {string[]} messages Array of messages to add to the buffer
+     * @param {WIGlobalScanData} globalScanData Chat independent context to be scanned
      */
-    constructor(messages) {
+    constructor(messages, globalScanData) {
         this.#initDepthBuffer(messages);
+        this.#globalScanData = globalScanData;
     }
 
     /**
@@ -224,6 +248,25 @@ class WorldInfoBuffer {
         const MATCHER = '\x01';
         const JOINER = '\n' + MATCHER;
         let result = MATCHER + this.#depthBuffer.slice(this.#startDepth, depth).join(JOINER);
+
+        if (entry.matchPersonaDescription && this.#globalScanData.personaDescription) {
+            result += JOINER + this.#globalScanData.personaDescription;
+        }
+        if (entry.matchCharacterDescription && this.#globalScanData.characterDescription) {
+            result += JOINER + this.#globalScanData.characterDescription;
+        }
+        if (entry.matchCharacterPersonality && this.#globalScanData.characterPersonality) {
+            result += JOINER + this.#globalScanData.characterPersonality;
+        }
+        if (entry.matchCharacterDepthPrompt && this.#globalScanData.characterDepthPrompt) {
+            result += JOINER + this.#globalScanData.characterDepthPrompt;
+        }
+        if (entry.matchScenario && this.#globalScanData.scenario) {
+            result += JOINER + this.#globalScanData.scenario;
+        }
+        if (entry.matchCreatorNotes && this.#globalScanData.creatorNotes) {
+            result += JOINER + this.#globalScanData.creatorNotes;
+        }
 
         if (this.#injectBuffer.length > 0) {
             result += JOINER + this.#injectBuffer.join(JOINER);
@@ -757,6 +800,7 @@ export const worldInfoCache = new StructuredCloneMap({ cloneOnGet: true, cloneOn
  * @param {string[]} chat - The chat messages to scan, in reverse order.
  * @param {number} maxContext - The maximum context size of the generation.
  * @param {boolean} isDryRun - If true, the function will not emit any events.
+ * @param {WIGlobalScanData} globalScanData Chat independent context to be scanned
  * @typedef {object} WIPromptResult
  * @property {string} worldInfoString - Complete world info string
  * @property {string} worldInfoBefore - World info that goes before the prompt
@@ -767,10 +811,10 @@ export const worldInfoCache = new StructuredCloneMap({ cloneOnGet: true, cloneOn
  * @property {Array} anAfter - Array of entries after Author's Note
  * @returns {Promise<WIPromptResult>} The world info string and depth.
  */
-export async function getWorldInfoPrompt(chat, maxContext, isDryRun) {
+export async function getWorldInfoPrompt(chat, maxContext, isDryRun, globalScanData) {
     let worldInfoString = '', worldInfoBefore = '', worldInfoAfter = '';
 
-    const activatedWorldInfo = await checkWorldInfo(chat, maxContext, isDryRun);
+    const activatedWorldInfo = await checkWorldInfo(chat, maxContext, isDryRun, globalScanData);
     worldInfoBefore = activatedWorldInfo.worldInfoBefore;
     worldInfoAfter = activatedWorldInfo.worldInfoAfter;
     worldInfoString = worldInfoBefore + worldInfoAfter;
@@ -2192,6 +2236,12 @@ export const originalWIDataKeyMap = {
     'matchWholeWords': 'extensions.match_whole_words',
     'useGroupScoring': 'extensions.use_group_scoring',
     'caseSensitive': 'extensions.case_sensitive',
+    'matchPersonaDescription': 'extensions.match_persona_description',
+    'matchCharacterDescription': 'extensions.match_character_description',
+    'matchCharacterPersonality': 'extensions.match_character_personality',
+    'matchCharacterDepthPrompt': 'extensions.match_character_depth_prompt',
+    'matchScenario': 'extensions.match_scenario',
+    'matchCreatorNotes': 'extensions.match_creator_notes',
     'scanDepth': 'extensions.scan_depth',
     'automationId': 'extensions.automation_id',
     'vectorized': 'extensions.vectorized',
@@ -3309,6 +3359,28 @@ export async function getWorldEntry(name, data, entry) {
     });
     useGroupScoringSelect.val((entry.useGroupScoring === null || entry.useGroupScoring === undefined) ? 'null' : entry.useGroupScoring ? 'true' : 'false').trigger('input');
 
+    function handleMatchCheckbox(fieldName) {
+        const key = originalWIDataKeyMap[fieldName];
+        const checkBoxElem = template.find(`input[type="checkbox"][name="${fieldName}"]`);
+        checkBoxElem.data('uid', entry.uid);
+        checkBoxElem.on('input', async function () {
+            const uid = $(this).data('uid');
+            const value = $(this).prop('checked');
+
+            data.entries[uid][fieldName] = value;
+            setWIOriginalDataValue(data, uid, key, data.entries[uid][fieldName]);
+            await saveWorldInfo(name, data);
+        });
+        checkBoxElem.prop('checked', !!entry[fieldName]).trigger('input');
+    }
+
+    handleMatchCheckbox('matchPersonaDescription');
+    handleMatchCheckbox('matchCharacterDescription');
+    handleMatchCheckbox('matchCharacterPersonality');
+    handleMatchCheckbox('matchCharacterDepthPrompt');
+    handleMatchCheckbox('matchScenario');
+    handleMatchCheckbox('matchCreatorNotes');
+
     // automation id
     const automationIdInput = template.find('input[name="automationId"]');
     automationIdInput.data('uid', entry.uid);
@@ -3515,6 +3587,12 @@ export const newWorldInfoEntryDefinition = {
     disable: { default: false, type: 'boolean' },
     excludeRecursion: { default: false, type: 'boolean' },
     preventRecursion: { default: false, type: 'boolean' },
+    matchPersonaDescription: { default: false, type: 'boolean' },
+    matchCharacterDescription: { default: false, type: 'boolean' },
+    matchCharacterPersonality: { default: false, type: 'boolean' },
+    matchCharacterDepthPrompt: { default: false, type: 'boolean' },
+    matchScenario: { default: false, type: 'boolean' },
+    matchCreatorNotes: { default: false, type: 'boolean' },
     delayUntilRecursion: { default: 0, type: 'number' },
     probability: { default: 100, type: 'number' },
     useProbability: { default: true, type: 'boolean' },
@@ -3979,6 +4057,7 @@ function parseDecorators(content) {
  * @param {string[]} chat The chat messages to scan, in reverse order.
  * @param {number} maxContext The maximum context size of the generation.
  * @param {boolean} isDryRun Whether to perform a dry run.
+ * @param {WIGlobalScanData} globalScanData Chat independent context to be scanned
  * @typedef {object} WIActivated
  * @property {string} worldInfoBefore The world info before the chat.
  * @property {string} worldInfoAfter The world info after the chat.
@@ -3989,9 +4068,9 @@ function parseDecorators(content) {
  * @property {Set<any>} allActivatedEntries All entries.
  * @returns {Promise<WIActivated>} The world info activated.
  */
-export async function checkWorldInfo(chat, maxContext, isDryRun) {
+export async function checkWorldInfo(chat, maxContext, isDryRun, globalScanData) {
     const context = getContext();
-    const buffer = new WorldInfoBuffer(chat);
+    const buffer = new WorldInfoBuffer(chat, globalScanData);
 
     console.debug(`[WI] --- START WI SCAN (on ${chat.length} messages)${isDryRun ? ' (DRY RUN)' : ''} ---`);
 
@@ -4849,6 +4928,12 @@ export function convertCharacterBook(characterBook) {
             sticky: entry.extensions?.sticky ?? null,
             cooldown: entry.extensions?.cooldown ?? null,
             delay: entry.extensions?.delay ?? null,
+            matchPersonaDescription: entry.extensions?.match_persona_description ?? false,
+            matchCharacterDescription: entry.extensions?.match_character_description ?? false,
+            matchCharacterPersonality: entry.extensions?.match_character_personality ?? false,
+            matchCharacterDepthPrompt: entry.extensions?.match_character_depth_prompt ?? false,
+            matchScenario: entry.extensions?.match_scenario ?? false,
+            matchCreatorNotes: entry.extensions?.match_creator_notes ?? false,
             extensions: entry.extensions ?? {},
         };
     });

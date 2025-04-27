@@ -829,11 +829,12 @@ async function getAdditionalArgs(items) {
 * @returns {Promise<number[]>} Saved hashes
 */
 async function getSavedHashes(collectionId) {
+    const args = await getAdditionalArgs([]);
     const response = await fetch('/api/vector/list', {
         method: 'POST',
         headers: getRequestHeaders(),
         body: JSON.stringify({
-            ...getVectorsRequestBody(),
+            ...getVectorsRequestBody(args),
             collectionId: collectionId,
             source: settings.source,
         }),
@@ -1155,6 +1156,9 @@ function loadWebLlmModels() {
  * @returns {Promise<Record<string, number[]>>} Calculated embeddings
  */
 async function createWebLlmEmbeddings(items) {
+    if (items.length === 0) {
+        return /** @type {Record<string, number[]>} */ ({});
+    }
     return executeWithWebLlmErrorHandling(async () => {
         const embeddings = await webllmProvider.embedTexts(items, settings.webllm_model);
         const result = /** @type {Record<string, number[]>} */ ({});

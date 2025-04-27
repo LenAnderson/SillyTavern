@@ -156,7 +156,7 @@ export const GEMINI_SAFETY = [
     },
     {
         category: 'HARM_CATEGORY_CIVIC_INTEGRITY',
-        threshold: 'BLOCK_NONE',
+        threshold: 'OFF',
     },
 ];
 

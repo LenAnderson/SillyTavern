@@ -350,6 +350,7 @@ Start.bat --port 8000 --listen false
 | Option                  | Description                                                          | Type     |
 |-------------------------|----------------------------------------------------------------------|----------|
 | `--version`             | Show version number                                                  | boolean  |
+| `--configPath`          | Override the path to the config.yaml file                            | string   |
 | `--dataRoot`            | Root directory for data storage                                      | string   |
 | `--port`                | Sets the port under which SillyTavern will run                       | number   |
 | `--listen`              | SillyTavern will listen on all network interfaces                    | boolean  |
