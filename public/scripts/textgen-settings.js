@@ -1146,7 +1146,7 @@ function tryParseStreamingError(response, decoded) {
         // No JSON. Do nothing.
     }
 
-    const message = data?.error?.message || data?.message || data?.detail;
+    const message = data?.error?.message || data?.error || data?.message || data?.detail;
 
     if (message) {
         toastr.error(message, 'Text Completion API');

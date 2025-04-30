@@ -2079,8 +2079,9 @@ export function initDefaultSlashCommands() {
         name: 'replace',
         aliases: ['re'],
         callback: (async ({ mode = 'literal', pattern, replacer = '' }, text) => {
-            if (pattern === '')
+            if (!pattern) {
                 throw new Error('Argument of \'pattern=\' cannot be empty');
+            }
             switch (mode) {
                 case 'literal':
                     return text.replaceAll(pattern, replacer);
@@ -2123,11 +2124,98 @@ export function initDefaultSlashCommands() {
             </div>
             <div>
                 <strong>Example:</strong>
-                <pre>/let x Blue house and blue car ||                                                                        </pre>
-                <pre>/replace pattern="blue" {{var::x}}                                | /echo  |/# Blue house and  car     ||</pre>
-                <pre>/replace pattern="blue" replacer="red" {{var::x}}                 | /echo  |/# Blue house and red car  ||</pre>
-                <pre>/replace mode=regex pattern="/blue/i" replacer="red" {{var::x}}   | /echo  |/# red house and blue car  ||</pre>
-                <pre>/replace mode=regex pattern="/blue/gi" replacer="red" {{var::x}}  | /echo  |/# red house and red car   ||</pre>
+                <pre><code class="language-stscript">/let x Blue house and blue car ||                                                                        </code></pre>
+                <pre><code class="language-stscript">/replace pattern="blue" {{var::x}}                                | /echo  |/# Blue house and  car     ||</code></pre>
+                <pre><code class="language-stscript">/replace pattern="blue" replacer="red" {{var::x}}                 | /echo  |/# Blue house and red car  ||</code></pre>
+                <pre><code class="language-stscript">/replace mode=regex pattern="/blue/i" replacer="red" {{var::x}}   | /echo  |/# red house and blue car  ||</code></pre>
+                <pre><code class="language-stscript">/replace mode=regex pattern="/blue/gi" replacer="red" {{var::x}}  | /echo  |/# red house and red car   ||</code></pre>
+            </div>
+        `,
+    }));
+    SlashCommandParser.addCommandObject(SlashCommand.fromProps({
+        name: 'test',
+        callback: (({ pattern }, text) => {
+            if (!pattern) {
+                throw new Error('Argument of \'pattern=\' cannot be empty');
+            }
+            const re = regexFromString(pattern.toString());
+            if (!re) {
+                throw new Error('The value of \'pattern\' argument is not a valid regular expression.');
+            }
+            return JSON.stringify(re.test(text.toString()));
+        }),
+        returns: 'true | false',
+        namedArgumentList: [
+            new SlashCommandNamedArgument(
+                'pattern', 'pattern to find', [ARGUMENT_TYPE.STRING], true, false,
+            ),
+        ],
+        unnamedArgumentList: [
+            new SlashCommandArgument(
+                'text to test', [ARGUMENT_TYPE.STRING], true, false,
+            ),
+        ],
+        helpString: `
+            <div>
+                Tests text for a regular expression match.
+            </div>
+            <div>
+                Returns <code>true</code> if the match is found, <code>false</code> otherwise.
+            </div>
+            <div>
+                <strong>Example:</strong>
+                <pre><code class="language-stscript">/let x Blue house and green car                         ||</code></pre>
+                <pre><code class="language-stscript">/test pattern="green" {{var::x}}    | /echo  |/# true   ||</code></pre>
+                <pre><code class="language-stscript">/test pattern="blue" {{var::x}}     | /echo  |/# false  ||</code></pre>
+                <pre><code class="language-stscript">/test pattern="/blue/i" {{var::x}}  | /echo  |/# true   ||</code></pre>
+            </div>
+        `,
+    }));
+    SlashCommandParser.addCommandObject(SlashCommand.fromProps({
+        name: 'match',
+        callback: (({ pattern }, text) => {
+            if (!pattern) {
+                throw new Error('Argument of \'pattern=\' cannot be empty');
+            }
+            const re = regexFromString(pattern.toString());
+            if (!re) {
+                throw new Error('The value of \'pattern\' argument is not a valid regular expression.');
+            }
+            if (re.flags.includes('g')) {
+                return JSON.stringify([...text.toString().matchAll(re)]);
+            } else {
+                const match = text.toString().match(re);
+                return match ? JSON.stringify(match) : '';
+            }
+        }),
+        returns: 'group array for each match',
+        namedArgumentList: [
+            new SlashCommandNamedArgument(
+                'pattern', 'pattern to find', [ARGUMENT_TYPE.STRING], true, false,
+            ),
+        ],
+        unnamedArgumentList: [
+            new SlashCommandArgument(
+                'text to match against', [ARGUMENT_TYPE.STRING], true, false,
+            ),
+        ],
+        helpString: `
+            <div>
+                Retrieves regular expression matches in the given text
+            </div>
+            <div>
+                Returns an array of groups (with the first group being the full match). If the regex contains the global flag (i.e. <code>/g</code>),
+                multiple nested arrays are returned for each match. If the regex is global, returns <code>[]</code> if no matches are found,
+                otherwise it returns an empty string.
+            </div>
+            <div>
+                <strong>Example:</strong>
+                <pre><code class="language-stscript">/let x color_green green lamp color_blue                                                                            ||</code></pre>
+                <pre><code class="language-stscript">/match pattern="green" {{var::x}}            | /echo  |/# [ "green" ]                                               ||</code></pre>
+                <pre><code class="language-stscript">/match pattern="color_(\\w+)" {{var::x}}      | /echo  |/# [ "color_green", "green" ]                                ||</code></pre>
+                <pre><code class="language-stscript">/match pattern="/color_(\\w+)/g" {{var::x}}   | /echo  |/# [ [ "color_green", "green" ], [ "color_blue", "blue" ] ]  ||</code></pre>
+                <pre><code class="language-stscript">/match pattern="orange" {{var::x}}           | /echo  |/#                                                           ||</code></pre>
+                <pre><code class="language-stscript">/match pattern="/orange/g" {{var::x}}        | /echo  |/# []                                                        ||</code></pre>
             </div>
         `,
     }));
