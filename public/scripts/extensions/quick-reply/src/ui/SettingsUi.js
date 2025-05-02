@@ -412,7 +412,7 @@ export class SettingsUi {
                 qrs.init();
                 const oldQrs = QuickReplySet.get(props.name);
                 if (oldQrs) {
-                    const replace = Popup.show.confirm('Replace existing World Info', `A Quick Reply Set named "${name}" already exists.<br>Do you want to overwrite the existing Quick Reply Set?<br>The existing set will be deleted. This cannot be undone.`);
+                    const replace = await Popup.show.confirm('Replace existing World Info', `A Quick Reply Set named "${name}" already exists.<br>Do you want to overwrite the existing Quick Reply Set?<br>The existing set will be deleted. This cannot be undone.`);
                     if (replace) {
                         const idx = QuickReplySet.list.indexOf(oldQrs);
                         await this.doDeleteQrSet(oldQrs);
