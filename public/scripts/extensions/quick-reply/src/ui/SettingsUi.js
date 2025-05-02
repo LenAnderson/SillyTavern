@@ -312,9 +312,11 @@ export class SettingsUi {
                 toastr.error(`A Quick Reply Set named "${newName}" already exists.`);
                 return;
             }
+            const oldSetForDelete = QuickReplySet.from(this.currentQrSet.toJSON());
             const oldName = this.currentQrSet.name;
             this.currentQrSet.name = newName;
             await this.currentQrSet.save();
+            await oldSetForDelete.delete();
 
             // Update it in both set lists
             this.settings.config.setList.forEach(set => {
