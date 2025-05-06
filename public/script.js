@@ -1041,7 +1041,7 @@ async function firstLoadInit() {
         initWorldInfo(),
     );
     updateLoaderStatus('initializing stats',
-        initHorde();
+        initHorde(),
         initRossMods(),
         initStats(),
     );
