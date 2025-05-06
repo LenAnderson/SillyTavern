@@ -411,7 +411,6 @@
     "Chat Start": "Inicio de chat",
     "Add Chat Start and Example Separator to a list of stopping strings.": "Agregue Inicio de chat y Separador de ejemplo a una lista de cadenas de parada.",
     "Use as Stop Strings": "Usar como Cadenas de Parada",
-    "context_allow_jailbreak": "Incluye Jailbreak al final del mensaje, si está definido en la tarjeta de personaje Y está habilitado \"Prefer Char. Jailbreak\".\nESTO NO SE RECOMIENDA PARA MODELOS DE COMPLETO DE TEXTO, PUEDE PRODUCIR UN RESULTADO INCORRECTO.",
     "Allow Jailbreak": "Permitir Jailbreak",
     "Context Order": "Orden de contexto",
     "Summary": "Resumen",

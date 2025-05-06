@@ -411,7 +411,6 @@
     "Chat Start": "Chat Start",
     "Add Chat Start and Example Separator to a list of stopping strings.": "Bættu Chat Start og Example Separator við lista yfir stöðvunarstrengi.",
     "Use as Stop Strings": "Nota sem Stoppa Strengir",
-    "context_allow_jailbreak": "Inniheldur Jailbreak í lok hvetjunnar, ef það er skilgreint á stafkortinu OG ''Velst Char. Jailbreak'' er virkt.\nÞETTA ER EKKI MÆLT FYRIR TEXTAÚRSLUNARGERÐ, GETUR leitt til lélegrar úttaks.",
     "Allow Jailbreak": "Leyfa jailbreak",
     "Context Order": "Samhengisröð",
     "Summary": "Samantekt",

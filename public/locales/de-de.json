@@ -411,7 +411,6 @@
     "Chat Start": "Chat-Start",
     "Add Chat Start and Example Separator to a list of stopping strings.": "Fügen Sie einer Liste von Stoppzeichenfolgen „Chat-Start“ und „Beispieltrennzeichen“ hinzu.",
     "Use as Stop Strings": "Verwende als Stoppzeichenfolgen",
-    "context_allow_jailbreak": "Schließt Jailbreak am Ende der Eingabeaufforderung ein, wenn dies in der Charakterkarte definiert ist UND „Charakter-Jailbreak bevorzugen“ aktiviert ist.\nDIES WIRD FÜR TEXTVERVOLLSTÄNDIGUNGSMODELLE NICHT EMPFOHLEN, KANN ZU SCHLECHTEN AUSGABEN FÜHREN.",
     "Allow Jailbreak": "Jailbreak zulassen",
     "Context Order": "Kontextreihenfolge",
     "Summary": "Zusammenfassung",

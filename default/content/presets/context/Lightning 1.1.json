@@ -3,7 +3,6 @@
     "example_separator": "Example of an interaction:\n",
     "chat_start": "This is the history of the roleplay:\n",
     "use_stop_strings": false,
-    "allow_jailbreak": false,
     "always_force_name2": true,
     "trim_sentences": false,
     "single_line": false,

@@ -2659,7 +2659,7 @@ export async function getWorldEntry(name, data, entry) {
     if (!isMobile()) {
         $(characterFilter).select2({
             width: '100%',
-            placeholder: 'Tie this entry to specific characters or characters with specific tags',
+            placeholder: t`Tie this entry to specific characters or characters with specific tags`,
             allowClear: true,
             closeOnSelect: false,
         });
@@ -3259,7 +3259,7 @@ export async function getWorldEntry(name, data, entry) {
 
         // Create wrapper div
         const wrapper = document.createElement('div');
-        wrapper.textContent = t`Move "${sourceName}" to:`;
+        wrapper.textContent = t`Move '${sourceName}' to:`;
 
         // Create container and append elements
         const container = document.createElement('div');

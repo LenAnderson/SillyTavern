@@ -411,7 +411,6 @@
     "Chat Start": "Bắt đầu Chat",
     "Add Chat Start and Example Separator to a list of stopping strings.": "Thêm Bắt đầu trò chuyện và Dấu phân cách ví dụ vào danh sách các chuỗi dừng.",
     "Use as Stop Strings": "Sử dụng như chuỗi dừng",
-    "context_allow_jailbreak": "Bao gồm Bẻ khóa ở cuối Prompt, nếu được xác định trong thẻ ký tự VÀ ''Thích Char. Bẻ khóa'' được bật.\nĐIỀU NÀY KHÔNG ĐƯỢC KHUYẾN NGHỊ CHO CÁC MÔ HÌNH HOÀN THÀNH VĂN BẢN, CÓ THỂ DẪN ĐẾN ĐẦU RA XẤU.",
     "Allow Jailbreak": "Cho phép bẻ khóa",
     "Context Order": "Thứ tự bối cảnh",
     "Summary": "Bản tóm tắt",

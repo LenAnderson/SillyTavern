@@ -234,7 +234,7 @@ router.post('/transcribe-audio', async (request, response) => {
             return response.status(500).send(text);
         }
 
-        fs.rmSync(request.file.path);
+        fs.unlinkSync(request.file.path);
         const data = await result.json();
         console.debug('OpenAI transcription response', data);
         return response.json(data);

@@ -1448,7 +1448,6 @@
     "Add Character and User names to a list of stopping strings.": "Ajouter les noms de personnages et d'utilisateurs à une liste de chaînes d'arrêt.",
     "Names as Stop Strings": "Noms comme chaînes d'arrêt",
     "context_allow_post_history_instructions": "Inclut les instructions post-historiques à la fin du prompt, si elles sont définies dans la fiche de personnage ET si l'option 'Préférer les instructions de personnage' est activée.\nN'EST PAS RECOMMANDÉ POUR LES MODÈLES DE COMPLÉTION DE TEXTE, CAR IL PEUT ENTRAÎNER DE MAUVAIS RÉSULTATS.",
-    "Allow Post-History Instructions": "Autoriser les instructions post-histoire",
     "Instruct Template": "Modèle d'instruction",
     "instruct_derived": "Dériver des métadonnées du modèle, si possible.",
     "instruct_enabled": "Activer le mode d'instruction",

@@ -411,7 +411,6 @@
     "Chat Start": "بداية الدردشة",
     "Add Chat Start and Example Separator to a list of stopping strings.": "أضف بداية الدردشة وفاصل الأمثلة إلى قائمة سلاسل التوقف.",
     "Use as Stop Strings": "استخدم كسلاسل التوقف",
-    "context_allow_jailbreak": "يتضمن كسر الحماية في نهاية المطالبة، إذا تم تحديده في بطاقة الشخصية و''Prefer Char. تم تمكين الهروب من السجن.\nلا يُنصح بهذا بالنسبة لنماذج إكمال النص، فقد يؤدي إلى نتائج سيئة.",
     "Allow Jailbreak": "السماح بالجيلبريك",
     "Context Order": "ترتيب السياق",
     "Summary": "ملخص",

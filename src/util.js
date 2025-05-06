@@ -435,7 +435,7 @@ export function removeOldBackups(directory, prefix, limit = null) {
                 break;
             }
 
-            fs.rmSync(oldest);
+            fs.unlinkSync(oldest);
         }
     }
 }

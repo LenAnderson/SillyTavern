@@ -1120,7 +1120,7 @@ export function initRossMods() {
                     const result = await Popup.show.confirm('Regenerate Message', 'Are you sure you want to regenerate the latest message?', {
                         customInputs: [{ id: 'regenerateWithCtrlEnter', label: 'Don\'t ask again' }],
                         onClose: (popup) => {
-                            regenerateWithCtrlEnter = popup.inputResults.get('regenerateWithCtrlEnter') ?? false;
+                            regenerateWithCtrlEnter = Boolean(popup.inputResults.get('regenerateWithCtrlEnter') ?? false);
                         },
                     });
                     if (!result) {

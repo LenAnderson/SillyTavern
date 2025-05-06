@@ -1205,6 +1205,17 @@ body .panelControlBar {
     background-color: rgb(102, 0, 0);
 }
 
+#chat .style-pins {
+    visibility: hidden;
+    position: fixed;
+    left: -9999px;
+    top: -9999px;
+    width: 0;
+    height: 0;
+    opacity: 0;
+    pointer-events: none;
+}
+
 .mes q:before,
 .mes q:after {
     content: '';
@@ -5715,6 +5726,7 @@ body:not(.movingUI) .drawer-content.maximized {
     width: unset;
     margin: 0;
     font-size: calc(var(--mainFontSize) * 0.85);
+    padding-right: 20px;
 }
 
 .paginationjs-pages ul li a {

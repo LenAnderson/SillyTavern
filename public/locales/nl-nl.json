@@ -411,7 +411,6 @@
     "Chat Start": "Chatstart",
     "Add Chat Start and Example Separator to a list of stopping strings.": "Voeg Chat Start en Voorbeeldscheidingsteken toe aan een lijst met stoptekenreeksen.",
     "Use as Stop Strings": "Gebruik als stopreeksen",
-    "context_allow_jailbreak": "Inclusief jailbreak aan het einde van de prompt, indien gedefinieerd in de karakterkaart EN ''Prefer Char. Jailbreak'' is ingeschakeld.\nDIT WORDT NIET AANBEVOLEN VOOR MODELLEN VOOR HET INVOEREN VAN TEKST. KAN TOT SLECHTE UITVOER LEIDEN.",
     "Allow Jailbreak": "Jailbreak toestaan",
     "Context Order": "Contextvolgorde",
     "Summary": "Samenvatting",

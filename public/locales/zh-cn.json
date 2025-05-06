@@ -504,7 +504,6 @@
     "Add Character and User names to a list of stopping strings.": "将角色和用户名添加到停止字符串列表中。",
     "Names as Stop Strings": "名称作为终止字符串",
     "context_allow_post_history_instructions": "如果在角色卡中定义并且启用了“首选角色卡说明”，则在提示末尾包含后历史说明。\n不建议在文本补全模型中使用此功能，否则会导致输出错误。",
-    "Allow Post-History Instructions": "允许后历史说明",
     "Instruct Template": "指导模板",
     "instruct_derived": "如果可能，从模型元数据中获取",
     "instruct_bind_to_context": "如果启用，上下文模板将根据所选的指导模板名称或偏好自动选择。",

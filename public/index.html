@@ -2052,8 +2052,8 @@
                                         <div class="flex-container oneline-dropdown" title="Constrains effort on reasoning for reasoning models.&#10;Reducing reasoning effort can result in faster responses and fewer tokens used on reasoning in a response." data-i18n="[title]Constrains effort on reasoning for reasoning models.">
                                             <label for="openai_reasoning_effort">
                                                 <span data-i18n="Reasoning Effort">Reasoning Effort</span>
-                                                <i data-source="openai,custom,xai,openrouter" class="opacity50p fa-solid fa-circle-info" title="OpenAI-style options: low, medium, high. Minimum and maximum are aliased to low and high. Auto does not send an effort level."></i>
-                                                <i data-source="claude,makersuite" class="opacity50p fa-solid fa-circle-info" title="Allocates a portion of the response length for thinking (low: 10%, medium: 25%, high: 50%). Other options are model-dependent."></i>
+                                                <i data-source="openai,custom,xai,openrouter" class="opacity50p fa-solid fa-circle-info" title="OpenAI-style options: low, medium, high. Minimum and maximum are aliased to low and high. Auto does not send an effort level." data-i18n="[title]OpenAI-style options: low, medium, high. Minimum and maximum are aliased to low and high. Auto does not send an effort level."></i>
+                                                <i data-source="claude,makersuite" class="opacity50p fa-solid fa-circle-info" title="Allocates a portion of the response length for thinking (low: 10%, medium: 25%, high: 50%). Other options are model-dependent." data-i18n="[title]Allocates a portion of the response length for thinking (low: 10%, medium: 25%, high: 50%). Other options are model-dependent."></i>
                                             </label>
                                             <select id="openai_reasoning_effort">
                                                 <option data-i18n="openai_reasoning_effort_auto" value="auto">Auto</option>
@@ -2498,8 +2498,8 @@
                                                 <option value="search" data-i18n="Search" hidden>A-Z</option>
                                                 <option value="asc">A-Z</option>
                                                 <option value="desc">Z-A</option>
-                                                <option value="date_asc">Date Asc</option>
-                                                <option value="date_desc">Date Desc</option>
+                                                <option data-i18n="Date Asc" value="date_asc">Date Asc</option>
+                                                <option data-i18n="Date Desc" value="date_desc">Date Desc</option>
                                             </select>
                                             <select id="featherless_category_selection" class="text_pole">
                                                 <option value="" disabled selected data-i18n="category">category</option>
@@ -2509,7 +2509,7 @@
                                                 <option value="All" data-i18n="All">All</option>
                                             </select>
                                             <select id="featherless_class_selection" class="text_pole">
-                                                <option value="" selected data-i18n="class">All Classes</option>
+                                                <option value="" selected data-i18n="All Classes">All Classes</option>
                                             </select>
                                             <div id="featherless_model_pagination_container" class="flex1"></div>
                                             <i id="featherless_model_grid_toggle" class="fa-solid fa-table-cells-large menu_button" data-i18n="[title]Toggle grid view" title="Toggle grid view"></i>
@@ -2622,8 +2622,8 @@
                             </div>
                             <div data-tg-type="ollama">
                                 <div class="flex-container flexFlowColumn">
-                                    <a href="https://github.com/jmorganca/ollama" target="_blank">
-                                        jmorganca/ollama
+                                    <a href="https://github.com/ollama/ollama" target="_blank">
+                                        ollama/ollama
                                     </a>
                                 </div>
                                 <div class="flex1">
@@ -3622,11 +3622,6 @@
                                         <small data-i18n="Names as Stop Strings">Names as Stop Strings</small>
                                     </label>
                                 </div>
-
-                                <label class="checkbox_label" title="Includes Post-History Instructions at the end of the prompt, if defined in the character card AND ''Prefer Char. Instructions'' is enabled.&#10;THIS IS NOT RECOMMENDED FOR TEXT COMPLETION MODELS, CAN LEAD TO BAD OUTPUT." data-i18n="[title]context_allow_post_history_instructions">
-                                    <input id="context_allow_jailbreak" type="checkbox" />
-                                    <small data-i18n="Allow Post-History Instructions">Allow Post-History Instructions</small>
-                                </label>
                             </div>
                         </div>
                     </div>
@@ -3828,9 +3823,7 @@
                                 </label>
                             </div>
                         </h4>
-                        <div id="SystemPromptBlock">
-
-
+                        <div id="SystemPromptBlock" class="marginBot10">
                             <div class="flex-container" title="Select your current System Prompt" data-i18n="[title]Select your current System Prompt">
                                 <select id="sysprompt_select" data-preset-manager-for="sysprompt" class="flex1 text_pole"></select>
                                 <div class="flex-container margin0 justifyCenter gap3px">
@@ -3852,10 +3845,14 @@
                                 </label>
                                 <textarea id="sysprompt_content" class="text_pole textarea_compact autoSetHeight"></textarea>
                             </div>
-                        </div>
 
-                        <div>
-                            &nbsp;
+                            <div>
+                                <label for="sysprompt_post_history" class="flex-container">
+                                    <small data-i18n="Post-History Instructions">Post-History Instructions</small>
+                                    <i class="editor_maximize fa-solid fa-maximize right_menu_button" data-for="sysprompt_post_history" title="Expand the editor" data-i18n="[title]Expand the editor"></i>
+                                </label>
+                                <textarea id="sysprompt_post_history" class="text_pole textarea_compact autoSetHeight"></textarea>
+                            </div>
                         </div>
 
                         <div>
@@ -4781,6 +4778,10 @@
                                     <input id="show_group_chat_queue" type="checkbox" />
                                     <small data-i18n="Show group chat queue">Show group chat queue</small>
                                 </label>
+                                <label class="checkbox_label" for="pin_styles" title="Always render style tags from greetings, even if the message is unloaded due to lazy loading." data-i18n="[title]Always render style tags from greetings, even if the message is unloaded due to lazy loading.">
+                                    <input id="pin_styles" type="checkbox" />
+                                    <small data-i18n="Pin greeting message styles">Pin greeting message styles</small>
+                                </label>
                                 <div class="inline-drawer wide100p flexFlowColumn">
                                     <div class="inline-drawer-toggle inline-drawer-header userSettingsInnerExpandable" title="Automatically reject and re-generate AI message based on configurable criteria." data-i18n="[title]Automatically reject and re-generate AI message based on configurable criteria">
                                         <b><span data-i18n="Auto-swipe">Auto-swipe</span></b>
@@ -4967,7 +4968,7 @@
                     <div id="bg_menu_content" class="bg_list">
                         <form id="form_bg_download" class="bg_example no-border no-shadow" action="javascript:void(null);" method="post" enctype="multipart/form-data">
                             <label class="input-file">
-                                <input type="file" id="add_bg_button" name="avatar" accept="image/png, image/jpeg, image/jpg, image/gif, image/bmp">
+                                <input type="file" id="add_bg_button" name="avatar" accept="image/*, video/*">
                                 <div class="bg_example no-border no-shadow add_bg_but" style="background-image: url('/img/addbg3.png');"></div>
                             </label>
                         </form>
@@ -5534,7 +5535,7 @@
                         <div class="inline-drawer-content">
                             <div id="currentGroupMembers" name="Current Group Members" class="flex-container flexFlowColumn overflowYAuto flex1">
                                 <div id="rm_group_members_pagination" class="rm_group_members_pagination group_pagination"></div>
-                                <div id="rm_group_members" class="rm_group_members overflowYAuto flex-container"></div>
+                                <div id="rm_group_members" class="rm_group_members overflowYAuto flex-container" group_empty_text="Group is empty." data-i18n="[group_empty_text]Group is empty."></div>
                             </div>
                         </div>
                     </div>
@@ -5552,7 +5553,7 @@
                                     <div class="tags rm_tag_filter"></div>
                                 </div>
                                 <div id="rm_group_add_members_pagination" class="group_pagination"></div>
-                                <div id="rm_group_add_members" class="overflowYAuto flex-container"></div>
+                                <div id="rm_group_add_members" class="overflowYAuto flex-container" no_characters_text="No characters available" data-i18n="[no_characters_text]No characters available"></div>
                             </div>
                         </div>
                     </div>
@@ -5972,7 +5973,7 @@
                 <div class="tag_view_color_picker" data-value="color"></div>
                 <div class="tag_view_color_picker" data-value="color2"></div>
                 <div class="tag_view_name" contenteditable="true"></div>
-                <div class="tag_view_counter"><span class="tag_view_counter_value"></span>&nbsp;entries</div>
+                <div class="tag_view_counter"><span class="tag_view_counter_value"></span>&nbsp;<span data-i18n="tag_entries">entries</span></div>
                 <div title="Delete tag" class="tag_delete fa-solid fa-trash-can right_menu_button" data-i18n="[title]Delete tag"></div>
             </div>
         </div>
@@ -6707,7 +6708,7 @@
                 </div>
                 <div class="flex-container wide100pLess70px character_select_container height100p alignitemscenter">
                     <div class="wide100p character_name_block">
-                        <span class="ch_name">Go back</span>
+                        <span class="ch_name" data-i18n="Go back">Go back</span>
                     </div>
                 </div>
             </div>

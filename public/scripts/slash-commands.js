@@ -1,5 +1,5 @@
 import { Fuse, DOMPurify } from '../lib.js';
-import { flashHighlight } from './utils.js';
+import { copyText, flashHighlight } from './utils.js';
 
 import {
     Generate,
@@ -314,6 +314,11 @@ export function initDefaultSlashCommands() {
                 description: 'position to insert the message (index-based, corresponding to message id). If not set, the message will be inserted at the end of the chat.\nNegative values (including -0) are accepted and will work similarly to how \'depth\' usually works. For example, -1 will insert the message right before the last message in chat.',
                 typeList: [ARGUMENT_TYPE.NUMBER],
                 enumProvider: commonEnumProviders.messages({ allowIdAfter: true }),
+            }),
+            SlashCommandNamedArgument.fromProps({
+                name: 'name',
+                description: 'Optional custom display name to use for this system narrator message.',
+                typeList: [ARGUMENT_TYPE.STRING],
             }),
             SlashCommandNamedArgument.fromProps({
                 name: 'return',
@@ -2279,6 +2284,45 @@ export function initDefaultSlashCommands() {
     `,
     }));
 
+    SlashCommandParser.addCommandObject(SlashCommand.fromProps({
+        name: 'clipboard-get',
+        returns: 'clipboard text',
+        callback: async () => {
+            if (!navigator.clipboard) {
+                toastr.warning('Clipboard API not available in this context.');
+                return '';
+            }
+
+            try {
+                const text = await navigator.clipboard.readText();
+                return text;
+            }
+            catch (error) {
+                console.error('Error reading clipboard:', error);
+                toastr.warning('Failed to read clipboard text. Have you granted the permission?');
+                return '';
+            }
+        },
+        helpString: 'Retrieves the text from the OS clipboard. Only works in secure contexts (HTTPS or localhost). Browser may ask for permission.',
+    }));
+
+    SlashCommandParser.addCommandObject(SlashCommand.fromProps({
+        name: 'clipboard-set',
+        callback: async (_, text) => {
+            await copyText(text.toString());
+            return '';
+        },
+        unnamedArgumentList: [
+            SlashCommandArgument.fromProps({
+                description: 'text to copy to the clipboard',
+                typeList: [ARGUMENT_TYPE.STRING],
+                isRequired: true,
+                acceptsMultiple: false,
+            }),
+        ],
+        helpString: 'Copies the provided text to the OS clipboard. Returns an empty string.',
+    }));
+
     registerVariableCommands();
 }
 
@@ -3851,7 +3895,7 @@ export async function sendMessageAs(args, text) {
 
 export async function sendNarratorMessage(args, text) {
     text = String(text ?? '');
-    const name = chat_metadata[NARRATOR_NAME_KEY] || NARRATOR_NAME_DEFAULT;
+    const name = args.name ?? (chat_metadata[NARRATOR_NAME_KEY] || NARRATOR_NAME_DEFAULT);
     // Messages that do nothing but set bias will be hidden from the context
     const bias = extractMessageBias(text);
     const isSystem = bias && !removeMacros(text).length;

@@ -27,7 +27,7 @@ import { debounce_timeout } from './constants.js';
 import { INTERACTABLE_CONTROL_CLASS } from './keyboard.js';
 import { commonEnumProviders } from './slash-commands/SlashCommandCommonEnumsProvider.js';
 import { renderTemplateAsync } from './templates.js';
-import { t } from './i18n.js';
+import { t, translate } from './i18n.js';
 
 export {
     TAG_FOLDER_TYPES,
@@ -318,7 +318,7 @@ function getTagBlock(tag, entities, hidden = 0, isUseless = false) {
     template.find('.avatar').css({ 'background-color': tag.color, 'color': tag.color2 }).attr('title', `[Folder] ${tag.name}`);
     template.find('.ch_name').text(tag.name).attr('title', `[Folder] ${tag.name}`);
     template.find('.bogus_folder_hidden_counter').text(hidden > 0 ? `${hidden} hidden` : '');
-    template.find('.bogus_folder_counter').text(`${count} ${count != 1 ? 'characters' : 'character'}`);
+    template.find('.bogus_folder_counter').text(`${count} ` + (count != 1 ? t`characters` : t`character`));
     template.find('.bogus_folder_icon').addClass(tagFolder.fa_icon);
     if (isUseless) template.addClass('useless');
 
@@ -1057,7 +1057,7 @@ function appendTagToList(listElement, tag, { removable = false, isFilter = false
         tagElement.attr('title', tag.title);
     }
     if (tag.icon) {
-        tagElement.find('.tag_name').text('').attr('title', `${tag.name} ${tag.title || ''}`.trim()).addClass(tag.icon);
+        tagElement.find('.tag_name').text('').attr('title', `${translate(tag.name)} ${tag.title || ''}`.trim()).addClass(tag.icon);
         tagElement.addClass('actionable');
     }
 
@@ -1644,6 +1644,7 @@ function updateDrawTagFolder(element, tag) {
 
     // Draw/update css attributes for this class
     folderElement.attr('title', tagFolder.tooltip);
+    folderElement.attr('data-i18n', '[title]' + tagFolder.tooltip);
     const indicator = folderElement.find('.tag_folder_indicator');
     indicator.text(tagFolder.icon);
     indicator.css('color', tagFolder.color);
@@ -1655,14 +1656,7 @@ async function onTagDeleteClick() {
     const tag = tags.find(x => x.id === id);
     const otherTags = sortTags(tags.filter(x => x.id !== id).map(x => ({ id: x.id, name: x.name })));
 
-    const popupContent = $(`
-        <h3>Delete Tag</h3>
-        <div>Do you want to delete the tag <div id="tag_to_delete" class="tags_inline inline-flex margin-r2"></div>?</div>
-        <div class="m-t-2 marginBot5">If you want to merge all references to this tag into another tag, select it below:</div>
-        <select id="merge_tag_select">
-            <option value="">--- None ---</option>
-            ${otherTags.map(x => `<option value="${x.id}">${x.name}</option>`).join('')}
-        </select>`);
+    const popupContent = $(await renderTemplateAsync('deleteTag', { otherTags }));
 
     appendTagToList(popupContent.find('#tag_to_delete'), tag);
 

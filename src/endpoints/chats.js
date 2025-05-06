@@ -433,7 +433,7 @@ router.post('/rename', validateAvatarUrlMiddleware, async function (request, res
     }
 
     fs.copyFileSync(pathToOriginalFile, pathToRenamedFile);
-    fs.rmSync(pathToOriginalFile);
+    fs.unlinkSync(pathToOriginalFile);
     console.info('Successfully renamed.');
     return response.send({ ok: true, sanitizedFileName });
 });
@@ -449,7 +449,7 @@ router.post('/delete', validateAvatarUrlMiddleware, function (request, response)
         return response.sendStatus(400);
     }
 
-    fs.rmSync(filePath);
+    fs.unlinkSync(filePath);
     console.info(`Deleted chat file: ${filePath}`);
     return response.send('ok');
 });
@@ -665,7 +665,7 @@ router.post('/group/delete', (request, response) => {
     const pathToFile = path.join(request.user.directories.groupChats, `${id}.jsonl`);
 
     if (fs.existsSync(pathToFile)) {
-        fs.rmSync(pathToFile);
+        fs.unlinkSync(pathToFile);
         return response.send({ ok: true });
     }
 
