@@ -1284,7 +1284,7 @@
                                         <input class="neo-range-slider" type="range" id="min_p_textgenerationwebui" name="volume" min="0" max="1" step="0.001">
                                         <input class="neo-range-input" type="number" min="0" max="1" step="0.001" data-for="min_p_textgenerationwebui" id="min_p_counter_textgenerationwebui">
                                     </div>
-                                    <div data-tg-type-mode="except" data-tg-type="generic" class="alignitemscenter flex-container flexFlowColumn flexBasis30p flexGrow flexShrink gap0">
+                                    <div data-tg-type-mode="except" data-tg-type="generic,llamacpp" class="alignitemscenter flex-container flexFlowColumn flexBasis30p flexGrow flexShrink gap0">
                                         <small>
                                             <span data-i18n="Top A">Top A</span>
                                             <div class="fa-solid fa-circle-info opacity50p" title="Top A sets a threshold for token selection based on the square of the highest token probability.&#13;E.g if the Top-A value is 0.2 and the top token's probability is 50%, tokens with probabilities below 5% (0.2 * 0.5^2) are excluded.&#13;Set to 0 to disable." data-i18n="[title]Top_A_desc"></div>
@@ -1292,7 +1292,7 @@
                                         <input class="neo-range-slider" type="range" id="top_a_textgenerationwebui" name="volume" min="0" max="1" step="0.01">
                                         <input class="neo-range-input" type="number" min="0" max="1" step="0.01" data-for="top_a_textgenerationwebui" id="top_a_counter_textgenerationwebui">
                                     </div>
-                                    <div data-tg-type-mode="except" data-tg-type="generic" class="alignitemscenter flex-container flexFlowColumn flexBasis30p flexGrow flexShrink gap0">
+                                    <div data-tg-type-mode="except" data-tg-type="generic,llamacpp" class="alignitemscenter flex-container flexFlowColumn flexBasis30p flexGrow flexShrink gap0">
                                         <small>
                                             <span data-i18n="TFS">TFS</span>
                                             <div class="fa-solid fa-circle-info opacity50p" data-i18n="[title]Tail_Free_Sampling_desc" title="Tail-Free Sampling (TFS) searches for a tail of low-probability tokens in the distribution,&#13;by analyzing the rate of change in token probabilities using derivatives. It retains tokens up to a threshold (e.g., 0.3) based on the normalized second derivative.&#13;The closer to 0, the more discarded tokens. Set to 1.0 to disable."></div>
@@ -1308,13 +1308,21 @@
                                         <input class="neo-range-slider" type="range" id="epsilon_cutoff_textgenerationwebui" name="volume" min="0" max="9" step="0.01">
                                         <input class="neo-range-input" type="number" min="0" max="9" step="0.01" data-for="epsilon_cutoff_textgenerationwebui" id="epsilon_cutoff_counter_textgenerationwebui">
                                     </div>
-                                    <div data-tg-type="aphrodite,koboldcpp" class="alignitemscenter flex-container flexFlowColumn flexBasis30p flexGrow flexShrink gap0">
+                                    <div data-tg-type="aphrodite,koboldcpp,llamacpp" class="alignitemscenter flex-container flexFlowColumn flexBasis30p flexGrow flexShrink gap0">
                                         <small>
                                             <span data-i18n="Top nsigma">Top nsigma</span>
                                             <div class="fa-solid fa-circle-info opacity50p" title="A sampling method that filters logits based on their statistical properties. It keeps tokens within n standard deviations of the maximum logit value, providing a simpler alternative to top-p/top-k sampling while maintaining sampling stability across different temperatures."></div>
                                         </small>
                                         <input class="neo-range-slider" type="range" id="nsigma_textgenerationwebui" name="volume" min="0" max="5" step="0.01">
                                         <input class="neo-range-input" type="number" min="0" max="5" step="0.01" data-for="nsigma_textgenerationwebui" id="nsigma_counter_textgenerationwebui">
+                                    </div>
+                                    <div data-tg-type="llamacpp" class="alignitemscenter flex-container flexFlowColumn flexBasis30p flexGrow flexShrink gap0">
+                                        <small>
+                                            <span data-i18n="Min Keep">Min Keep</span>
+                                            <div class="fa-solid fa-circle-info opacity50p" title="A sampling modifier that ensures that truncation samplers such as top-p, min-p, typical-p, and xtc return at least this many tokens. Set to 0 to disable."></div>
+                                        </small>
+                                        <input class="neo-range-slider" type="range" id="min_keep_textgenerationwebui" name="volume" min="0" max="50" step="1">
+                                        <input class="neo-range-input" type="number" min="0" max="50" step="1" data-for="min_keep_textgenerationwebui" id="min_keep_counter_textgenerationwebui">
                                     </div>
                                     <div data-tg-type="ooba,mancer,aphrodite" class="alignitemscenter flex-container flexFlowColumn flexBasis30p flexGrow flexShrink gap0">
                                         <small>
@@ -1769,11 +1777,12 @@
                                             <div data-name="temperature" draggable="true"><span>Temperature</span><small></small></div>
                                             <div data-name="top_k" draggable="true"><span>Top K</span><small></small></div>
                                             <div data-name="top_p" draggable="true"><span>Top P</span><small></small></div>
-                                            <div data-name="typical_p" draggable="true"><span>Typical P</span><small></small></div>
-                                            <div data-name="tfs_z" draggable="true"><span>Tail Free Sampling</span><small></small></div>
+                                            <div data-name="typ_p" draggable="true"><span>Typical P</span><small></small></div>
                                             <div data-name="min_p" draggable="true"><span>Min P</span><small></small></div>
                                             <div data-name="xtc" draggable="true"><span>Exclude Top Choices</span><small></small></div>
                                             <div data-name="dry" draggable="true"><span>DRY</span><small></small></div>
+                                            <div data-name="penalties" draggable="true"><span>Rep/Freq/Pres Penalties</span><small></small></div>
+                                            <div data-name="top_n_sigma" draggable="true"><span>Top N-Sigma</span><small></small></div>
                                         </div>
                                         <div id="llamacpp_samplers_default_order" class="menu_button menu_button_icon">
                                             <span data-i18n="Load default order">Load default order</span>
@@ -3147,6 +3156,7 @@
                                 <h4 data-i18n="Google Model">Google Model</h4>
                                 <select id="model_google_select">
                                     <optgroup label="Gemini 2.5">
+                                        <option value="gemini-2.5-pro-preview-05-06">gemini-2.5-pro-preview-05-06</option>
                                         <option value="gemini-2.5-pro-preview-03-25">gemini-2.5-pro-preview-03-25</option>
                                         <option value="gemini-2.5-pro-exp-03-25">gemini-2.5-pro-exp-03-25</option>
                                         <option value="gemini-2.5-flash-preview-04-17">gemini-2.5-flash-preview-04-17</option>
@@ -3236,6 +3246,7 @@
                                         <option value="mistral-small-2501">mistral-small-2501</option>
                                         <option value="mistral-small-2503">mistral-small-2503</option>
                                         <option value="mistral-medium-2312">mistral-medium-2312</option>
+                                        <option value="mistral-medium-2505">mistral-medium-2505</option>
                                         <option value="mistral-large-2402">mistral-large-2402</option>
                                         <option value="mistral-large-2407">mistral-large-2407</option>
                                         <option value="mistral-large-2411">mistral-large-2411</option>
@@ -4497,10 +4508,11 @@
                                     <small data-i18n="Tags as Folders">Tags as Folders</small>
                                     <i title="Recent change: Tags must be marked as folders in the Tag Management menu to appear as such. Click here to bring it up." data-i18n="[title]Tags_as_Folders_desc" class="tags_view right_menu_button fa-solid fa-circle-exclamation"></i>
                                 </label>
-
+                                <label for="click_to_edit" class="checkbox_label" title="Click the message text in the chat log to edit it." data-i18n="[title]Click the message text in the chat log to edit it.">
+                                    <input id="click_to_edit" type="checkbox" />
+                                    <small data-i18n="Click to Edit">Click to Edit</small>
+                                </label>
                             </div>
-
-
                         </div>
                     </div>
                     <div name="UserSettingsSecondColumn" id="UI-Customization" class="flex-container flexFlowColumn wide100p flexNoGap flex1">

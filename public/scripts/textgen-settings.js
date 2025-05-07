@@ -56,10 +56,11 @@ const {
 } = textgen_types;
 
 const LLAMACPP_DEFAULT_ORDER = [
+    'penalties',
     'dry',
+    'top_n_sigma',
     'top_k',
-    'tfs_z',
-    'typical_p',
+    'typ_p',
     'top_p',
     'min_p',
     'xtc',
@@ -212,6 +213,7 @@ const settings = {
     xtc_threshold: 0.1,
     xtc_probability: 0,
     nsigma: 0.0,
+    min_keep: 0,
     featherless_model: '',
     generic_model: '',
 };
@@ -294,6 +296,7 @@ export const setting_names = [
     'xtc_threshold',
     'xtc_probability',
     'nsigma',
+    'min_keep',
     'generic_model',
 ];
 
@@ -804,6 +807,7 @@ jQuery(function () {
             'xtc_threshold_textgenerationwebui': 0.1,
             'xtc_probability_textgenerationwebui': 0,
             'nsigma_textgenerationwebui': 0,
+            'min_keep_textgenerationwebui': 0,
         };
 
         for (const [id, value] of Object.entries(inputs)) {
@@ -1332,6 +1336,8 @@ export async function getTextGenGenerationData(finalPrompt, maxTokens, isImperso
         'xtc_threshold': settings.xtc_threshold,
         'xtc_probability': settings.xtc_probability,
         'nsigma': settings.nsigma,
+        'top_n_sigma': settings.nsigma,
+        'min_keep': settings.min_keep,
     };
     const nonAphroditeParams = {
         'rep_pen': settings.rep_pen,
@@ -1351,7 +1357,6 @@ export async function getTextGenGenerationData(finalPrompt, maxTokens, isImperso
         'json_schema': [TABBY, LLAMACPP].includes(settings.type) ? settings.json_schema : undefined,
         // llama.cpp aliases. In case someone wants to use LM Studio as Text Completion API
         'repeat_penalty': settings.rep_pen,
-        'tfs_z': settings.tfs,
         'repeat_last_n': settings.rep_pen_range,
         'n_predict': maxTokens,
         'num_predict': maxTokens,
