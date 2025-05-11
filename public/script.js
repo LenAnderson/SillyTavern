@@ -1061,11 +1061,12 @@ async function firstLoadInit() {
     updateLoaderStatus('initializing character bulk edit',
         initBulkEdit(),
     );
-    const { promise:scraperPromise, resolve:scraperResolve } = Promise.withResolvers();
-    updateLoaderStatus('initializing data bank scrapers', scraperPromise);
-    initReasoning();
-    await initScrapers();
-    scraperResolve();
+    await updateLoaderStatus('initializing data bank scrapers',
+        initReasoning(),
+        initScrapers(),
+        initCustomSelectedSamplers(),
+        addDebugFunctions(),
+    );
     updateLoaderStatus('checking for extension updates',
         doDailyExtensionUpdatesCheck(),
     );
@@ -12364,16 +12365,12 @@ jQuery(async function () {
     // Added here to prevent execution before script.js is loaded and get rid of quirky timeouts
     await firstLoadInit();
 
-    addDebugFunctions();
-
     eventSource.on(event_types.CHAT_DELETED, async (name) => {
         await deleteItemizedPrompts(name);
     });
     eventSource.on(event_types.GROUP_CHAT_DELETED, async (name) => {
         await deleteItemizedPrompts(name);
     });
-
-    initCustomSelectedSamplers();
 
     window.addEventListener('beforeunload', (e) => {
         if (isChatSaving) {
