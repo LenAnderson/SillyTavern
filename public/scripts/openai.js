@@ -791,16 +791,27 @@ async function populationInjectionPrompts(prompts, messages) {
                     .map(x => x.content)
                     .join(separator);
 
-                // Get extension prompt
-                const extensionPrompt = order === extensionPromptsOrder
-                    ? await getExtensionPrompt(extension_prompt_types.IN_CHAT, i, separator, roleTypes[role], wrap)
-                    : '';
-                const jointPrompt = [rolePrompts, extensionPrompt].filter(x => x).map(x => x.trim()).join(separator);
+                const jointPrompt = [rolePrompts].filter(x => x).map(x => x.trim()).join(separator);
 
                 if (jointPrompt && jointPrompt.length) {
                     roleMessages.push({ 'role': role, 'content': jointPrompt, injected: true });
                 }
             }
+        }
+
+        // insert WI after injections and keep WI order intact
+        const extensionPrompts = await getExtensionPromptList(extension_prompt_types.IN_CHAT, i, undefined);
+        for (const prompt of extensionPrompts) {
+            if (!prompt.value.trim().length) continue;
+            const role = Object.entries(roleTypes).find(([k,v])=>v == prompt.role)[0];
+            if (roleMessages.at(-1)?.role != role) {
+                roleMessages.push({ role, content:'', injected:true });
+            }
+            const roleMessage = roleMessages.at(-1);
+            if (roleMessage.content.length) {
+                roleMessage.content += '\n';
+            }
+            roleMessage.content += substituteParams(prompt.value.trim());
         }
 
         if (roleMessages.length) {

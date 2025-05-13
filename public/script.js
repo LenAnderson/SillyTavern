@@ -3172,6 +3172,13 @@ export async function getExtensionPrompt(position = extension_prompt_types.IN_PR
     return values;
 }
 
+/**
+ *
+ * @param {number} position
+ * @param {number} depth
+ * @param {string} role
+ * @returns {Promise<{position:number, depth:number, role:number, order:number, value:string}[]>}
+ */
 export async function getExtensionPromptList(position = extension_prompt_types.IN_PROMPT, depth = undefined, role = undefined) {
     const filterByFunction = async (prompt) => {
         const hasFilter = typeof prompt.filter === 'function';
@@ -4285,7 +4292,7 @@ export async function Generate(type, { automatic_trigger, force_name2, quiet_pro
         if (Array.isArray(worldInfoDepth)) {
             worldInfoDepth.forEach((e,i) => {
                 const joinedEntries = e.entries.join('\n');
-                setExtensionPrompt(`customDepthWI-${e.depth}-${i}`, joinedEntries, extension_prompt_types.IN_CHAT, e.depth, false, e.role);
+                setExtensionPrompt(`customDepthWI-${e.depth}-${`000${i}`.slice(-4)}`, joinedEntries, extension_prompt_types.IN_CHAT, e.depth, false, e.role);
             });
         }
     } else {
