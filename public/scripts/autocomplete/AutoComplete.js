@@ -122,7 +122,7 @@ export class AutoComplete {
         if (isFloating) {
             textarea.addEventListener('scroll', ()=>this.updateFloatingPositionDebounced());
         }
-        window.addEventListener('resize', ()=>this.updatePositionDebounced());
+        window.addEventListener('resize', this.updatePositionDebounced);
     }
 
     /**
@@ -496,6 +496,11 @@ export class AutoComplete {
      * Update position of DOM.
      */
     updatePosition() {
+        if (!this.textarea.closest('body')) {
+            console.log('[AUTOCOMPLETE]', 'remove window resize listener');
+            window.removeEventListener('resize', this.updatePositionDebounced);
+            return;
+        }
         if (this.isFloating) {
             this.updateFloatingPosition();
         } else {
