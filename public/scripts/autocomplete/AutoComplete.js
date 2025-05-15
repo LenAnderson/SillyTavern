@@ -563,15 +563,15 @@ export class AutoComplete {
         const left = Math.max(rect.left, location.left) - layerRect.left;
         this.domWrap.style.setProperty('--targetOffset', `${left}`);
         if (location.top <= window.innerHeight / 2) {
-            // if cursor is in lower half of window, show list above line
+            // if cursor is in upper half of window, show list below line
             this.domWrap.style.top = `${location.bottom - layerRect.top}px`;
             this.domWrap.style.bottom = 'auto';
-            this.domWrap.style.maxHeight = `calc(${location.bottom - layerRect.top}px - ${this.textarea.closest('dialog') ? '0' : '1vh'})`;
+            this.domWrap.style.maxHeight = `calc(100vh - ${location.bottom - layerRect.top}px - ${this.textarea.closest('dialog') ? '0' : '1vh'})`;
         } else {
-            // if cursor is in upper half of window, show list below line
+            // if cursor is in lower half of window, show list above line
             this.domWrap.style.top = 'auto';
             this.domWrap.style.bottom = `calc(${layerRect.height}px - ${location.top - layerRect.top}px)`;
-            this.domWrap.style.maxHeight = `calc(${location.top - layerRect.top}px - ${this.textarea.closest('dialog') ? '0' : '1vh'})`;
+            this.domWrap.style.maxHeight = `calc(100vh - (${layerRect.height}px - ${location.top - layerRect.top}px= - ${this.textarea.closest('dialog') ? '0' : '1vh'})`;
         }
     }
 
@@ -601,15 +601,15 @@ export class AutoComplete {
             this.detailsWrap.classList.add('full');
         }
         if (location.top <= window.innerHeight / 2) {
-            // if cursor is in lower half of window, show list above line
+            // if cursor is in upper half of window, show list below line
             this.detailsWrap.style.top = `${location.bottom - layerRect.top}px`;
             this.detailsWrap.style.bottom = 'auto';
-            this.detailsWrap.style.maxHeight = `calc(${location.bottom - layerRect.top}px - ${this.textarea.closest('dialog') ? '0' : '1vh'})`;
+            this.detailsWrap.style.maxHeight = `calc(100vh - ${location.bottom - layerRect.top}px - ${this.textarea.closest('dialog') ? '0' : '1vh'})`;
         } else {
-            // if cursor is in upper half of window, show list below line
+            // if cursor is in lower half of window, show list above line
             this.detailsWrap.style.top = 'auto';
             this.detailsWrap.style.bottom = `calc(${layerRect.height}px - ${location.top - layerRect.top}px)`;
-            this.detailsWrap.style.maxHeight = `calc(${location.top - layerRect.top}px - ${this.textarea.closest('dialog') ? '0' : '1vh'})`;
+            this.detailsWrap.style.maxHeight = `calc(100vh - (${layerRect.height}px - ${location.top - layerRect.top}px) - ${this.textarea.closest('dialog') ? '0' : '1vh'})`;
         }
     }
 
