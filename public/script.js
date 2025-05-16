@@ -2092,7 +2092,7 @@ export async function sendTextareaMessage() {
         generateType = 'continue';
     }
 
-    if (textareaText && !selected_group && this_chid === undefined && name2 !== neutralCharacterName) {
+    if (textareaText && textareaText[0] != '/' && !selected_group && this_chid === undefined && name2 !== neutralCharacterName) {
         await newAssistantChat({ temporary: false });
     }
 
