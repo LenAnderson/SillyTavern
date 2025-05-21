@@ -3934,13 +3934,36 @@ grammarly-extension {
 
 /* Override toastr default styles */
 body #toast-container {
-    top: var(--topBarBlockSize);
+    margin-top: var(--topBarBlockSize);
 }
 
 body #toast-container>div {
     opacity: 1;
     filter: unset;
     -ms-filter: unset;
+    padding: 5px 5px 10px 50px;
+    font-size: calc(var(--mainFontSize) * 0.9);
+    width:300px;
+}
+
+.toast-success {
+    background-color: #5d9e5d;
+}
+
+.toast-error {
+    background-color: #a83c36;
+}
+
+.toast-info {
+    background-color: #4092aa;
+}
+
+.toast-warning {
+    background-color: #e29325;
+}
+
+button.toast-close-button {
+padding-right: 3px
 }
 
 #dialogue_del_mes {
