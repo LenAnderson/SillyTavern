@@ -315,6 +315,7 @@ await new Promise((resolve) => {
 
 const { promise:initPromise, resolve:initResolve } = Promise.withResolvers();
 updateLoaderStatus('initial setup', initPromise);
+//showLoader(); <-- must wait for poweruser (called from firstinit()), so moved it in there
 
 // Configure toast library:
 toastr.options.escapeHtml = true; // Prevent raw HTML inserts
@@ -972,11 +973,11 @@ async function firstLoadInit() {
         token = tokenData.token;
         resolve();
     } catch {
-        hideLoader();
         toastr.error(t`Couldn't get CSRF token. Please refresh the page.`, t`Error`, { timeOut: 0, extendedTimeOut: 0, preventDuplicates: true });
         throw new Error('Initialization failed');
     }
 
+    showLoader();
     updateLoaderStatus('adding compatibility patches',
         initLibraryShims(),
         addShowdownPatch(showdown),
@@ -1004,7 +1005,6 @@ async function firstLoadInit() {
     await updateLoaderStatus('initializing preset manager', initPresetManager());
     await updateLoaderStatus('loading welcome message', getSystemMessages());
     await updateLoaderStatus('loading user settings', getSettings());
-    showLoader();
     updateLoaderStatus('registering keyboard shortcuts',
         initKeyboard(),
     );
@@ -11384,6 +11384,7 @@ jQuery(async function () {
             $(`.mes[mesid="${this_del_mes}"]`).nextAll('div').remove();
             $(`.mes[mesid="${this_del_mes}"]`).remove();
             chat.length = this_del_mes;
+            chat_metadata['tainted'] = true;
             await saveChatConditional();
             chatElement.scrollTop(chatElement[0].scrollHeight);
             await eventSource.emit(event_types.MESSAGE_DELETED, chat.length);
@@ -11823,6 +11824,7 @@ jQuery(async function () {
         let startFromZero = Number(this_edit_mes_id) === 0;
 
         this_edit_mes_id = undefined;
+        chat_metadata['tainted'] = true;
 
         updateViewMessageIds(startFromZero);
         saveChatDebounced();
