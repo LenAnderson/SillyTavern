@@ -313,7 +313,6 @@ await new Promise((resolve) => {
     }
 });
 
-showLoader();
 const { promise:initPromise, resolve:initResolve } = Promise.withResolvers();
 updateLoaderStatus('initial setup', initPromise);
 
@@ -1005,6 +1004,7 @@ async function firstLoadInit() {
     await updateLoaderStatus('initializing preset manager', initPresetManager());
     await updateLoaderStatus('loading welcome message', getSystemMessages());
     await updateLoaderStatus('loading user settings', getSettings());
+    showLoader();
     updateLoaderStatus('registering keyboard shortcuts',
         initKeyboard(),
     );
