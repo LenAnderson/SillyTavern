@@ -207,6 +207,16 @@ async function validateGroup(group) {
         return character;
     });
 
+    // Remove duplicate chat ids
+    if (Array.isArray(group.chats)) {
+        const lengthBefore = group.chats.length;
+        group.chats = group.chats.filter(onlyUnique);
+        const lengthAfter = group.chats.length;
+        if (lengthBefore !== lengthAfter) {
+            dirty = true;
+        }
+    }
+
     if (dirty) {
         await editGroup(group.id, true, false);
     }
@@ -225,8 +235,8 @@ export async function getGroupChat(groupId, reload = false) {
 
     const chat_id = group.chat_id;
     const data = await loadGroupChat(chat_id);
+    const metadata = group.chat_metadata ?? {};
     let freshChat = false;
-    let metadata = group.chat_metadata ?? {};
 
     await loadItemizedPrompts(getCurrentChatId());
 
