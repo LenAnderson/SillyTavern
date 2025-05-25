@@ -854,7 +854,13 @@ export function convertTextCompletionPrompt(messages) {
     return messageStrings.join('\n') + '\nassistant:';
 }
 
-export function cachingAtDepthForClaude(messages, cachingAtDepth) {
+/**
+ * Append cache_control object to a Claude messages at depth. Directly modifies the messages array.
+ * @param {any[]} messages Messages to modify
+ * @param {number} cachingAtDepth Depth at which caching is supposed to occur
+ * @param {string} ttl TTL value
+ */
+export function cachingAtDepthForClaude(messages, cachingAtDepth, ttl) {
     let passedThePrefill = false;
     let depth = 0;
     let previousRoleName = '';
@@ -869,7 +875,7 @@ export function cachingAtDepthForClaude(messages, cachingAtDepth) {
         if (messages[i].role !== previousRoleName) {
             if (depth === cachingAtDepth || depth === cachingAtDepth + 2) {
                 const content = messages[i].content;
-                content[content.length - 1].cache_control = { type: 'ephemeral', ttl: '1h' };
+                content[content.length - 1].cache_control = { type: 'ephemeral', ttl: ttl };
             }
 
             if (depth === cachingAtDepth + 2) {

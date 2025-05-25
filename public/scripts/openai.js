@@ -3852,7 +3852,7 @@ async function saveOpenAIPreset(name, settings, triggerUi = true) {
         n: settings.n,
     };
 
-    const savePresetSettings = await fetch(`/api/presets/save-openai?name=${name}`, {
+    const savePresetSettings = await fetch(`/api/presets/save-openai?name=${encodeURIComponent(name)}`, {
         method: 'POST',
         headers: getRequestHeaders(),
         body: JSON.stringify(presetBody),
@@ -4064,7 +4064,7 @@ async function onPresetImportFileChange(e) {
 
     await eventSource.emit(event_types.OAI_PRESET_IMPORT_READY, { data: presetBody, presetName: name });
 
-    const savePresetSettings = await fetch(`/api/presets/save-openai?name=${name}`, {
+    const savePresetSettings = await fetch(`/api/presets/save-openai?name=${encodeURIComponent(name)}`, {
         method: 'POST',
         headers: getRequestHeaders(),
         body: importedFile,
