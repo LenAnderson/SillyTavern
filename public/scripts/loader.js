@@ -249,14 +249,16 @@ export async function updateLoaderStatus(message, ...promises) {
         ],
     };
     const msg = loaderPopup?.content?.querySelector('#load-spinner-message');
-    if (!msg) return;
-    const el = document.createElement('div'); {
-        el.textContent = msgDict[message]?.[Math.floor(Math.random() * msgDict[message].length)] ?? message;
-        el.title = message;
-        msg.append(el);
+    let el;
+    if (msg) {
+        el = document.createElement('div'); {
+            el.textContent = msgDict[message]?.[Math.floor(Math.random() * msgDict[message].length)] ?? message;
+            el.title = message;
+            msg.append(el);
+        }
     }
     await Promise.all(promises);
-    el.remove();
+    el?.remove();
 }
 
 export function showLoader() {
