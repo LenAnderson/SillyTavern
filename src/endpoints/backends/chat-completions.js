@@ -1345,6 +1345,7 @@ router.post('/generate', function (request, response) {
         bodyParams = {
             reasoning_effort: request.body.reasoning_effort,
             private: true,
+            referrer: 'sillytavern',
         };
     } else {
         console.warn('This chat completion source is not supported yet.');
