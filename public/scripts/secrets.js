@@ -44,6 +44,7 @@ export const SECRET_KEYS = {
     SERPER: 'api_key_serper',
     FALAI: 'api_key_falai',
     XAI: 'api_key_xai',
+    VERTEXAI_SERVICE_ACCOUNT: 'vertexai_service_account_json',
 };
 
 const INPUT_MAP = {
@@ -80,7 +81,12 @@ const INPUT_MAP = {
     [SECRET_KEYS.GENERIC]: '#api_key_generic',
     [SECRET_KEYS.DEEPSEEK]: '#api_key_deepseek',
     [SECRET_KEYS.XAI]: '#api_key_xai',
+    [SECRET_KEYS.VERTEXAI_SERVICE_ACCOUNT]: '#vertexai_service_account_json',
 };
+
+const STATIC_PLACEHOLDER_KEYS = [
+    SECRET_KEYS.VERTEXAI_SERVICE_ACCOUNT,
+];
 
 async function clearSecret() {
     const key = $(this).data('key');
@@ -93,6 +99,9 @@ async function clearSecret() {
 
 export function updateSecretDisplay() {
     for (const [secret_key, input_selector] of Object.entries(INPUT_MAP)) {
+        if (STATIC_PLACEHOLDER_KEYS.includes(secret_key)) {
+            continue;
+        }
         const validSecret = !!secret_state[secret_key];
 
         const placeholder = $('#viewSecrets').attr(validSecret ? 'key_saved_text' : 'missing_key_text');

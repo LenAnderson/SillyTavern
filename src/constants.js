@@ -328,6 +328,7 @@ export const OPENAI_KEYS = [
 
 export const AVATAR_WIDTH = 512;
 export const AVATAR_HEIGHT = 768;
+export const DEFAULT_AVATAR_PATH = './public/img/ai4.png';
 
 export const OPENROUTER_HEADERS = {
     'HTTP-Referer': 'https://sillytavern.app',

@@ -12340,9 +12340,7 @@ jQuery(async function () {
 
     $(document).on('click', '.external_import_button, #external_import_button', async () => {
         const html = await renderTemplateAsync('importCharacters');
-
-        /** @type {string?} */
-        const input = await callGenericPopup(html, POPUP_TYPE.INPUT, '', { wider: true, okButton: $('#popup_template').attr('popup-button-import'), rows: 4 });
+        const input = await callGenericPopup(html, POPUP_TYPE.INPUT, '', { allowVerticalScrolling: true, wider: true, okButton: $('#popup_template').attr('popup-button-import'), rows: 4 });
 
         if (!input) {
             console.debug('Custom content import cancelled');
@@ -12350,7 +12348,7 @@ jQuery(async function () {
         }
 
         // break input into one input per line
-        const inputs = input.split('\n').map(x => x.trim()).filter(x => x.length > 0);
+        const inputs = String(input).split('\n').map(x => x.trim()).filter(x => x.length > 0);
 
         for (const url of inputs) {
             let request;

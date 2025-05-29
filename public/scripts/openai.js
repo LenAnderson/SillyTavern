@@ -236,6 +236,7 @@ const sensitiveFields = [
     'custom_include_body',
     'custom_exclude_body',
     'custom_include_headers',
+    'vertexai_region',
 ];
 
 /**
@@ -307,6 +308,8 @@ export const settingsToUpdate = {
     assistant_impersonation: ['#claude_assistant_impersonation', 'assistant_impersonation', false, false],
     claude_use_sysprompt: ['#claude_use_sysprompt', 'claude_use_sysprompt', true, false],
     use_makersuite_sysprompt: ['#use_makersuite_sysprompt', 'use_makersuite_sysprompt', true, false],
+    vertexai_auth_mode: ['#vertexai_auth_mode', 'vertexai_auth_mode', false, true],
+    vertexai_region: ['#vertexai_region', 'vertexai_region', false, true],
     use_alt_scale: ['#use_alt_scale', 'use_alt_scale', true, true],
     squash_system_messages: ['#squash_system_messages', 'squash_system_messages', true, false],
     image_inlining: ['#openai_image_inlining', 'image_inlining', true, false],
@@ -388,6 +391,8 @@ const default_settings = {
     assistant_impersonation: '',
     claude_use_sysprompt: false,
     use_makersuite_sysprompt: true,
+    vertexai_auth_mode: 'express',
+    vertexai_region: 'us-central1',
     use_alt_scale: false,
     squash_system_messages: false,
     image_inlining: false,
@@ -472,6 +477,8 @@ const oai_settings = {
     assistant_impersonation: '',
     claude_use_sysprompt: false,
     use_makersuite_sysprompt: true,
+    vertexai_auth_mode: 'express',
+    vertexai_region: 'us-central1',
     use_alt_scale: false,
     squash_system_messages: false,
     image_inlining: false,
@@ -2200,6 +2207,10 @@ async function sendOpenAIRequest(type, messages, signal) {
         generate_data['top_k'] = Number(oai_settings.top_k_openai);
         generate_data['stop'] = getCustomStoppingStrings(stopStringsLimit).slice(0, stopStringsLimit).filter(x => x.length >= 1 && x.length <= 16);
         generate_data['use_makersuite_sysprompt'] = oai_settings.use_makersuite_sysprompt;
+        if (isVertexAI) {
+            generate_data['vertexai_auth_mode'] = oai_settings.vertexai_auth_mode;
+            generate_data['vertexai_region'] = oai_settings.vertexai_region;
+        }
     }
 
     if (isMistral) {
@@ -2282,10 +2293,6 @@ async function sendOpenAIRequest(type, messages, signal) {
     }
 
     if (isPollinations) {
-        delete generate_data.temperature;
-        delete generate_data.top_p;
-        delete generate_data.frequency_penalty;
-        delete generate_data.presence_penalty;
         delete generate_data.max_tokens;
     }
 
@@ -3459,6 +3466,8 @@ function loadOpenAISettings(data, settings) {
     if (settings.openai_model !== undefined) oai_settings.openai_model = settings.openai_model;
     if (settings.claude_use_sysprompt !== undefined) oai_settings.claude_use_sysprompt = !!settings.claude_use_sysprompt;
     if (settings.use_makersuite_sysprompt !== undefined) oai_settings.use_makersuite_sysprompt = !!settings.use_makersuite_sysprompt;
+    if (settings.vertexai_auth_mode !== undefined) oai_settings.vertexai_auth_mode = settings.vertexai_auth_mode;
+    if (settings.vertexai_region !== undefined) oai_settings.vertexai_region = settings.vertexai_region;
     if (settings.use_alt_scale !== undefined) { oai_settings.use_alt_scale = !!settings.use_alt_scale; updateScaleForm(); }
     $('#stream_toggle').prop('checked', oai_settings.stream_openai);
     $('#api_url_scale').val(oai_settings.api_url_scale);
@@ -3514,6 +3523,11 @@ function loadOpenAISettings(data, settings) {
     $('#openai_external_category').toggle(oai_settings.show_external_models);
     $('#claude_use_sysprompt').prop('checked', oai_settings.claude_use_sysprompt);
     $('#use_makersuite_sysprompt').prop('checked', oai_settings.use_makersuite_sysprompt);
+    $('#vertexai_auth_mode').val(oai_settings.vertexai_auth_mode);
+    $('#vertexai_region').val(oai_settings.vertexai_region);
+    // Don't display Service Account JSON in textarea - it's stored in backend secrets
+    $('#vertexai_service_account_json').val('');
+    updateVertexAIServiceAccountStatus();
     $('#scale-alt').prop('checked', oai_settings.use_alt_scale);
     $('#openrouter_use_fallback').prop('checked', oai_settings.openrouter_use_fallback);
     $('#openrouter_group_models').prop('checked', oai_settings.openrouter_group_models);
@@ -3836,6 +3850,8 @@ async function saveOpenAIPreset(name, settings, triggerUi = true) {
         assistant_impersonation: settings.assistant_impersonation,
         claude_use_sysprompt: settings.claude_use_sysprompt,
         use_makersuite_sysprompt: settings.use_makersuite_sysprompt,
+        vertexai_auth_mode: settings.vertexai_auth_mode,
+        vertexai_region: settings.vertexai_region,
         use_alt_scale: settings.use_alt_scale,
         squash_system_messages: settings.squash_system_messages,
         image_inlining: settings.image_inlining,
@@ -5011,15 +5027,27 @@ async function onConnectButtonClick(e) {
     }
 
     if (oai_settings.chat_completion_source == chat_completion_sources.VERTEXAI) {
-        const api_key_vertexai = String($('#api_key_vertexai').val()).trim();
+        if (oai_settings.vertexai_auth_mode === 'express') {
+            // Express mode - use API key
+            const api_key_vertexai = String($('#api_key_vertexai').val()).trim();
 
-        if (api_key_vertexai.length) {
-            await writeSecret(SECRET_KEYS.VERTEXAI, api_key_vertexai);
-        }
+            if (api_key_vertexai.length) {
+                await writeSecret(SECRET_KEYS.VERTEXAI, api_key_vertexai);
+            }
 
-        if (!secret_state[SECRET_KEYS.VERTEXAI] && !oai_settings.reverse_proxy) {
-            console.log('No secret key saved for Vertex AI');
-            return;
+            if (!secret_state[SECRET_KEYS.VERTEXAI] && !oai_settings.reverse_proxy) {
+                console.log('No secret key saved for Vertex AI Express mode');
+                return;
+            }
+        } else {
+            // Full version - use service account
+            // Project ID will be extracted from the Service Account JSON
+
+            // Check if service account JSON is saved in backend
+            if (!secret_state[SECRET_KEYS.VERTEXAI_SERVICE_ACCOUNT]) {
+                toastr.error('Service Account JSON is required for Vertex AI full version. Please validate and save your Service Account JSON.');
+                return;
+            }
         }
     }
 
@@ -5202,6 +5230,8 @@ function toggleChatCompletionForms() {
     }
     else if (oai_settings.chat_completion_source == chat_completion_sources.VERTEXAI) {
         $('#model_vertexai_select').trigger('change');
+        // Update UI based on authentication mode
+        onVertexAIAuthModeChange.call($('#vertexai_auth_mode')[0]);
     }
     else if (oai_settings.chat_completion_source == chat_completion_sources.OPENROUTER) {
         $('#model_openrouter_select').trigger('change');
@@ -5511,6 +5541,136 @@ function runProxyCallback(_, value) {
     $('#openai_proxy_preset').val(foundName).trigger('change');
     return foundName;
 }
+
+/**
+ * Handle Vertex AI authentication mode change
+ */
+function onVertexAIAuthModeChange() {
+    const authMode = String($(this).val());
+    oai_settings.vertexai_auth_mode = authMode;
+
+    $('#vertexai_form [data-mode]').each(function () {
+        const mode = $(this).data('mode');
+        $(this).toggle(mode === authMode);
+        $(this).find('option').toggle(mode === authMode);
+    });
+
+    saveSettingsDebounced();
+}
+
+/**
+ * Validate Vertex AI service account JSON
+ */
+async function onVertexAIValidateServiceAccount() {
+    const jsonContent = String($('#vertexai_service_account_json').val()).trim();
+
+    if (!jsonContent) {
+        toastr.error(t`Please enter Service Account JSON content`);
+        return;
+    }
+
+    try {
+        const serviceAccount = JSON.parse(jsonContent);
+        const requiredFields = ['type', 'project_id', 'private_key', 'client_email', 'client_id'];
+        const missingFields = requiredFields.filter(field => !serviceAccount[field]);
+
+        if (missingFields.length > 0) {
+            toastr.error(t`Missing required fields: ${missingFields.join(', ')}`);
+            updateVertexAIServiceAccountStatus(false, t`Missing fields: ${missingFields.join(', ')}`);
+            return;
+        }
+
+        if (serviceAccount.type !== 'service_account') {
+            toastr.error(t`Invalid service account type. Expected "service_account"`);
+            updateVertexAIServiceAccountStatus(false, t`Invalid service account type`);
+            return;
+        }
+
+        // Save to backend secret storage
+        await writeSecret(SECRET_KEYS.VERTEXAI_SERVICE_ACCOUNT, jsonContent);
+
+        // Show success status
+        updateVertexAIServiceAccountStatus(true, `Project: ${serviceAccount.project_id}, Email: ${serviceAccount.client_email}`);
+
+        toastr.success(t`Service Account JSON is valid and saved securely`);
+        saveSettingsDebounced();
+    } catch (error) {
+        console.error('JSON validation error:', error);
+        toastr.error(t`Invalid JSON format`);
+        updateVertexAIServiceAccountStatus(false, t`Invalid JSON format`);
+    }
+}
+
+/**
+ * Clear Vertex AI service account JSON
+ */
+async function onVertexAIClearServiceAccount() {
+    $('#vertexai_service_account_json').val('');
+
+    // Clear from backend secret storage
+    await writeSecret(SECRET_KEYS.VERTEXAI_SERVICE_ACCOUNT, '');
+
+    updateVertexAIServiceAccountStatus(false);
+    toastr.info(t`Service Account JSON cleared`);
+    saveSettingsDebounced();
+}
+
+/**
+ * Handle Vertex AI service account JSON input change
+ */
+function onVertexAIServiceAccountJsonChange() {
+    const jsonContent = String($(this).val()).trim();
+
+    if (jsonContent) {
+        // Auto-validate when content is pasted
+        try {
+            const serviceAccount = JSON.parse(jsonContent);
+            const requiredFields = ['type', 'project_id', 'private_key', 'client_email'];
+            const hasAllFields = requiredFields.every(field => serviceAccount[field]);
+
+            if (hasAllFields && serviceAccount.type === 'service_account') {
+                updateVertexAIServiceAccountStatus(false, t`JSON appears valid - click "Validate JSON" to save`);
+            } else {
+                updateVertexAIServiceAccountStatus(false, t`Incomplete or invalid JSON`);
+            }
+        } catch (error) {
+            updateVertexAIServiceAccountStatus(false, t`Invalid JSON format`);
+        }
+    } else {
+        updateVertexAIServiceAccountStatus(false);
+    }
+
+    // Don't save settings automatically
+    // saveSettingsDebounced();
+}
+
+/**
+ * Update the Vertex AI service account status display
+ * @param {boolean} isValid - Whether the service account is valid
+ * @param {string} message - Status message to display
+ */
+function updateVertexAIServiceAccountStatus(isValid = false, message = '') {
+    const statusDiv = $('#vertexai_service_account_status');
+    const infoSpan = $('#vertexai_service_account_info');
+
+    // If no explicit message provided, check if we have a saved service account
+    if (!message && secret_state[SECRET_KEYS.VERTEXAI_SERVICE_ACCOUNT]) {
+        isValid = true;
+        message = t`Service Account JSON is saved and ready to use`;
+    }
+
+    if (isValid && message) {
+        infoSpan.html(`<i class="fa-solid fa-check-circle" style="color: green;"></i> ${message}`);
+        statusDiv.show();
+    } else if (!isValid && message) {
+        infoSpan.html(`<i class="fa-solid fa-exclamation-triangle" style="color: orange;"></i> ${message}`);
+        statusDiv.show();
+    } else {
+        statusDiv.hide();
+    }
+}
+
+
 
 export function initOpenAI() {
     SlashCommandParser.addCommandObject(SlashCommand.fromProps({
@@ -5975,6 +6135,14 @@ export function initOpenAI() {
     $('#model_scale_select').on('change', onModelChange);
     $('#model_google_select').on('change', onModelChange);
     $('#model_vertexai_select').on('change', onModelChange);
+    $('#vertexai_auth_mode').on('change', onVertexAIAuthModeChange);
+    $('#vertexai_region').on('input', function () {
+        oai_settings.vertexai_region = String($(this).val());
+        saveSettingsDebounced();
+    });
+    $('#vertexai_service_account_json').on('input', onVertexAIServiceAccountJsonChange);
+    $('#vertexai_validate_service_account').on('click', onVertexAIValidateServiceAccount);
+    $('#vertexai_clear_service_account').on('click', onVertexAIClearServiceAccount);
     $('#model_openrouter_select').on('change', onModelChange);
     $('#openrouter_group_models').on('change', onOpenrouterModelSortChange);
     $('#openrouter_sort_models').on('change', onOpenrouterModelSortChange);

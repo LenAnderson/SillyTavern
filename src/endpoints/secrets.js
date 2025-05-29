@@ -54,6 +54,7 @@ export const SECRET_KEYS = {
     DEEPSEEK: 'api_key_deepseek',
     SERPER: 'api_key_serper',
     XAI: 'api_key_xai',
+    VERTEXAI_SERVICE_ACCOUNT: 'vertexai_service_account_json',
 };
 
 // These are the keys that are safe to expose, even if allowKeysExposure is false

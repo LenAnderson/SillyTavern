@@ -43,6 +43,7 @@ import {
     webTokenizers,
     getWebTokenizer,
 } from '../tokenizers.js';
+import { getVertexAIAuth, getProjectIdFromServiceAccount } from '../google.js';
 
 const API_OPENAI = 'https://api.openai.com/v1';
 const API_CLAUDE = 'https://api.anthropic.com/v1';
@@ -348,13 +349,20 @@ async function sendMakerSuiteRequest(request, response) {
     let apiUrl;
     let apiKey;
 
+    let authHeader;
+    let authType;
+
     if (useVertexAi) {
         apiUrl = new URL(request.body.reverse_proxy || API_VERTEX_AI);
-        apiKey = request.body.reverse_proxy ? request.body.proxy_password : readSecret(request.user.directories, SECRET_KEYS.VERTEXAI);
 
-        if (!request.body.reverse_proxy && !apiKey) {
-            console.warn(`${apiName} API key is missing.`);
-            return response.status(400).send({ error: true });
+        try {
+            const auth = await getVertexAIAuth(request);
+            authHeader = auth.authHeader;
+            authType = auth.authType;
+            console.debug(`Using Vertex AI authentication type: ${authType}`);
+        } catch (error) {
+            console.warn(`${apiName} authentication failed: ${error.message}`);
+            return response.status(400).send({ error: true, message: error.message });
         }
     } else {
         apiUrl = new URL(request.body.reverse_proxy || API_MAKERSUITE);
@@ -364,6 +372,9 @@ async function sendMakerSuiteRequest(request, response) {
             console.warn(`${apiName} API key is missing.`);
             return response.status(400).send({ error: true });
         }
+
+        authHeader = `Bearer ${apiKey}`;
+        authType = 'api_key';
     }
 
     const model = String(request.body.model);
@@ -391,6 +402,7 @@ async function sendMakerSuiteRequest(request, response) {
         const imageGenerationModels = [
             'gemini-2.0-flash-exp',
             'gemini-2.0-flash-exp-image-generation',
+            'gemini-2.0-flash-preview-image-generation',
         ];
 
         // These models do not support setting the threshold to OFF at all.
@@ -499,17 +511,53 @@ async function sendMakerSuiteRequest(request, response) {
         const responseType = (stream ? 'streamGenerateContent' : 'generateContent');
 
         let url;
+        let headers = {
+            'Content-Type': 'application/json',
+        };
+
         if (useVertexAi) {
-            url = `${apiUrl.toString().replace(/\/$/, '')}/v1/publishers/google/models/${model}:${responseType}?key=${apiKey}${stream ? '&alt=sse' : ''}`;
+            if (authType === 'express') {
+                // For Express mode (API key authentication), use the key parameter
+                const keyParam = authHeader.replace('Bearer ', '');
+                url = `${apiUrl.toString().replace(/\/$/, '')}/v1/publishers/google/models/${model}:${responseType}?key=${keyParam}${stream ? '&alt=sse' : ''}`;
+            } else if (authType === 'full') {
+                // For Full mode (service account authentication), use project-specific URL
+                // Get project ID from Service Account JSON
+                const serviceAccountJson = readSecret(request.user.directories, SECRET_KEYS.VERTEXAI_SERVICE_ACCOUNT);
+                if (!serviceAccountJson) {
+                    console.warn('Vertex AI Service Account JSON is missing.');
+                    return response.status(400).send({ error: true });
+                }
+
+                let projectId;
+                try {
+                    const serviceAccount = JSON.parse(serviceAccountJson);
+                    projectId = getProjectIdFromServiceAccount(serviceAccount);
+                } catch (error) {
+                    console.error('Failed to extract project ID from Service Account JSON:', error);
+                    return response.status(400).send({ error: true });
+                }
+                const region = request.body.vertexai_region || 'us-central1';
+                // Handle global region differently - no region prefix in hostname
+                if (region === 'global') {
+                    url = `https://aiplatform.googleapis.com/v1/projects/${projectId}/locations/${region}/publishers/google/models/${model}:${responseType}${stream ? '?alt=sse' : ''}`;
+                } else {
+                    url = `https://${region}-aiplatform.googleapis.com/v1/projects/${projectId}/locations/${region}/publishers/google/models/${model}:${responseType}${stream ? '?alt=sse' : ''}`;
+                }
+                headers['Authorization'] = authHeader;
+            } else {
+                // For proxy mode, use the original URL with Authorization header
+                url = `${apiUrl.toString().replace(/\/$/, '')}/v1/publishers/google/models/${model}:${responseType}${stream ? '?alt=sse' : ''}`;
+                headers['Authorization'] = authHeader;
+            }
         } else {
             url = `${apiUrl.toString().replace(/\/$/, '')}/${apiVersion}/models/${model}:${responseType}?key=${apiKey}${stream ? '&alt=sse' : ''}`;
         }
+
         const generateResponse = await fetch(url, {
             body: JSON.stringify(body),
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
+            headers: headers,
             signal: controller.signal,
         });
 
@@ -1341,11 +1389,14 @@ router.post('/generate', function (request, response) {
     } else if (request.body.chat_completion_source === CHAT_COMPLETION_SOURCES.POLLINATIONS) {
         apiUrl = API_POLLINATIONS;
         apiKey = 'NONE';
-        headers = {};
+        headers = {
+            'Authorization': '',
+        };
         bodyParams = {
             reasoning_effort: request.body.reasoning_effort,
             private: true,
             referrer: 'sillytavern',
+            seed: request.body.seed ?? Math.floor(Math.random() * 99999999),
         };
     } else {
         console.warn('This chat completion source is not supported yet.');
