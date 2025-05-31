@@ -8672,8 +8672,10 @@ export function showSwipeButtons() {
 
     //allows for writing individual swipe counters for past messages
     const lastSwipeCounter = /**@type {HTMLElement}*/(document.querySelector('.last_mes .swipes-counter'));
-    lastSwipeCounter.textContent = swipeCounterText;
-    lastSwipeCounter.style.display = '';
+    if (lastSwipeCounter) {
+        lastSwipeCounter.textContent = swipeCounterText;
+        lastSwipeCounter.style.display = '';
+    }
 }
 
 export function hideSwipeButtons() {
