@@ -2004,12 +2004,20 @@ async function loadVladModels() {
 async function loadNovelModels() {
     return [
         {
+            value: 'nai-diffusion-4-5-full',
+            text: 'NAI Diffusion Anime V4.5 (Full)',
+        },
+        {
+            value: 'nai-diffusion-4-5-curated',
+            text: 'NAI Diffusion Anime V4.5 (Curated)',
+        },
+        {
             value: 'nai-diffusion-4-full',
             text: 'NAI Diffusion Anime V4 (Full)',
         },
         {
             value: 'nai-diffusion-4-curated-preview',
-            text: 'NAI Diffusion Anime V4 (Curated Preview)',
+            text: 'NAI Diffusion Anime V4 (Curated)',
         },
         {
             value: 'nai-diffusion-3',
