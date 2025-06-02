@@ -70,7 +70,7 @@ enableDiscreetLogin: false
 # https://www.authelia.com/
 # This will use auto login to an account with the same username
 # as that used for authlia. (Ensure the username in authlia
-# is an exact match with that in sillytavern)
+# is an exact match in lowercase with that in sillytavern)
 autheliaAuth: false
 # If `basicAuthMode` and this are enabled then
 # the username and passwords for basic auth are the same as those

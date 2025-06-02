@@ -23,6 +23,8 @@ const maxTotalChatBackups = Number(getConfigValue('backups.chat.maxTotalBackups'
 const throttleInterval = Number(getConfigValue('backups.chat.throttleInterval', 10_000, 'number'));
 const checkIntegrity = !!getConfigValue('backups.chat.checkIntegrity', true, 'boolean');
 
+export const CHAT_BACKUPS_PREFIX = 'chat_';
+
 /**
  * Saves a chat to the backups directory.
  * @param {string} directory The user's backups directory.
@@ -31,7 +33,6 @@ const checkIntegrity = !!getConfigValue('backups.chat.checkIntegrity', true, 'bo
  */
 function backupChat(directory, name, chat) {
     try {
-
         if (!isBackupEnabled) {
             return;
         }
@@ -39,16 +40,16 @@ function backupChat(directory, name, chat) {
         // replace non-alphanumeric characters with underscores
         name = sanitize(name).replace(/[^a-z0-9]/gi, '_').toLowerCase();
 
-        const backupFile = path.join(directory, `chat_${name}_${generateTimestamp()}.jsonl`);
+        const backupFile = path.join(directory, `${CHAT_BACKUPS_PREFIX}${name}_${generateTimestamp()}.jsonl`);
         writeFileAtomicSync(backupFile, chat, 'utf-8');
 
-        removeOldBackups(directory, `chat_${name}_`);
+        removeOldBackups(directory, `${CHAT_BACKUPS_PREFIX}${name}_`);
 
         if (isNaN(maxTotalChatBackups) || maxTotalChatBackups < 0) {
             return;
         }
 
-        removeOldBackups(directory, 'chat_', maxTotalChatBackups);
+        removeOldBackups(directory, CHAT_BACKUPS_PREFIX, maxTotalChatBackups);
     } catch (err) {
         console.error(`Could not backup chat for ${name}`, err);
     }
@@ -410,7 +411,7 @@ export async function getChatInfo(pathToFile, additionalData = {}, isGroup = fal
                 const jsonData = tryParse(lastLine);
                 if (jsonData && (jsonData.name || jsonData.character_name)) {
                     chatData.chat_items = isGroup ? itemCounter : (itemCounter - 1);
-                    chatData.mes = jsonData['mes'] || '[The chat is empty]';
+                    chatData.mes = jsonData['mes'] || '[The message is empty]';
                     chatData.last_mes = jsonData['send_date'] || stats.mtimeMs;
 
                     res(chatData);
