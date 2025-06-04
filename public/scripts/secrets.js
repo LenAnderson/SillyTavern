@@ -1,6 +1,7 @@
 import { DOMPurify } from '../lib.js';
-import { callPopup, getRequestHeaders } from '../script.js';
+import { getRequestHeaders } from '../script.js';
 import { t } from './i18n.js';
+import { callGenericPopup, Popup, POPUP_TYPE } from './popup.js';
 
 export const SECRET_KEYS = {
     HORDE: 'api_key_horde',
@@ -116,7 +117,7 @@ async function viewSecrets() {
     });
 
     if (response.status == 403) {
-        callPopup('<h3>' + t`Forbidden` + '</h3><p>' + t`To view your API keys here, set the value of allowKeysExposure to true in config.yaml file and restart the SillyTavern server.` + '</p>', 'text');
+        await Popup.show.text(t`Forbidden`, t`To view your API keys here, set the value of allowKeysExposure to true in config.yaml file and restart the SillyTavern server.`);
         return;
     }
 
@@ -134,7 +135,7 @@ async function viewSecrets() {
         $(table).append(`<tr><td>${DOMPurify.sanitize(key)}</td><td>${DOMPurify.sanitize(value)}</td></tr>`);
     }
 
-    callPopup(table.outerHTML, 'text');
+    await callGenericPopup(table.outerHTML, POPUP_TYPE.TEXT, '', { wide: true, large: true, allowVerticalScrolling: true });
 }
 
 export let secret_state = {};

@@ -1,6 +1,6 @@
 import { Fuse } from '../lib.js';
 
-import { callPopup, chat_metadata, eventSource, event_types, generateQuietPrompt, getCurrentChatId, getRequestHeaders, getThumbnailUrl, saveSettingsDebounced } from '../script.js';
+import { chat_metadata, eventSource, event_types, generateQuietPrompt, getCurrentChatId, getRequestHeaders, getThumbnailUrl, saveSettingsDebounced } from '../script.js';
 import { openThirdPartyExtensionMenu, saveMetadataDebounced } from './extensions.js';
 import { SlashCommand } from './slash-commands/SlashCommand.js';
 import { SlashCommandParser } from './slash-commands/SlashCommandParser.js';
@@ -245,7 +245,7 @@ async function getNewBackgroundName(referenceElement) {
     const fileExtension = oldBg.split('.').pop();
     const fileNameBase = isCustom ? oldBg.split('/').pop() : oldBg;
     const oldBgExtensionless = fileNameBase.replace(`.${fileExtension}`, '');
-    const newBgExtensionless = await callPopup('<h3>' + t`Enter new background name:` + '</h3>', 'input', oldBgExtensionless);
+    const newBgExtensionless = await Popup.show.input(t`Enter new background name:`, null, oldBgExtensionless);
 
     if (!newBgExtensionless) {
         console.debug('no new_bg_extensionless');

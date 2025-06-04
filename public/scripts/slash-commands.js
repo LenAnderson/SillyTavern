@@ -7,7 +7,6 @@ import {
     activateSendButtons,
     addOneMessage,
     api_server,
-    callPopup,
     characters,
     chat,
     chat_metadata,
@@ -4779,7 +4778,7 @@ export async function executeSlashCommandsOnChatInput(text, options = {}) {
                 toastr.error(
                     `${toast}${clickHint}`,
                     'SlashCommandExecutionError',
-                    { escapeHtml: false, timeOut: 10000, onclick: () => callPopup(toast, 'text') },
+                    { escapeHtml: false, timeOut: 10000, onclick: () => callGenericPopup(toast, POPUP_TYPE.TEXT, '', { allowHorizontalScrolling: true, allowVerticalScrolling: true }) },
                 );
             } else {
                 toastr.error(result.errorMessage);
@@ -4836,7 +4835,7 @@ async function executeSlashCommandsWithOptions(text, options = {}) {
             toastr.error(
                 `${toast}${clickHint}`,
                 'SlashCommandParserError',
-                { escapeHtml: false, timeOut: 10000, onclick: () => callPopup(toast, 'text') },
+                { escapeHtml: false, timeOut: 10000, onclick: () => callGenericPopup(toast, POPUP_TYPE.TEXT, '', { allowHorizontalScrolling: true, allowVerticalScrolling: true }) },
             );
             const result = new SlashCommandClosureResult();
             return result;
@@ -4866,7 +4865,7 @@ async function executeSlashCommandsWithOptions(text, options = {}) {
                 toastr.error(
                     `${toast}${clickHint}`,
                     'SlashCommandExecutionError',
-                    { escapeHtml: false, timeOut: 10000, onclick: () => callPopup(toast, 'text') },
+                    { escapeHtml: false, timeOut: 10000, onclick: () => callGenericPopup(toast, POPUP_TYPE.TEXT, '', { allowHorizontalScrolling: true, allowVerticalScrolling: true }) },
                 );
             } else {
                 toastr.error(e.message);

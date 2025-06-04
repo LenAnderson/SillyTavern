@@ -1,6 +1,5 @@
 import {
     amount_gen,
-    callPopup,
     getRequestHeaders,
     max_context,
     saveSettingsDebounced,
@@ -11,6 +10,7 @@ import { delay } from './utils.js';
 import { isMobile } from './RossAscends-mods.js';
 import { autoSelectInstructPreset } from './instruct-mode.js';
 import { t } from './i18n.js';
+import { callGenericPopup, POPUP_TYPE } from './popup.js';
 
 export {
     horde_settings,
@@ -271,7 +271,7 @@ async function generateHorde(prompt, params, signal, reportProgress) {
         await delay(CHECK_INTERVAL);
     }
 
-    callPopup('Horde request timed out. Try again', 'text');
+    await callGenericPopup(t`Horde request timed out. Try again`, POPUP_TYPE.TEXT);
     throw new Error('Horde timeout');
 }
 

@@ -1,7 +1,8 @@
 // statsHelper.js
 import { moment } from '../lib.js';
-import { getRequestHeaders, callPopup, characters, this_chid } from '../script.js';
+import { getRequestHeaders, characters, this_chid } from '../script.js';
 import { humanizeGenTime } from './RossAscends-mods.js';
+import { callGenericPopup, POPUP_TYPE } from './popup.js';
 import { registerDebugFunction } from './power-user.js';
 
 let charStats = {};
@@ -123,7 +124,7 @@ function createHtml(statsType, stats) {
     html += createStatBlock('Character Words', stats.non_user_word_count);
     html += createStatBlock('Swipes', stats.total_swipe_count);
 
-    callPopup(html, 'text');
+    return callGenericPopup(html, POPUP_TYPE.TEXT);
 }
 
 /**
