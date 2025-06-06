@@ -15,10 +15,12 @@ import { ARGUMENT_TYPE, SlashCommandNamedArgument } from '../../slash-commands/S
 import { DragAndDropHandler } from '../../dragdrop.js';
 import { commonEnumProviders } from '../../slash-commands/SlashCommandCommonEnumsProvider.js';
 import { t, translate } from '../../i18n.js';
+import { Popup } from '../../popup.js';
 
 const extensionName = 'gallery';
 const extensionFolderPath = `scripts/extensions/${extensionName}/`;
 let firstTime = true;
+let deleteModeActive = false;
 
 // Exposed defaults for future tweaking
 let thumbnailHeight = 150;
@@ -147,6 +149,29 @@ async function getGalleryFolders() {
 }
 
 /**
+ * Deletes a gallery item based on the provided URL.
+ * @param {string} url - The URL of the image to be deleted.
+ */
+async function deleteGalleryItem(url) {
+    try {
+        const response = await fetch('/api/images/delete', {
+            method: 'POST',
+            headers: getRequestHeaders(),
+            body: JSON.stringify({ path: url }),
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error. Status: ${response.status}`);
+        }
+
+        toastr.success(t`Image deleted successfully.`);
+    } catch (error) {
+        console.error('Failed to delete the image:', error);
+        toastr.error(t`Failed to delete the image. Check the console for details.`);
+    }
+}
+
+/**
  * Sets the sort order for the gallery.
  * @param {string} order Sort order
  */
@@ -260,7 +285,7 @@ async function initGallery(items, url) {
  *
  * @returns {Promise<void>} - Promise representing the completion of the gallery display process.
  */
-async function showCharGallery() {
+async function showCharGallery(deleteModeState = false) {
     // Load necessary files if it's the first time calling the function
     if (firstTime) {
         await loadFileToDocument(
@@ -276,6 +301,7 @@ async function showCharGallery() {
     }
 
     try {
+        deleteModeActive = deleteModeState;
         let url = selected_group || this_chid;
         if (!selected_group && this_chid !== undefined) {
             url = getGalleryFolder(characters[this_chid]);
@@ -429,6 +455,18 @@ async function makeMovable(url) {
     galleryFolderAccept.title = t`Change gallery folder`;
     galleryFolderAccept.addEventListener('click', onChangeFolder);
 
+    const galleryDeleteMode = document.createElement('div');
+    galleryDeleteMode.classList.add('right_menu_button', 'fa-solid', 'fa-trash', 'fa-fw');
+    galleryDeleteMode.classList.toggle('warning', deleteModeActive);
+    galleryDeleteMode.title = t`Delete mode`;
+    galleryDeleteMode.addEventListener('click', () => {
+        deleteModeActive = !deleteModeActive;
+        galleryDeleteMode.classList.toggle('warning', deleteModeActive);
+        if (deleteModeActive) {
+            toastr.info(t`Delete mode is ON. Click on images you want to delete.`);
+        }
+    });
+
     const galleryFolderRestore = document.createElement('div');
     galleryFolderRestore.classList.add('right_menu_button', 'fa-solid', 'fa-recycle', 'fa-fw');
     galleryFolderRestore.title = t`Restore gallery folder`;
@@ -436,6 +474,7 @@ async function makeMovable(url) {
 
     topBarElement.appendChild(galleryFolderInput);
     topBarElement.appendChild(galleryFolderAccept);
+    topBarElement.appendChild(galleryDeleteMode);
     topBarElement.appendChild(galleryFolderRestore);
     newElement.append(topBarElement);
 
@@ -635,9 +674,19 @@ function sanitizeHTMLId(id) {
 function viewWithDragbox(items) {
     if (items && items.length > 0) {
         const url = items[0].responsiveURL(); // Get the URL of the clicked image/video
-        // ID should just be the last part of the URL, removing the extension
-        const id = sanitizeHTMLId(url.substring(url.lastIndexOf('/') + 1, url.lastIndexOf('.')));
-        makeDragImg(id, url);
+        if (deleteModeActive) {
+            Popup.show.confirm(t`Are you sure you want to delete this image?`, url)
+                .then(async (confirmed) => {
+                    if (!confirmed) {
+                        return;
+                    }
+                    deleteGalleryItem(url).then(() => showCharGallery(deleteModeActive));
+                });
+        } else {
+            // ID should just be the last part of the URL, removing the extension
+            const id = sanitizeHTMLId(url.substring(url.lastIndexOf('/') + 1, url.lastIndexOf('.')));
+            makeDragImg(id, url);
+        }
     }
 }
 

@@ -5060,6 +5060,12 @@ a:hover {
     cursor: pointer;
 }
 
+.mes_img.error {
+    visibility: hidden;
+    min-height: 100px;
+    min-width: 120px;
+}
+
 .mes_img_swipes,
 .mes_img_controls {
     position: absolute;
@@ -5100,6 +5106,8 @@ a:hover {
     filter: brightness(150%);
 }
 
+.mes_img_container:has(.mes_img.error) .mes_img_swipes,
+.mes_img_container:has(.mes_img.error) .mes_img_controls,
 .mes_img_container:hover .mes_img_swipes,
 .mes_img_container:focus-within .mes_img_swipes,
 .mes_img_container:hover .mes_img_controls,

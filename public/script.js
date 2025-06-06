@@ -2484,7 +2484,7 @@ export function appendMediaToMessage(mes, messageElement, adjustScroll = true) {
         const image = messageElement.find('.mes_img');
         const text = messageElement.find('.mes_text');
         const isInline = !!mes.extra?.inline_image;
-        image.off('load').on('load', function () {
+        const doAdjustScroll = () => {
             if (!adjustScroll) {
                 return;
             }
@@ -2492,6 +2492,16 @@ export function appendMediaToMessage(mes, messageElement, adjustScroll = true) {
             const newChatHeight = $('#chat').prop('scrollHeight');
             const diff = newChatHeight - chatHeight;
             $('#chat').scrollTop(scrollPosition + diff);
+        };
+        image.off('load').on('load', function () {
+            image.removeAttr('alt');
+            image.removeClass('error');
+            doAdjustScroll();
+        });
+        image.off('error').on('error', function () {
+            image.attr('alt', '');
+            image.addClass('error');
+            doAdjustScroll();
         });
         image.attr('src', mes.extra?.image);
         image.attr('title', mes.extra?.title || mes.title || '');

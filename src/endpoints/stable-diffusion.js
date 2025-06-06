@@ -819,7 +819,6 @@ pollinations.post('/generate', async (request, response) => {
             model: String(request.body.model),
             negative_prompt: String(request.body.negative_prompt),
             seed: String(request.body.seed >= 0 ? request.body.seed : Math.floor(Math.random() * 10_000_000)),
-            enhance: String(request.body.enhance ?? false),
             width: String(request.body.width ?? 1024),
             height: String(request.body.height ?? 1024),
             nologo: String(true),
@@ -827,6 +826,9 @@ pollinations.post('/generate', async (request, response) => {
             private: String(true),
             referrer: 'sillytavern',
         });
+        if (request.body.enhance) {
+            params.set('enhance', String(true));
+        }
         promptUrl.search = params.toString();
 
         console.info('Pollinations request URL:', promptUrl.toString());
