@@ -28,6 +28,18 @@ export function getRegexScripts() {
 }
 
 /**
+ * Toggle the icon for the "select all" checkbox in the regex settings.
+ * - Use `fa-check-double` when the checkbox is unchecked (indicating all scripts are not selected).
+ * - Use `fa-minus` when the checkbox is checked (indicating all scripts are selected).
+ * @param {boolean} allAreChecked Should the "select all" icon be in the checked state?
+ */
+function setToggleAllIcon(allAreChecked) {
+    const selectAllIcon = $('#bulk_select_all_toggle').find('i');
+    selectAllIcon.toggleClass('fa-check-double', !allAreChecked);
+    selectAllIcon.toggleClass('fa-minus', allAreChecked);
+}
+
+/**
  * Saves a regex script to the extension settings or character data.
  * @param {import('../../char-data.js').RegexScriptData} regexScript
  * @param {number} existingScriptIndex Index of the existing script
@@ -45,18 +57,18 @@ async function saveRegexScript(regexScript, existingScriptIndex, isScoped) {
 
     // Is the script name undefined or empty?
     if (!regexScript.scriptName) {
-        toastr.error('Could not save regex script: The script name was undefined or empty!');
+        toastr.error(t`Could not save regex script: The script name was undefined or empty!`);
         return;
     }
 
     // Is a find regex present?
     if (regexScript.findRegex.length === 0) {
-        toastr.warning('This regex script will not work, but was saved anyway: A find regex isn\'t present.');
+        toastr.warning(t`This regex script will not work, but was saved anyway: A find regex isn't present.`);
     }
 
     // Is there someplace to place results?
     if (regexScript.placement.length === 0) {
-        toastr.warning('This regex script will not work, but was saved anyway: One "Affects" checkbox must be selected!');
+        toastr.warning(t`This regex script will not work, but was saved anyway: One "Affects" checkbox must be selected!`);
     }
 
     if (existingScriptIndex !== -1) {
@@ -103,6 +115,7 @@ async function deleteRegexScript({ id, isScoped }) {
 async function loadRegexScripts() {
     $('#saved_regex_scripts').empty();
     $('#saved_scoped_scripts').empty();
+    setToggleAllIcon(false);
 
     const scriptTemplate = $(await renderExtensionTemplateAsync('regex', 'scriptTemplate'));
 
@@ -139,7 +152,7 @@ async function loadRegexScripts() {
             await onRegexEditorOpenClick(scriptHtml.attr('id'), isScoped);
         });
         scriptHtml.find('.move_to_global').on('click', async function () {
-            const confirm = await callGenericPopup('Are you sure you want to move this regex script to global?', POPUP_TYPE.CONFIRM);
+            const confirm = await callGenericPopup(t`Are you sure you want to move this regex script to global?`, POPUP_TYPE.CONFIRM);
 
             if (!confirm) {
                 return;
@@ -150,16 +163,16 @@ async function loadRegexScripts() {
         });
         scriptHtml.find('.move_to_scoped').on('click', async function () {
             if (this_chid === undefined) {
-                toastr.error('No character selected.');
+                toastr.error(t`No character selected.`);
                 return;
             }
 
             if (selected_group) {
-                toastr.error('Cannot edit scoped scripts in group chats.');
+                toastr.error(t`Cannot edit scoped scripts in group chats.`);
                 return;
             }
 
-            const confirm = await callGenericPopup('Are you sure you want to move this regex script to scoped?', POPUP_TYPE.CONFIRM);
+            const confirm = await callGenericPopup(t`Are you sure you want to move this regex script to scoped?`, POPUP_TYPE.CONFIRM);
 
             if (!confirm) {
                 return;
@@ -174,7 +187,7 @@ async function loadRegexScripts() {
             download(fileData, fileName, 'application/json');
         });
         scriptHtml.find('.delete_regex').on('click', async function () {
-            const confirm = await callGenericPopup('Are you sure you want to delete this regex script?', POPUP_TYPE.CONFIRM);
+            const confirm = await callGenericPopup(t`Are you sure you want to delete this regex script?`, POPUP_TYPE.CONFIRM);
 
             if (!confirm) {
                 return;
@@ -182,6 +195,11 @@ async function loadRegexScripts() {
 
             await deleteRegexScript({ id: script.id, isScoped });
             await reloadCurrentChat();
+        });
+        scriptHtml.find('.regex_bulk_checkbox').on('change', function () {
+            const checkboxes = $('#regex_container .regex_bulk_checkbox');
+            const allAreChecked = checkboxes.length === checkboxes.filter(':checked').length;
+            setToggleAllIcon(allAreChecked);
         });
 
         $(container).append(scriptHtml);
@@ -483,10 +501,10 @@ async function onRegexImportObjectChange(regexScript, isScoped) {
 
         saveSettingsDebounced();
         await loadRegexScripts();
-        toastr.success(`Regex script "${regexScript.scriptName}" imported.`);
+        toastr.success(t`Regex script "${regexScript.scriptName}" imported.`);
     } catch (error) {
         console.log(error);
-        toastr.error('Invalid regex object.');
+        toastr.error(t`Invalid regex object.`);
         return;
     }
 }
@@ -578,12 +596,12 @@ jQuery(async () => {
     });
     $('#open_scoped_editor').on('click', function () {
         if (this_chid === undefined) {
-            toastr.error('No character selected.');
+            toastr.error(t`No character selected.`);
             return;
         }
 
         if (selected_group) {
-            toastr.error('Cannot edit scoped scripts in group chats.');
+            toastr.error(t`Cannot edit scoped scripts in group chats.`);
             return;
         }
 
@@ -613,6 +631,19 @@ jQuery(async () => {
         const selectedIds = Array.from(document.querySelectorAll(selector)).map(e => e.getAttribute('id')).filter(id => id);
         return scripts.filter(script => selectedIds.includes(script.id));
     }
+
+    $('#bulk_select_all_toggle').on('click', async function () {
+        const checkboxes = $('#regex_container .regex_bulk_checkbox');
+        if (checkboxes.length === 0) {
+            return;
+        }
+
+        const allAreChecked = checkboxes.length === checkboxes.filter(':checked').length;
+        const newState = !allAreChecked; // true if we just checked all, false if we just unchecked all
+
+        checkboxes.prop('checked', newState);
+        setToggleAllIcon(newState);
+    });
 
     $('#bulk_enable_regex').on('click', async function () {
         const scripts = getSelectedScripts().filter(script => script.disabled);
@@ -707,12 +738,12 @@ jQuery(async () => {
 
     $('#regex_scoped_toggle').on('input', function () {
         if (this_chid === undefined) {
-            toastr.error('No character selected.');
+            toastr.error(t`No character selected.`);
             return;
         }
 
         if (selected_group) {
-            toastr.error('Cannot edit scoped scripts in group chats.');
+            toastr.error(t`Cannot edit scoped scripts in group chats.`);
             return;
         }
 

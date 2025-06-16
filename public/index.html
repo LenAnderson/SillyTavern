@@ -652,7 +652,7 @@
                                         <input type="number" id="openai_max_tokens" name="openai_max_tokens" class="text_pole" min="1" max="65536">
                                     </div>
                                 </div>
-                                <div class="range-block" data-source="openai,custom,xai">
+                                <div class="range-block" data-source="openai,custom,xai,aimlapi">
                                     <div class="range-block-title" data-i18n="Multiple swipes per generation">
                                         Multiple swipes per generation
                                     </div>
@@ -661,7 +661,7 @@
                                     </div>
                                 </div>
                                 <div data-source="openrouter" class="range-block">
-                                    <div class="range-block-title" title="Allow compressing requests by removing messages from the middle of the prompt.">
+                                    <div class="range-block-title" data-i18n="[title]Allow compressing requests by removing messages from the middle of the prompt." title="Allow compressing requests by removing messages from the middle of the prompt.">
                                         <span data-i18n="Middle-out Transform">Middle-out Transform</span>
                                         <a href="https://openrouter.ai/docs/transforms" target="_blank" rel="noreferrer noopener" class="note-link-span fa-solid fa-circle-question"></a>
                                     </div>
@@ -674,7 +674,7 @@
                                     </div>
                                 </div>
                                 <div data-source="openrouter">
-                                    Max prompt cost: <span id="openrouter_max_prompt_cost">Unknown</span>
+                                    <span data-i18n="Max prompt cost:">Max prompt cost:</span> <span id="openrouter_max_prompt_cost" data-i18n="Unknown">Unknown</span>
                                 </div>
                                 <hr>
                                 <div class="range-block">
@@ -691,7 +691,7 @@
                                         </span>
                                     </div>
                                 </div>
-                                <div class="range-block" data-source="openai,claude,windowai,openrouter,ai21,scale,makersuite,vertexai,mistralai,custom,cohere,perplexity,groq,01ai,nanogpt,deepseek,xai,pollinations">
+                                <div class="range-block" data-source="openai,claude,windowai,aimlapi,openrouter,ai21,scale,makersuite,vertexai,mistralai,custom,cohere,perplexity,groq,01ai,nanogpt,deepseek,xai,pollinations">
                                     <div class="range-block-title" data-i18n="Temperature">
                                         Temperature
                                     </div>
@@ -704,7 +704,7 @@
                                         </div>
                                     </div>
                                 </div>
-                                <div class="range-block" data-source="openai,openrouter,custom,cohere,perplexity,groq,mistralai,nanogpt,deepseek,xai,pollinations">
+                                <div class="range-block" data-source="openai,aimlapi,openrouter,custom,cohere,perplexity,groq,mistralai,nanogpt,deepseek,xai,pollinations">
                                     <div class="range-block-title" data-i18n="Frequency Penalty">
                                         Frequency Penalty
                                     </div>
@@ -717,7 +717,7 @@
                                         </div>
                                     </div>
                                 </div>
-                                <div class="range-block" data-source="openai,openrouter,custom,cohere,perplexity,groq,mistralai,nanogpt,deepseek,xai,pollinations">
+                                <div class="range-block" data-source="openai,aimlapi,openrouter,custom,cohere,perplexity,groq,mistralai,nanogpt,deepseek,xai,pollinations">
                                     <div class="range-block-title" data-i18n="Presence Penalty">
                                         Presence Penalty
                                     </div>
@@ -730,7 +730,7 @@
                                         </div>
                                     </div>
                                 </div>
-                                <div class="range-block" data-source="claude,openrouter,makersuite,vertexai,cohere,perplexity">
+                                <div class="range-block" data-source="claude,aimlapi,openrouter,makersuite,vertexai,cohere,perplexity">
                                     <div class="range-block-title" data-i18n="Top K">
                                         Top K
                                     </div>
@@ -743,7 +743,7 @@
                                         </div>
                                     </div>
                                 </div>
-                                <div class="range-block" data-source="openai,claude,openrouter,ai21,scale,makersuite,vertexai,mistralai,custom,cohere,perplexity,groq,01ai,nanogpt,deepseek,xai,pollinations">
+                                <div class="range-block" data-source="openai,claude,aimlapi,openrouter,ai21,scale,makersuite,vertexai,mistralai,custom,cohere,perplexity,groq,01ai,nanogpt,deepseek,xai,pollinations">
                                     <div class="range-block-title" data-i18n="Top P">
                                         Top P
                                     </div>
@@ -980,7 +980,7 @@
                                         </div>
                                     </div>
                                 </div>
-                                <div class="range-block" data-source="openai,openrouter,mistralai,custom,cohere,groq,nanogpt,xai,pollinations">
+                                <div class="range-block" data-source="openai,openrouter,mistralai,custom,cohere,groq,nanogpt,xai,pollinations,aimlapi">
                                     <div class="range-block-title justifyLeft" data-i18n="Seed">
                                         Seed
                                     </div>
@@ -1969,7 +1969,7 @@
                                             </span>
                                         </div>
                                     </div>
-                                    <div class="range-block" data-source="makersuite,vertexai,openrouter,claude">
+                                    <div class="range-block" data-source="makersuite,vertexai,aimlapi,openrouter,claude,xai">
                                         <label for="openai_enable_web_search" class="checkbox_label flexWrap widthFreeExpand">
                                             <input id="openai_enable_web_search" type="checkbox" />
                                             <span data-i18n="Enable web search">Enable web search</span>
@@ -1983,7 +1983,7 @@
                                             </b>
                                         </div>
                                     </div>
-                                    <div class="range-block" data-source="openai,cohere,mistralai,custom,claude,openrouter,groq,deepseek,makersuite,vertexai,ai21,xai,pollinations">
+                                    <div class="range-block" data-source="openai,cohere,mistralai,custom,claude,aimlapi,openrouter,groq,deepseek,makersuite,vertexai,ai21,xai,pollinations">
                                         <label for="openai_function_calling" class="checkbox_label flexWrap widthFreeExpand">
                                             <input id="openai_function_calling" type="checkbox" />
                                             <span data-i18n="Enable function calling">Enable function calling</span>
@@ -1994,7 +1994,7 @@
                                             <strong data-i18n="enable_functions_desc_4">Not supported when Prompt Post-Processing with "no tools" is used!</strong>
                                         </div>
                                     </div>
-                                    <div class="range-block" data-source="openai,openrouter,mistralai,makersuite,vertexai,claude,custom,01ai,xai,pollinations">
+                                    <div class="range-block" data-source="openai,aimlapi,openrouter,mistralai,makersuite,vertexai,claude,custom,01ai,xai,pollinations">
                                         <label for="openai_image_inlining" class="checkbox_label flexWrap widthFreeExpand">
                                             <input id="openai_image_inlining" type="checkbox" />
                                             <span data-i18n="Send inline images">Send inline images</span>
@@ -2064,7 +2064,7 @@
                                             </span>
                                         </div>
                                     </div>
-                                    <div class="range-block" data-source="deepseek,openrouter,custom,claude,xai,makersuite,vertexai">
+                                    <div class="range-block" data-source="deepseek,aimlapi,openrouter,custom,claude,xai,makersuite,vertexai">
                                         <label for="openai_show_thoughts" class="checkbox_label widthFreeExpand">
                                             <input id="openai_show_thoughts" type="checkbox" />
                                             <span data-i18n="Request model reasoning">Request model reasoning</span>
@@ -2078,7 +2078,7 @@
                                             </span>
                                         </div>
                                     </div>
-                                    <div class="flex-container flexFlowColumn wide100p textAlignCenter marginTop10" data-source="openai,custom,claude,xai,makersuite,vertexai,openrouter,pollinations">
+                                    <div class="flex-container flexFlowColumn wide100p textAlignCenter marginTop10" data-source="openai,custom,claude,xai,makersuite,vertexai,aimlapi,openrouter,pollinations">
                                         <div class="flex-container oneline-dropdown" title="Constrains effort on reasoning for reasoning models.&#10;Reducing reasoning effort can result in faster responses and fewer tokens used on reasoning in a response." data-i18n="[title]Constrains effort on reasoning for reasoning models.">
                                             <label for="openai_reasoning_effort">
                                                 <span data-i18n="Reasoning Effort">Reasoning Effort</span>
@@ -2092,7 +2092,7 @@
                                                 <option data-i18n="openai_reasoning_effort_high" value="high">High</option>
                                                 <option data-i18n="openai_reasoning_effort_maximum" value="max">Maximum</option>
                                             </select>
-                                            <div class="toggle-description justifyLeft marginBot5" data-source="openai,custom,xai,openrouter" data-i18n="OpenAI-style options: low, medium, high. Minimum and maximum are aliased to low and high. Auto does not send an effort level.">
+                                            <div class="toggle-description justifyLeft marginBot5" data-source="openai,custom,xai,aimlapi,openrouter" data-i18n="OpenAI-style options: low, medium, high. Minimum and maximum are aliased to low and high. Auto does not send an effort level.">
                                                 OpenAI-style options: low, medium, high. Minimum and maximum are aliased to low and high. Auto does not send an effort level.
                                             </div>
                                             <div class="toggle-description justifyLeft marginBot5" data-source="claude" data-i18n="Allocates a portion of the response length for thinking (min: 1024 tokens, low: 10%, medium: 25%, high: 50%, max: 95%), but minimum 1024 tokens. Auto does not request thinking.">
@@ -2131,7 +2131,7 @@
                                         </div>
                                     </div>
                                 </div>
-                                <div class="range-block m-t-1" data-source="openai,openrouter,scale,custom">
+                                <div class="range-block m-t-1" data-source="openai,aimlapi,openrouter,scale,custom">
                                     <div id="logit_bias_openai" class="range-block-title openai_restorable" data-i18n="Logit Bias">
                                         Logit Bias
                                     </div>
@@ -2242,10 +2242,11 @@
                                 </small>
                                 <div class="flex-container">
                                     <input id="horde_api_key" name="horde_api_key" class="text_pole flex1" type="text" placeholder="0000000000" autocomplete="off">
-                                    <div title="Clear your API key" data-i18n="[title]Clear your API key" class="menu_button fa-solid fa-circle-xmark clear-api-key" data-key="api_key_horde"></div>
+                                    <div title="Save and connect" data-i18n="[title]Save and connect" class="menu_button fa-solid fa-plug fa-fw" id="horde_api_key_button"></div>
+                                    <div title="Manage API keys" data-i18n="[title]Manage API keys" class="menu_button fa-solid fa-key fa-fw manage-api-keys" data-key="api_key_horde"></div>
                                 </div>
-                                <div data-for="horde_api_key" class="neutral_warning" data-i18n="For privacy reasons, your API key will be hidden after you reload the page.">
-                                    For privacy reasons, your API key will be hidden after you reload the page.
+                                <div data-for="horde_api_key" class="neutral_warning" data-i18n="For privacy reasons, your API key will be hidden after you click 'Connect'.">
+                                    For privacy reasons, your API key will be hidden after you click 'Connect'.
                                 </div>
                                 <h4 class="horde_model_title">
                                     <span data-i18n="Models">Models </span>
@@ -2297,11 +2298,11 @@
                             </span>
                             <div class="flex-container">
                                 <input id="api_key_novel" name="api_key_novel" class="text_pole flex1 wide100p" type="text" autocomplete="off">
-                                <div title="Clear your API key" data-i18n="[title]Clear your API key" class="menu_button fa-solid fa-circle-xmark clear-api-key" data-key="api_key_novel">
+                                <div title="Manage API keys" data-i18n="[title]Manage API keys" class="menu_button fa-solid fa-key fa-fw manage-api-keys" data-key="api_key_novel">
                                 </div>
                             </div>
-                            <div data-for="api_key_novel" class="neutral_warning" data-i18n="For privacy reasons, your API key will be hidden after you reload the page.">
-                                For privacy reasons, your API key will be hidden after you reload the page.
+                            <div data-for="api_key_novel" class="neutral_warning" data-i18n="For privacy reasons, your API key will be hidden after you click 'Connect'.">
+                                For privacy reasons, your API key will be hidden after you click 'Connect'.
                             </div>
                             <h4><span data-i18n="Novel AI Model">Novel AI Model</span>
                                 <a href="https://docs.sillytavern.app/usage/api-connections/novelai/#models" class="notes-link" target="_blank">
@@ -2349,10 +2350,10 @@
                                 <h4 data-i18n="TogetherAI API Key">TogetherAI API Key</h4>
                                 <div class="flex-container">
                                     <input id="api_key_togetherai" name="api_key_togetherai" class="text_pole flex1" value="" type="text" autocomplete="off">
-                                    <div title="Clear your API key" data-i18n="[title]Clear your API key" class="menu_button fa-solid fa-circle-xmark clear-api-key" data-key="api_key_togetherai"></div>
+                                    <div title="Manage API keys" data-i18n="[title]Manage API keys" class="menu_button fa-solid fa-key fa-fw manage-api-keys" data-key="api_key_togetherai"></div>
                                 </div>
-                                <div data-for="api_key_togetherai" class="neutral_warning" data-i18n="For privacy reasons, your API key will be hidden after you reload the page.">
-                                    For privacy reasons, your API key will be hidden after you reload the page.
+                                <div data-for="api_key_togetherai" class="neutral_warning" data-i18n="For privacy reasons, your API key will be hidden after you click 'Connect'.">
+                                    For privacy reasons, your API key will be hidden after you click 'Connect'.
                                 </div>
                                 <div>
                                     <h4 data-i18n="TogetherAI Model">TogetherAI Model</h4>
@@ -2373,10 +2374,10 @@
                                 </div>
                                 <div class="flex-container">
                                     <input id="api_key_openrouter-tg" name="api_key_openrouter" class="text_pole flex1 api_key_openrouter" value="" type="text" autocomplete="off">
-                                    <div title="Clear your API key" data-i18n="[title]Clear your API key" class="menu_button fa-solid fa-circle-xmark clear-api-key" data-key="api_key_openrouter"></div>
+                                    <div title="Manage API keys" data-i18n="[title]Manage API keys" class="menu_button fa-solid fa-key fa-fw manage-api-keys" data-key="api_key_openrouter"></div>
                                 </div>
-                                <div data-for="api_key_openrouter" class="neutral_warning" data-i18n="For privacy reasons, your API key will be hidden after you reload the page.">
-                                    For privacy reasons, your API key will be hidden after you reload the page.
+                                <div data-for="api_key_openrouter-tg" class="neutral_warning" data-i18n="For privacy reasons, your API key will be hidden after you click 'Connect'.">
+                                    For privacy reasons, your API key will be hidden after you click 'Connect'.
                                 </div>
                                 <div>
                                     <h4 data-i18n="OpenRouter Model">OpenRouter Model</h4>
@@ -2400,10 +2401,10 @@
                                 <h4 data-i18n="InfermaticAI API Key">InfermaticAI API Key</h4>
                                 <div class="flex-container">
                                     <input id="api_key_infermaticai" name="api_key_infermaticai" class="text_pole flex1" value="" type="text" autocomplete="off">
-                                    <div title="Clear your API key" data-i18n="[title]Clear your API key" class="menu_button fa-solid fa-circle-xmark clear-api-key" data-key="api_key_infermaticai"></div>
+                                    <div title="Manage API keys" data-i18n="[title]Manage API keys" class="menu_button fa-solid fa-key fa-fw manage-api-keys" data-key="api_key_infermaticai"></div>
                                 </div>
-                                <div data-for="api_key_infermaticai" class="neutral_warning" data-i18n="For privacy reasons, your API key will be hidden after you reload the page.">
-                                    For privacy reasons, your API key will be hidden after you reload the page.
+                                <div data-for="api_key_infermaticai" class="neutral_warning" data-i18n="For privacy reasons, your API key will be hidden after you click 'Connect'.">
+                                    For privacy reasons, your API key will be hidden after you click 'Connect'.
                                 </div>
                                 <div>
                                     <h4 data-i18n="InfermaticAI Model">InfermaticAI Model</h4>
@@ -2423,10 +2424,10 @@
                                 </h4>
                                 <div class="flex-container">
                                     <input id="api_key_dreamgen" name="api_key_dreamgen" class="text_pole flex1" value="" type="text" autocomplete="off">
-                                    <div title="Clear your API key" data-i18n="[title]Clear your API key" class="menu_button fa-solid fa-circle-xmark clear-api-key" data-key="api_key_dreamgen"></div>
+                                    <div title="Manage API keys" data-i18n="[title]Manage API keys" class="menu_button fa-solid fa-key fa-fw manage-api-keys" data-key="api_key_dreamgen"></div>
                                 </div>
-                                <div data-for="api_key_dreamgen" class="neutral_warning" data-i18n="For privacy reasons, your API key will be hidden after you reload the page.">
-                                    For privacy reasons, your API key will be hidden after you reload the page.
+                                <div data-for="api_key_dreamgen" class="neutral_warning" data-i18n="For privacy reasons, your API key will be hidden after you click 'Connect'.">
+                                    For privacy reasons, your API key will be hidden after you click 'Connect'.
                                 </div>
                                 <div>
                                     <h4 data-i18n="DreamGen Model">DreamGen Model</h4>
@@ -2448,11 +2449,11 @@
                                 </h4>
                                 <div class="flex-container">
                                     <input id="api_key_mancer" name="api_key_mancer" class="text_pole flex1 wide100p" type="text" autocomplete="off">
-                                    <div title="Clear your API key" data-i18n="[title]Clear your API key" class="menu_button fa-solid fa-circle-xmark clear-api-key" data-key="api_key_mancer">
+                                    <div title="Manage API keys" data-i18n="[title]Manage API keys" class="menu_button fa-solid fa-key fa-fw manage-api-keys" data-key="api_key_mancer">
                                     </div>
                                 </div>
-                                <div data-for="api_key_mancer" class="neutral_warning" data-i18n="For privacy reasons, your API key will be hidden after you reload the page.">
-                                    For privacy reasons, your API key will be hidden after you reload the page.
+                                <div data-for="api_key_mancer" class="neutral_warning" data-i18n="For privacy reasons, your API key will be hidden after you click 'Connect'.">
+                                    For privacy reasons, your API key will be hidden after you click 'Connect'.
                                 </div>
                                 <div class="flex1">
                                     <h4 data-i18n="Mancer Model">Mancer Model</h4>
@@ -2467,11 +2468,11 @@
                                 <h4 data-i18n="API key (optional)">API key (optional)</h4>
                                 <div class="flex-container">
                                     <input id="api_key_generic" name="api_key_generic" class="text_pole flex1 wide100p" type="text" autocomplete="off">
-                                    <div title="Clear your API key" data-i18n="[title]Clear your API key" class="menu_button fa-solid fa-circle-xmark clear-api-key" data-key="api_key_generic">
+                                    <div title="Manage API keys" data-i18n="[title]Manage API keys" class="menu_button fa-solid fa-key fa-fw manage-api-keys" data-key="api_key_generic">
                                     </div>
                                 </div>
-                                <div data-for="api_key_generic" class="neutral_warning" data-i18n="For privacy reasons, your API key will be hidden after you reload the page.">
-                                    For privacy reasons, your API key will be hidden after you reload the page.
+                                <div data-for="api_key_generic" class="neutral_warning" data-i18n="For privacy reasons, your API key will be hidden after you click 'Connect'.">
+                                    For privacy reasons, your API key will be hidden after you click 'Connect'.
                                 </div>
                                 <div class="flex1">
                                     <h4 data-i18n="Server url">Server URL</h4>
@@ -2496,11 +2497,11 @@
                                 <h4 data-i18n="API key (optional)">API key (optional)</h4>
                                 <div class="flex-container">
                                     <input id="api_key_ooba" name="api_key_ooba" class="text_pole flex1 wide100p" type="text" autocomplete="off">
-                                    <div title="Clear your API key" data-i18n="[title]Clear your API key" class="menu_button fa-solid fa-circle-xmark clear-api-key" data-key="api_key_ooba">
+                                    <div title="Manage API keys" data-i18n="[title]Manage API keys" class="menu_button fa-solid fa-key fa-fw manage-api-keys" data-key="api_key_ooba">
                                     </div>
                                 </div>
-                                <div data-for="api_key_ooba" class="neutral_warning" data-i18n="For privacy reasons, your API key will be hidden after you reload the page.">
-                                    For privacy reasons, your API key will be hidden after you reload the page.
+                                <div data-for="api_key_ooba" class="neutral_warning" data-i18n="For privacy reasons, your API key will be hidden after you click 'Connect'.">
+                                    For privacy reasons, your API key will be hidden after you click 'Connect'.
                                 </div>
                                 <div class="flex1">
                                     <h4 data-i18n="Server url">Server URL</h4>
@@ -2518,11 +2519,11 @@
                                 <h4 data-i18n="API key (optional)">API key</h4>
                                 <div class="flex-container">
                                     <input id="api_key_featherless" name="api_key_featherless" class="text_pole flex1 wide100p" type="text" autocomplete="off">
-                                    <div title="Clear your API key" data-i18n="[title]Clear your API key" class="menu_button fa-solid fa-circle-xmark clear-api-key" data-key="api_key_featherless">
+                                    <div title="Manage API keys" data-i18n="[title]Manage API keys" class="menu_button fa-solid fa-key fa-fw manage-api-keys" data-key="api_key_featherless">
                                     </div>
                                 </div>
-                                <div data-for="api_key_featherless" class="neutral_warning" data-i18n="For privacy reasons, your API key will be hidden after you reload the page.">
-                                    For privacy reasons, your API key will be hidden after you reload the page.
+                                <div data-for="api_key_featherless" class="neutral_warning" data-i18n="For privacy reasons, your API key will be hidden after you click 'Connect'.">
+                                    For privacy reasons, your API key will be hidden after you click 'Connect'.
                                 </div>
                                 <hr>
                                 <h4 data-i18n="Featherless Model Selection">Featherless Model Selection</h4>
@@ -2569,11 +2570,11 @@
                                 <h4 data-i18n="vLLM API key">vLLM API key</h4>
                                 <div class="flex-container">
                                     <input id="api_key_vllm" name="api_key_vllm" class="text_pole flex1 wide100p" type="text" autocomplete="off">
-                                    <div title="Clear your API key" data-i18n="[title]Clear your API key" class="menu_button fa-solid fa-circle-xmark clear-api-key" data-key="api_key_vllm">
+                                    <div title="Manage API keys" data-i18n="[title]Manage API keys" class="menu_button fa-solid fa-key fa-fw manage-api-keys" data-key="api_key_vllm">
                                     </div>
                                 </div>
-                                <div data-for="api_key_vllm" class="neutral_warning" data-i18n="For privacy reasons, your API key will be hidden after you reload the page.">
-                                    For privacy reasons, your API key will be hidden after you reload the page.
+                                <div data-for="api_key_vllm" class="neutral_warning" data-i18n="For privacy reasons, your API key will be hidden after you click 'Connect'.">
+                                    For privacy reasons, your API key will be hidden after you click 'Connect'.
                                 </div>
                                 <div class="flex1">
                                     <h4 data-i18n="API url">API URL</h4>
@@ -2593,11 +2594,11 @@
                                 <h4 data-i18n="HuggingFace Token">HuggingFace Token</h4>
                                 <div class="flex-container">
                                     <input id="api_key_huggingface" name="api_key_huggingface" class="text_pole flex1 wide100p" type="text" autocomplete="off">
-                                    <div title="Clear your API key" data-i18n="[title]Clear your API key" class="menu_button fa-solid fa-circle-xmark clear-api-key" data-key="api_key_huggingface">
+                                    <div title="Manage API keys" data-i18n="[title]Manage API keys" class="menu_button fa-solid fa-key fa-fw manage-api-keys" data-key="api_key_huggingface">
                                     </div>
                                 </div>
-                                <div data-for="api_key_huggingface" class="neutral_warning" data-i18n="For privacy reasons, your API key will be hidden after you reload the page.">
-                                    For privacy reasons, your API key will be hidden after you reload the page.
+                                <div data-for="api_key_huggingface" class="neutral_warning" data-i18n="For privacy reasons, your API key will be hidden after you click 'Connect'.">
+                                    For privacy reasons, your API key will be hidden after you click 'Connect'.
                                 </div>
                                 <div class="flex1">
                                     <h4 data-i18n="Endpoint URL">Endpoint URL</h4>
@@ -2615,11 +2616,11 @@
                                 <h4 data-i18n="Aphrodite API key">Aphrodite API key</h4>
                                 <div class="flex-container">
                                     <input id="api_key_aphrodite" name="api_key_aphrodite" class="text_pole flex1 wide100p" type="text" autocomplete="off">
-                                    <div title="Clear your API key" data-i18n="[title]Clear your API key" class="menu_button fa-solid fa-circle-xmark clear-api-key" data-key="api_key_aphrodite">
+                                    <div title="Manage API keys" data-i18n="[title]Manage API keys" class="menu_button fa-solid fa-key fa-fw manage-api-keys" data-key="api_key_aphrodite">
                                     </div>
                                 </div>
-                                <div data-for="api_key_aphrodite" class="neutral_warning" data-i18n="For privacy reasons, your API key will be hidden after you reload the page.">
-                                    For privacy reasons, your API key will be hidden after you reload the page.
+                                <div data-for="api_key_aphrodite" class="neutral_warning" data-i18n="For privacy reasons, your API key will be hidden after you click 'Connect'.">
+                                    For privacy reasons, your API key will be hidden after you click 'Connect'.
                                 </div>
                                 <div class="flex1">
                                     <h4 data-i18n="API url">API URL</h4>
@@ -2644,11 +2645,11 @@
                                 <h4 data-i18n="API key (optional)">API key (optional)</h4>
                                 <div class="flex-container">
                                     <input id="api_key_llamacpp" name="api_key_llamacpp" class="text_pole flex1 wide100p" type="text" autocomplete="off">
-                                    <div title="Clear your API key" data-i18n="[title]Clear your API key" class="menu_button fa-solid fa-circle-xmark clear-api-key" data-key="api_key_llamacpp">
+                                    <div title="Manage API keys" data-i18n="[title]Manage API keys" class="menu_button fa-solid fa-key fa-fw manage-api-keys" data-key="api_key_llamacpp">
                                     </div>
                                 </div>
-                                <div data-for="api_key_llamacpp" class="neutral_warning" data-i18n="For privacy reasons, your API key will be hidden after you reload the page.">
-                                    For privacy reasons, your API key will be hidden after you reload the page.
+                                <div data-for="api_key_llamacpp" class="neutral_warning" data-i18n="For privacy reasons, your API key will be hidden after you click 'Connect'.">
+                                    For privacy reasons, your API key will be hidden after you click 'Connect'.
                                 </div>
                                 <div class="flex1">
                                     <h4 data-i18n="API url">API URL</h4>
@@ -2691,11 +2692,11 @@
                                 <h4 data-i18n="Tabby API key">Tabby API key</h4>
                                 <div class="flex-container">
                                     <input id="api_key_tabby" name="api_key_tabby" class="text_pole flex1 wide100p" type="text" autocomplete="off">
-                                    <div title="Clear your API key" data-i18n="[title]Clear your API key" class="menu_button fa-solid fa-circle-xmark clear-api-key" data-key="api_key_tabby">
+                                    <div title="Manage API keys" data-i18n="[title]Manage API keys" class="menu_button fa-solid fa-key fa-fw manage-api-keys" data-key="api_key_tabby">
                                     </div>
                                 </div>
-                                <div data-for="api_key_tabby" class="neutral_warning" data-i18n="For privacy reasons, your API key will be hidden after you reload the page.">
-                                    For privacy reasons, your API key will be hidden after you reload the page.
+                                <div data-for="api_key_tabby" class="neutral_warning" data-i18n="For privacy reasons, your API key will be hidden after you click 'Connect'.">
+                                    For privacy reasons, your API key will be hidden after you click 'Connect'.
                                 </div>
                                 <div class="flex1">
                                     <h4 data-i18n="API url">API URL</h4>
@@ -2713,12 +2714,12 @@
                                     </select>
                                     <div class="marginTopBot5">
                                         <i class="fa-solid fa-flask"></i>
-                                        <span>Experimental feature. Use at your own risk.</span>
+                                        <span data-i18n="Experimental feature. Use at your own risk.">Experimental feature. Use at your own risk.</span>
                                     </div>
                                     <div class="marginTopBot5">
                                         <small>
                                             <i class="fa-solid fa-lightbulb"></i>
-                                            &nbsp;
+                                            &nbsp;<span data-i18n="Tabby model hint prefix"></span>
                                             <code>inline_model_loading: True</code>
                                             <span data-i18n="must be set in Tabby's config.yml to switch models.">
                                                 must be set in Tabby's config.yml to switch models.
@@ -2743,11 +2744,11 @@
                                 <h4 data-i18n="koboldcpp API key (optional)">koboldcpp API key (optional)</h4>
                                 <div class="flex-container">
                                     <input id="api_key_koboldcpp" name="api_key_koboldcpp" class="text_pole flex1 wide100p" type="text" autocomplete="off">
-                                    <div title="Clear your API key" data-i18n="[title]Clear your API key" class="menu_button fa-solid fa-circle-xmark clear-api-key" data-key="api_key_koboldcpp">
+                                    <div title="Manage API keys" data-i18n="[title]Manage API keys" class="menu_button fa-solid fa-key fa-fw manage-api-keys" data-key="api_key_koboldcpp">
                                     </div>
                                 </div>
-                                <div data-for="api_key_koboldcpp" class="neutral_warning" data-i18n="For privacy reasons, your API key will be hidden after you reload the page.">
-                                    For privacy reasons, your API key will be hidden after you reload the page.
+                                <div data-for="api_key_koboldcpp" class="neutral_warning" data-i18n="For privacy reasons, your API key will be hidden after you click 'Connect'.">
+                                    For privacy reasons, your API key will be hidden after you click 'Connect'.
                                 </div>
                                 <div class="flex1">
                                     <h4 data-i18n="API url">API URL</h4>
@@ -2788,6 +2789,7 @@
                             <optgroup>
                                 <option value="01ai">01.AI (Yi)</option>
                                 <option value="ai21">AI21</option>
+                                <option value="aimlapi">AI/ML API</option>
                                 <option value="claude">Claude</option>
                                 <option value="cohere">Cohere</option>
                                 <option value="deepseek">DeepSeek</option>
@@ -2850,7 +2852,7 @@
                                     <input id="openai_reverse_proxy" type="text" class="text_pole" placeholder="https://api.openai.com/v1" />
                                     <small class="reverse_proxy_warning">
                                         <span data-i18n="Doesn't work? Try adding">Doesn't work? Try adding</span> <code>/v1</code> <span data-i18n="at the end!">at the end!</span>
-                                        <code>/chat/completions</code> <b data-i18n="suffix will be added automatically.">suffix will be added automatically.</b>
+                                        <span data-i18n="completions note prefix"></span><code>/chat/completions</code> <b data-i18n="suffix will be added automatically.">suffix will be added automatically.</b>
                                     </small>
                                 </div>
                                 <div class="range-block-title justifyLeft" data-i18n="Proxy Password">
@@ -2905,15 +2907,15 @@
                             </span>
                             <div class="flex-container">
                                 <input id="api_key_openai" name="api_key_openai" class="text_pole flex1" value="" type="text" autocomplete="off">
-                                <div title="Clear your API key" data-i18n="[title]Clear your API key" class="menu_button fa-solid fa-circle-xmark clear-api-key" data-key="api_key_openai"></div>
+                                <div title="Manage API keys" data-i18n="[title]Manage API keys" class="menu_button fa-solid fa-key fa-fw manage-api-keys" data-key="api_key_openai"></div>
                             </div>
                             <div id="ReverseProxyWarningMessage2" class="reverse_proxy_warning">
                                 <b data-i18n="Use Proxy password field instead. This input will be ignored.">
                                     Use "Proxy password" field instead. This input will be ignored.
                                 </b>
                             </div>
-                            <div data-for="api_key_openai" class="neutral_warning" data-i18n="For privacy reasons, your API key will be hidden after you reload the page.">
-                                For privacy reasons, your API key will be hidden after you reload the page.
+                            <div data-for="api_key_openai" class="neutral_warning" data-i18n="For privacy reasons, your API key will be hidden after you click 'Connect'.">
+                                For privacy reasons, your API key will be hidden after you click 'Connect'.
                             </div>
                             <div>
                                 <h4 data-i18n="OpenAI Model">OpenAI Model</h4>
@@ -2999,10 +3001,10 @@
                             </div>
                             <div class="flex-container">
                                 <input id="api_key_claude" name="api_key_claude" class="text_pole flex1" value="" type="text" autocomplete="off">
-                                <div title="Clear your API key" data-i18n="[title]Clear your API key" class="menu_button fa-solid fa-circle-xmark clear-api-key" data-key="api_key_claude"></div>
+                                <div title="Manage API keys" data-i18n="[title]Manage API keys" class="menu_button fa-solid fa-key fa-fw manage-api-keys" data-key="api_key_claude"></div>
                             </div>
-                            <div data-for="api_key_claude" class="neutral_warning" data-i18n="For privacy reasons, your API key will be hidden after you reload the page.">
-                                For privacy reasons, your API key will be hidden after you reload the page.
+                            <div data-for="api_key_claude" class="neutral_warning" data-i18n="For privacy reasons, your API key will be hidden after you click 'Connect'.">
+                                For privacy reasons, your API key will be hidden after you click 'Connect'.
                             </div>
                             <div>
                                 <h4 data-i18n="Claude Model">Claude Model</h4>
@@ -3058,10 +3060,10 @@
                             </div>
                             <div class="flex-container">
                                 <input id="api_key_openrouter" name="api_key_openrouter" class="text_pole flex1 api_key_openrouter" value="" type="text" autocomplete="off">
-                                <div title="Clear your API key" data-i18n="[title]Clear your API key" class="menu_button fa-solid fa-circle-xmark clear-api-key" data-key="api_key_openrouter"></div>
+                                <div title="Manage API keys" data-i18n="[title]Manage API keys" class="menu_button fa-solid fa-key fa-fw manage-api-keys" data-key="api_key_openrouter"></div>
                             </div>
-                            <div data-for="api_key_openrouter" class="neutral_warning" data-i18n="For privacy reasons, your API key will be hidden after you reload the page.">
-                                For privacy reasons, your API key will be hidden after you reload the page.
+                            <div data-for="api_key_openrouter" class="neutral_warning" data-i18n="For privacy reasons, your API key will be hidden after you click 'Connect'.">
+                                For privacy reasons, your API key will be hidden after you click 'Connect'.
                             </div>
                             <div>
                                 <h4 data-i18n="OpenRouter Model">OpenRouter Model</h4>
@@ -3122,10 +3124,10 @@
                                 <h4 data-i18n="Scale API Key">Scale API Key</h4>
                                 <div class="flex-container">
                                     <input id="api_key_scale" name="api_key_scale" class="text_pole flex1" value="" autocomplete="off">
-                                    <div title="Clear your API key" data-i18n="[title]Clear your API key" class="menu_button fa-solid fa-circle-xmark clear-api-key" data-key="api_key_scale"></div>
+                                    <div title="Manage API keys" data-i18n="[title]Manage API keys" class="menu_button fa-solid fa-key fa-fw manage-api-keys" data-key="api_key_scale"></div>
                                 </div>
-                                <div data-for="api_key_scale" class="neutral_warning" data-i18n="For privacy reasons, your API key will be hidden after you reload the page.">
-                                    For privacy reasons, your API key will be hidden after you reload the page.
+                                <div data-for="api_key_scale" class="neutral_warning" data-i18n="For privacy reasons, your API key will be hidden after you click 'Connect'.">
+                                    For privacy reasons, your API key will be hidden after you click 'Connect'.
                                 </div>
                                 <h4>Scale API URL</h4>
                                 <input id="api_url_scale" name="api_url_scale" class="text_pole" value="" autocomplete="off" placeholder="https://dashboard.scale.com/spellbook/api/v2/deploy/xxxxxxx">
@@ -3134,10 +3136,10 @@
                                 <h4>Scale Cookie (_jwt)</h4>
                                 <div class="flex-container">
                                     <input id="scale_cookie" name="scale_cookie" class="text_pole flex1" value="" autocomplete="off">
-                                    <div title="Clear your cookie" data-i18n="[title]Clear your cookie" class="menu_button fa-solid fa-circle-xmark clear-api-key" data-key="scale_cookie"></div>
+                                    <div title="Clear your cookie" data-i18n="[title]Clear your cookie" class="menu_button fa-solid fa-key fa-fw manage-api-keys" data-key="scale_cookie"></div>
                                 </div>
                                 <div data-for="scale_cookie" class="neutral_warning">
-                                    For privacy reasons, your cookie will be hidden after you reload the page.
+                                    For privacy reasons, your cookie will be hidden after you click 'Connect'.
                                 </div>
                             </div>
                             <!-- Its only purpose is to trigger max context size check -->
@@ -3151,10 +3153,10 @@
                             <h4 data-i18n="AI21 API Key">AI21 API Key</h4>
                             <div class="flex-container">
                                 <input id="api_key_ai21" name="api_key_ai21" class="text_pole flex1" value="" type="text" autocomplete="off">
-                                <div title="Clear your API key" data-i18n="[title]Clear your API key" class="menu_button fa-solid fa-circle-xmark clear-api-key" data-key="api_key_ai21"></div>
+                                <div title="Manage API keys" data-i18n="[title]Manage API keys" class="menu_button fa-solid fa-key fa-fw manage-api-keys" data-key="api_key_ai21"></div>
                             </div>
-                            <div data-for="api_key_ai21" class="neutral_warning" data-i18n="For privacy reasons, your API key will be hidden after you reload the page.">
-                                For privacy reasons, your API key will be hidden after you reload the page.
+                            <div data-for="api_key_ai21" class="neutral_warning" data-i18n="For privacy reasons, your API key will be hidden after you click 'Connect'.">
+                                For privacy reasons, your API key will be hidden after you click 'Connect'.
                             </div>
                             <div>
                                 <h4 data-i18n="AI21 Model">AI21 Model</h4>
@@ -3181,10 +3183,10 @@
                             <h4 data-i18n="Google AI Studio API Key">Google AI Studio API Key</h4>
                             <div class="flex-container">
                                 <input id="api_key_makersuite" name="api_key_makersuite" class="text_pole flex1" value="" type="text" autocomplete="off">
-                                <div title="Clear your API key" data-i18n="[title]Clear your API key" class="menu_button fa-solid fa-circle-xmark clear-api-key" data-key="api_key_makersuite"></div>
+                                <div title="Manage API keys" data-i18n="[title]Manage API keys" class="menu_button fa-solid fa-key fa-fw manage-api-keys" data-key="api_key_makersuite"></div>
                             </div>
-                            <div data-for="api_key_makersuite" class="neutral_warning" data-i18n="For privacy reasons, your API key will be hidden after you reload the page.">
-                                For privacy reasons, your API key will be hidden after you reload the page.
+                            <div data-for="api_key_makersuite" class="neutral_warning" data-i18n="For privacy reasons, your API key will be hidden after you click 'Connect'.">
+                                For privacy reasons, your API key will be hidden after you click 'Connect'.
                             </div>
                             <div>
                                 <h4 data-i18n="Google Model">Google Model</h4>
@@ -3255,19 +3257,38 @@
                             <!-- Express Mode Configuration -->
                             <div id="vertexai_express_config" class="vertexai-auth-section" data-mode="express">
                                 <h4>
-                                    <span data-i18n="Google Vertex AI API Key">
-                                        Google Vertex AI API Key
+                                    <span data-i18n="Google Vertex AI Configuration">
+                                        Google Vertex AI Configuration
                                     </span>
                                     <a href="https://cloud.google.com/vertex-ai/generative-ai/docs/start/express-mode/overview" data-i18n="(Express mode)" target="_blank" rel="noopener noreferrer">
                                         (Express mode)
                                     </a>
                                 </h4>
-                                <div class="flex-container">
-                                    <input id="api_key_vertexai" name="api_key_vertexai" class="text_pole flex1" value="" type="text" autocomplete="off">
-                                    <div title="Clear your API key" data-i18n="[title]Clear your API key" class="menu_button fa-solid fa-circle-xmark clear-api-key" data-key="api_key_vertexai"></div>
+                                <!-- API Key -->
+                                <div class="flex-container flexFlowColumn">
+                                    <label for="api_key_vertexai" data-i18n="API Key">API Key:</label>
+                                    <div class="flex-container">
+                                        <input id="api_key_vertexai" name="api_key_vertexai" class="text_pole flex1" value="" type="text" autocomplete="off">
+                                        <div title="Manage API keys" data-i18n="[title]Manage API keys" class="menu_button fa-solid fa-key fa-fw manage-api-keys" data-key="api_key_vertexai"></div>
+                                    </div>
+                                    <div data-for="api_key_vertexai" class="neutral_warning" data-i18n="For privacy reasons, your API key will be hidden after you click 'Connect'.">
+                                        For privacy reasons, your API key will be hidden after you click 'Connect'.
+                                    </div>
                                 </div>
-                                <div data-for="api_key_vertexai" class="neutral_warning" data-i18n="For privacy reasons, your API key will be hidden after you reload the page.">
-                                    For privacy reasons, your API key will be hidden after you reload the page.
+                                <!-- Project ID -->
+                                <div class="flex-container flexFlowColumn marginTop10">
+                                    <label for="vertexai_express_project_id">
+                                        <span data-i18n="Project ID">Project ID:</span>
+                                    </label>
+                                    <div class="flex-container">
+                                        <input id="vertexai_express_project_id" name="vertexai_express_project_id" class="text_pole flex1" value="" type="text" autocomplete="off" placeholder="Enter your Project ID">
+                                    </div>
+                                    <div class="toggle-description justifyLeft marginBot5">
+                                        <small data-i18n="Project ID is required when selecting regions other than the default (us-central1). You can find this in a model 404 error message.">
+                                            `Project ID` is only required when selecting regions other than the default (us-central1).<br>
+                                            You can find this in a model 404 error message.
+                                        </small>
+                                    </div>
                                 </div>
                             </div>
 
@@ -3281,75 +3302,78 @@
                                         <i class="fa-solid fa-circle-question"></i>
                                     </a>
                                 </h4>
-
-                                <!-- Region -->
-                                <div class="flex-container flexFlowColumn">
-                                    <label for="vertexai_region">
-                                        <span data-i18n="Region">
-                                            Region:
-                                        </span>
-                                        <a href="https://cloud.google.com/vertex-ai/generative-ai/docs/learn/locations" target="_blank" rel="noopener noreferrer" title="View available regions and models" data-i18n="[title]View available regions and models" class="notes-link">
-                                            <span class="fa-solid fa-circle-question note-link-span"></span>
-                                        </a>
-                                    </label>
-                                    <input id="vertexai_region" name="vertexai_region" class="text_pole flex1" value="us-central1" type="text" autocomplete="off" placeholder="e.g., global, us-central1, europe-west1, asia-northeast1">
-                                </div>
-
                                 <!-- Service Account JSON Content -->
                                 <div class="flex-container flexFlowColumn">
                                     <label for="vertexai_service_account_json" data-i18n="Service Account JSON Content">Service Account JSON Content:</label>
                                     <div id="vertexai_service_account_status" class="info-block marginTopBot5" style="display: none;">
                                         <span id="vertexai_service_account_info"></span>
                                     </div>
-                                    <textarea id="vertexai_service_account_json" class="text_pole textarea_compact" rows="4" placeholder='Paste your Service Account JSON content here, e.g.:
-                {
-                "type": "service_account",
-                "project_id": "your-project-id",
-                "private_key_id": "...",
-                "private_key": "-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----\n",
-                "client_email": "...",
-                "client_id": "...",
-                "auth_uri": "https://accounts.google.com/o/oauth2/auth",
-                "token_uri": "https://oauth2.googleapis.com/token"
-                }'></textarea>
-                                    <div data-for="vertexai_service_account_json" class="neutral_warning" data-i18n="For privacy reasons, your Service Account JSON content will be hidden after you reload the page.">
-                                        For privacy reasons, your Service Account JSON content will be hidden after you reload the page.
+                                    <div class="flex-container">
+                                        <input id="vertexai_service_account_json" name="vertexai_service_account_json" class="text_pole flex1" value="" type="text" autocomplete="off">
+                                        <div title="Manage API keys" data-i18n="[title]Manage API keys" class="menu_button fa-solid fa-key fa-fw manage-api-keys" data-key="vertexai_service_account_json"></div>
+                                    </div>
+                                    <div data-for="vertexai_service_account_json" class="neutral_warning" data-i18n="For privacy reasons, your Service Account JSON content will be hidden after you click 'Validate JSON'.">
+                                        For privacy reasons, your Service Account JSON content will be hidden after you click 'Validate JSON'.
                                     </div>
                                     <div class="flex-container">
                                         <button type="button" id="vertexai_validate_service_account" class="menu_button menu_button_icon" data-i18n="Validate JSON">Validate JSON</button>
-                                        <button type="button" id="vertexai_clear_service_account" class="menu_button menu_button_icon" data-i18n="Clear">Clear</button>
                                     </div>
                                 </div>
+                            </div>
+
+                            <!-- Region -->
+                            <div class="flex-container flexFlowColumn">
+                                <label for="vertexai_region">
+                                    <span data-i18n="Region">
+                                        Region:
+                                    </span>
+                                    <a href="https://cloud.google.com/vertex-ai/generative-ai/docs/learn/locations" target="_blank" rel="noopener noreferrer" title="View available regions and models" data-i18n="[title]View available regions and models" class="notes-link">
+                                        <span class="fa-solid fa-circle-question note-link-span"></span>
+                                    </a>
+                                </label>
+                                <input id="vertexai_region" name="vertexai_region" class="text_pole flex1" value="us-central1" type="text" autocomplete="off" placeholder="e.g., global, us-central1, europe-west1, asia-northeast1" list="vertexai_region_suggestions">
+
+                                <datalist id="vertexai_region_suggestions">
+                                    <option value="global">global</option>
+                                    <option value="us-central1">us-central1</option>
+                                    <option value="us-east1">us-east1</option>
+                                    <option value="us-east4">us-east4</option>
+                                    <option value="us-west1">us-west1</option>
+                                    <option value="us-west2">us-west2</option>
+                                    <option value="us-west3">us-west3</option>
+                                    <option value="us-west4">us-west4</option>
+                                    <option value="europe-west1">europe-west1</option>
+                                    <option value="europe-west2">europe-west2</option>
+                                    <option value="europe-west3">europe-west3</option>
+                                    <option value="europe-west4">europe-west4</option>
+                                    <option value="europe-west6">europe-west6</option>
+                                    <option value="europe-central2">europe-central2</option>
+                                    <option value="asia-northeast1">asia-northeast1</option>
+                                    <option value="asia-northeast3">asia-northeast3</option>
+                                    <option value="asia-southeast1">asia-southeast1</option>
+                                    <option value="asia-south1">asia-south1</option>
+                                    <option value="australia-southeast1">australia-southeast1</option>
+                                </datalist>
                             </div>
 
                             <!-- Model Selection -->
                             <div>
                                 <h4 data-i18n="Google Model">Google Model</h4>
                                 <select id="model_vertexai_select">
-                                    <!-- Express Mode Models -->
-                                    <optgroup id="vertexai_express_models" label="Express Mode Models" data-mode="express">
-                                        <option value="gemini-2.5-pro-preview-05-06">gemini-2.5-pro-preview-05-06</option>
-                                        <option value="gemini-2.5-pro-preview-03-25">gemini-2.5-pro-preview-03-25</option>
-                                        <option value="gemini-2.5-flash-preview-05-20">gemini-2.5-flash-preview-05-20</option>
-                                        <option value="gemini-2.5-flash-preview-04-17">gemini-2.5-flash-preview-04-17</option>
-                                        <option value="gemini-2.0-flash-001">gemini-2.0-flash-001</option>
-                                        <option value="gemini-2.0-flash-lite-001">gemini-2.0-flash-lite-001</option>
-                                    </optgroup>
-
-                                    <!-- Full Version Models -->
-                                    <optgroup id="vertexai_full_gemini_25" label="Gemini 2.5" data-mode="full">
+                                    <!-- data-mode="full" is for models that require a service account -->
+                                    <optgroup label="Gemini 2.5">
                                         <option value="gemini-2.5-pro-preview-06-05">gemini-2.5-pro-preview-06-05</option>
                                         <option value="gemini-2.5-pro-preview-05-06">gemini-2.5-pro-preview-05-06</option>
                                         <option value="gemini-2.5-pro-preview-03-25">gemini-2.5-pro-preview-03-25</option>
-                                        <option value="gemini-2.5-pro-exp-03-25">gemini-2.5-pro-exp-03-25</option>
+                                        <option value="gemini-2.5-pro-exp-03-25" data-mode="full">gemini-2.5-pro-exp-03-25</option>
                                         <option value="gemini-2.5-flash-preview-05-20">gemini-2.5-flash-preview-05-20</option>
                                         <option value="gemini-2.5-flash-preview-04-17">gemini-2.5-flash-preview-04-17</option>
                                     </optgroup>
-                                    <optgroup id="vertexai_full_gemini_20" label="Gemini 2.0" data-mode="full">
-                                        <option value="gemini-2.0-flash-001">gemini-2.0-flash-001</option>
-                                        <option value="gemini-2.0-flash-exp">gemini-2.0-flash-exp</option>
-                                        <option value="gemini-2.0-flash-preview-image-generation">gemini-2.0-flash-preview-image-generation</option>
+                                    <optgroup label="Gemini 2.0">
+                                        <option value="gemini-2.0-flash-exp" data-mode="full">gemini-2.0-flash-exp</option>
+                                        <option value="gemini-2.0-flash-preview-image-generation" data-mode="full">gemini-2.0-flash-preview-image-generation</option>
                                         <option value="gemini-2.0-flash">gemini-2.0-flash</option>
+                                        <option value="gemini-2.0-flash-001">gemini-2.0-flash-001</option>
                                         <option value="gemini-2.0-flash-lite-001">gemini-2.0-flash-lite-001</option>
                                     </optgroup>
                                 </select>
@@ -3359,10 +3383,10 @@
                             <h4 data-i18n="MistralAI API Key">MistralAI API Key</h4>
                             <div class="flex-container">
                                 <input id="api_key_mistralai" name="api_key_mistralai" class="text_pole flex1" value="" type="text" autocomplete="off">
-                                <div title="Clear your API key" data-i18n="[title]Clear your API key" class="menu_button fa-solid fa-circle-xmark clear-api-key" data-key="api_key_mistralai"></div>
+                                <div title="Manage API keys" data-i18n="[title]Manage API keys" class="menu_button fa-solid fa-key fa-fw manage-api-keys" data-key="api_key_mistralai"></div>
                             </div>
-                            <div data-for="api_key_mistralai" class="neutral_warning" data-i18n="For privacy reasons, your API key will be hidden after you reload the page.">
-                                For privacy reasons, your API key will be hidden after you reload the page.
+                            <div data-for="api_key_mistralai" class="neutral_warning" data-i18n="For privacy reasons, your API key will be hidden after you click 'Connect'.">
+                                For privacy reasons, your API key will be hidden after you click 'Connect'.
                             </div>
                             <div>
                                 <h4 data-i18n="MistralAI Model">MistralAI Model</h4>
@@ -3385,6 +3409,8 @@
                                         <option value="pixtral-12b-latest">pixtral-12b-latest</option>
                                         <option value="pixtral-large-latest">pixtral-large-latest</option>
                                         <option value="devstral-small-latest">devstral-small-latest</option>
+                                        <option value="magistral-small-latest">magistral-small-latest</option>
+                                        <option value="magistral-medium-latest">magistral-medium-latest</option>
                                     </optgroup>
                                     <optgroup label="Sub-versions">
                                         <option value="open-mistral-nemo-2407">open-mistral-nemo-2407</option>
@@ -3414,6 +3440,8 @@
                                         <option value="pixtral-12b-2409">pixtral-12b-2409</option>
                                         <option value="pixtral-large-2411">pixtral-large-2411</option>
                                         <option value="devstral-small-2505">devstral-small-2505</option>
+                                        <option value="magistral-small-2506">magistral-small-2506</option>
+                                        <option value="magistral-medium-2506">magistral-medium-2506</option>
                                     </optgroup>
                                     <optgroup id="mistralai_other_models" label="Other"></optgroup>
                                 </select>
@@ -3423,10 +3451,10 @@
                             <h4 data-i18n="Groq API Key">Groq API Key</h4>
                             <div class="flex-container">
                                 <input id="api_key_groq" name="api_key_groq" class="text_pole flex1" value="" type="text" autocomplete="off">
-                                <div title="Clear your API key" data-i18n="[title]Clear your API key" class="menu_button fa-solid fa-circle-xmark clear-api-key" data-key="api_key_groq"></div>
+                                <div title="Manage API keys" data-i18n="[title]Manage API keys" class="menu_button fa-solid fa-key fa-fw manage-api-keys" data-key="api_key_groq"></div>
                             </div>
-                            <div data-for="api_key_groq" class="neutral_warning" data-i18n="For privacy reasons, your API key will be hidden after you reload the page.">
-                                For privacy reasons, your API key will be hidden after you reload the page.
+                            <div data-for="api_key_groq" class="neutral_warning" data-i18n="For privacy reasons, your API key will be hidden after you click 'Connect'.">
+                                For privacy reasons, your API key will be hidden after you click 'Connect'.
                             </div>
                             <h4 data-i18n="Groq Model">Groq Model</h4>
                             <select id="model_groq_select">
@@ -3465,10 +3493,10 @@
                             <h4 data-i18n="NanoGPT API Key">NanoGPT API Key</h4>
                             <div class="flex-container">
                                 <input id="api_key_nanogpt" name="api_key_nanogpt" class="text_pole flex1" value="" type="text" autocomplete="off">
-                                <div title="Clear your API key" data-i18n="[title]Clear your API key" class="menu_button fa-solid fa-circle-xmark clear-api-key" data-key="api_key_nanogpt"></div>
+                                <div title="Manage API keys" data-i18n="[title]Manage API keys" class="menu_button fa-solid fa-key fa-fw manage-api-keys" data-key="api_key_nanogpt"></div>
                             </div>
-                            <div data-for="api_key_nanogpt" class="neutral_warning" data-i18n="For privacy reasons, your API key will be hidden after you reload the page.">
-                                For privacy reasons, your API key will be hidden after you reload the page.
+                            <div data-for="api_key_nanogpt" class="neutral_warning" data-i18n="For privacy reasons, your API key will be hidden after you click 'Connect'.">
+                                For privacy reasons, your API key will be hidden after you click 'Connect'.
                             </div>
                             <div>
                                 <h4 data-i18n="NanoGPT Model">NanoGPT Model</h4>
@@ -3481,10 +3509,10 @@
                             <h4 data-i18n="DeepSeek API Key">DeepSeek API Key</h4>
                             <div class="flex-container">
                                 <input id="api_key_deepseek" name="api_key_deepseek" class="text_pole flex1" value="" type="text" autocomplete="off">
-                                <div title="Clear your API key" data-i18n="[title]Clear your API key" class="menu_button fa-solid fa-circle-xmark clear-api-key" data-key="api_key_deepseek"></div>
+                                <div title="Manage API keys" data-i18n="[title]Manage API keys" class="menu_button fa-solid fa-key fa-fw manage-api-keys" data-key="api_key_deepseek"></div>
                             </div>
-                            <div data-for="api_key_deepseek" class="neutral_warning" data-i18n="For privacy reasons, your API key will be hidden after you reload the page.">
-                                For privacy reasons, your API key will be hidden after you reload the page.
+                            <div data-for="api_key_deepseek" class="neutral_warning" data-i18n="For privacy reasons, your API key will be hidden after you click 'Connect'.">
+                                For privacy reasons, your API key will be hidden after you click 'Connect'.
                             </div>
                             <div>
                                 <h4 data-i18n="DeepSeek Model">DeepSeek Model</h4>
@@ -3499,10 +3527,10 @@
                             <h4 data-i18n="Perplexity API Key">Perplexity API Key</h4>
                             <div class="flex-container">
                                 <input id="api_key_perplexity" name="api_key_perplexity" class="text_pole flex1" value="" type="text" autocomplete="off">
-                                <div title="Clear your API key" data-i18n="[title]Clear your API key" class="menu_button fa-solid fa-circle-xmark clear-api-key" data-key="api_key_perplexity"></div>
+                                <div title="Manage API keys" data-i18n="[title]Manage API keys" class="menu_button fa-solid fa-key fa-fw manage-api-keys" data-key="api_key_perplexity"></div>
                             </div>
-                            <div data-for="api_key_perplexity" class="neutral_warning" data-i18n="For privacy reasons, your API key will be hidden after you reload the page.">
-                                For privacy reasons, your API key will be hidden after you reload the page.
+                            <div data-for="api_key_perplexity" class="neutral_warning" data-i18n="For privacy reasons, your API key will be hidden after you click 'Connect'.">
+                                For privacy reasons, your API key will be hidden after you click 'Connect'.
                             </div>
                             <h4 data-i18n="Perplexity Model">Perplexity Model</h4>
                             <select id="model_perplexity_select">
@@ -3530,10 +3558,10 @@
                             <h4 data-i18n="Cohere API Key">Cohere API Key</h4>
                             <div class="flex-container">
                                 <input id="api_key_cohere" name="api_key_cohere" class="text_pole flex1" value="" type="text" autocomplete="off">
-                                <div title="Clear your API key" data-i18n="[title]Clear your API key" class="menu_button fa-solid fa-circle-xmark clear-api-key" data-key="api_key_cohere"></div>
+                                <div title="Manage API keys" data-i18n="[title]Manage API keys" class="menu_button fa-solid fa-key fa-fw manage-api-keys" data-key="api_key_cohere"></div>
                             </div>
-                            <div data-for="api_key_cohere" class="neutral_warning" data-i18n="For privacy reasons, your API key will be hidden after you reload the page.">
-                                For privacy reasons, your API key will be hidden after you reload the page.
+                            <div data-for="api_key_cohere" class="neutral_warning" data-i18n="For privacy reasons, your API key will be hidden after you click 'Connect'.">
+                                For privacy reasons, your API key will be hidden after you click 'Connect'.
                             </div>
                             <div>
                                 <h4 data-i18n="Cohere Model">Cohere Model</h4>
@@ -3569,7 +3597,7 @@
                             <div>
                                 <small>
                                     <span data-i18n="Doesn't work? Try adding">Doesn't work? Try adding</span> <code>/v1</code> <span data-i18n="at the end!">at the end!</span>
-                                    <code>/chat/completions</code> <b data-i18n="suffix will be added automatically.">suffix will be added automatically.</b>
+                                    <b data-i18n="completions note prefix"></b><code>/chat/completions</code> <b data-i18n="suffix will be added automatically.">suffix will be added automatically.</b>
                                 </small>
                             </div>
                             <h4>
@@ -3578,10 +3606,10 @@
                             </h4>
                             <div class="flex-container">
                                 <input id="api_key_custom" name="api_key_custom" class="text_pole flex1" value="" type="text" autocomplete="off">
-                                <div title="Clear your API key" data-i18n="[title]Clear your API key" class="menu_button fa-solid fa-circle-xmark clear-api-key" data-key="api_key_custom"></div>
+                                <div title="Manage API keys" data-i18n="[title]Manage API keys" class="menu_button fa-solid fa-key fa-fw manage-api-keys" data-key="api_key_custom"></div>
                             </div>
-                            <div data-for="api_key_custom" class="neutral_warning" data-i18n="For privacy reasons, your API key will be hidden after you reload the page.">
-                                For privacy reasons, your API key will be hidden after you reload the page.
+                            <div data-for="api_key_custom" class="neutral_warning" data-i18n="For privacy reasons, your API key will be hidden after you click 'Connect'.">
+                                For privacy reasons, your API key will be hidden after you click 'Connect'.
                             </div>
                             <h4 data-i18n="Enter a Model ID">Enter a Model ID</h4>
                             <div class="flex-container">
@@ -3601,10 +3629,10 @@
                             </h4>
                             <div class="flex-container">
                                 <input id="api_key_01ai" name="api_key_01ai" class="text_pole flex1" value="" type="text" autocomplete="off">
-                                <div title="Clear your API key" data-i18n="[title]Clear your API key" class="menu_button fa-solid fa-circle-xmark clear-api-key" data-key="api_key_01ai"></div>
+                                <div title="Manage API keys" data-i18n="[title]Manage API keys" class="menu_button fa-solid fa-key fa-fw manage-api-keys" data-key="api_key_01ai"></div>
                             </div>
-                            <div data-for="api_key_01ai" class="neutral_warning" data-i18n="For privacy reasons, your API key will be hidden after you reload the page.">
-                                For privacy reasons, your API key will be hidden after you reload the page.
+                            <div data-for="api_key_01ai" class="neutral_warning" data-i18n="For privacy reasons, your API key will be hidden after you click 'Connect'.">
+                                For privacy reasons, your API key will be hidden after you click 'Connect'.
                             </div>
                             <h4 data-i18n="01.AI Model">01.AI Model</h4>
                             <select id="model_01ai_select">
@@ -3618,10 +3646,10 @@
                             </h4>
                             <div class="flex-container">
                                 <input id="api_key_xai" name="api_key_xai" class="text_pole flex1" value="" type="text" autocomplete="off">
-                                <div title="Clear your API key" data-i18n="[title]Clear your API key" class="menu_button fa-solid fa-circle-xmark clear-api-key" data-key="api_key_xai"></div>
+                                <div title="Manage API keys" data-i18n="[title]Manage API keys" class="menu_button fa-solid fa-key fa-fw manage-api-keys" data-key="api_key_xai"></div>
                             </div>
-                            <div data-for="api_key_xai" class="neutral_warning" data-i18n="For privacy reasons, your API key will be hidden after you reload the page.">
-                                For privacy reasons, your API key will be hidden after you reload the page.
+                            <div data-for="api_key_xai" class="neutral_warning" data-i18n="For privacy reasons, your API key will be hidden after you click 'Connect'.">
+                                For privacy reasons, your API key will be hidden after you click 'Connect'.
                             </div>
                             <h4 data-i18n="xAI Model">xAI Model</h4>
                             <select id="model_xai_select">
@@ -3633,6 +3661,21 @@
                                 <option value="grok-2-1212">grok-2-1212</option>
                                 <option value="grok-vision-beta">grok-vision-beta</option>
                                 <option value="grok-beta">grok-beta</option>
+                            </select>
+                        </div>
+                        <div id="aimlapi_form" data-source="aimlapi">
+                            <h4>
+                                <span>AI/ML API Key</span>
+                            </h4>
+                            <div class="flex-container">
+                                <input id="api_key_aimlapi" name="api_key_aimlapi" class="text_pole flex1" value="" type="text" autocomplete="off">
+                                <div title="Manage API keys" data-i18n="[title]Manage API keys" class="menu_button fa-solid fa-key fa-fw manage-api-keys" data-key="api_key_aimlapi"></div>
+                            </div>
+                            <div data-for="api_key_aimlapi" class="neutral_warning" data-i18n="For privacy reasons, your API key will be hidden after you click 'Connect'.">
+                                For privacy reasons, your API key will be hidden after you click 'Connect'.
+                            </div>
+                            <h4>AI/ML Model</h4>
+                            <select id="model_aimlapi_select">
                             </select>
                         </div>
                         <div id="pollinations_form" data-source="pollinations">
@@ -3661,13 +3704,17 @@
                             </h4>
                             <select id="custom_prompt_post_processing" class="text_pole" title="Applies additional processing to the prompt before sending it to the API." data-i18n="[title]Applies additional processing to the prompt before sending it to the API.">
                                 <option data-i18n="prompt_post_processing_none" value="">None</option>
-                                <option data-i18n="prompt_post_processing_merge" value="merge">Merge consecutive roles (no tools)</option>
-                                <option data-i18n="prompt_post_processing_merge_tools" value="merge_tools">Merge consecutive roles (with tools)</option>
-                                <option data-i18n="prompt_post_processing_semi" value="semi">Semi-strict (alternating roles; no tools)</option>
-                                <option data-i18n="prompt_post_processing_semi_tools" value="semi_tools">Semi-strict (alternating roles; with tools)</option>
-                                <option data-i18n="prompt_post_processing_strict" value="strict">Strict (user first, alternating roles; no tools)</option>
-                                <option data-i18n="prompt_post_processing_strict_tools" value="strict_tools">Strict (user first, alternating roles; with tools)</option>
-                                <option data-i18n="prompt_post_processing_single" value="single">Single user message (no tools)</option>
+                                <optgroup label="With Tools">
+                                    <option data-i18n="prompt_post_processing_merge_tools" value="merge_tools">Merge consecutive roles (with tools)</option>
+                                    <option data-i18n="prompt_post_processing_semi_tools" value="semi_tools">Semi-strict (alternating roles; with tools)</option>
+                                    <option data-i18n="prompt_post_processing_strict_tools" value="strict_tools">Strict (user first, alternating roles; with tools)</option>
+                                </optgroup>
+                                <optgroup label="No Tools">
+                                    <option data-i18n="prompt_post_processing_merge" value="merge">Merge consecutive roles (no tools)</option>
+                                    <option data-i18n="prompt_post_processing_semi" value="semi">Semi-strict (alternating roles; no tools)</option>
+                                    <option data-i18n="prompt_post_processing_strict" value="strict">Strict (user first, alternating roles; no tools)</option>
+                                    <option data-i18n="prompt_post_processing_single" value="single">Single user message (no tools)</option>
+                                </optgroup>
                             </select>
                         </div>
                         <div class="flex-container flex">
@@ -3687,7 +3734,9 @@
                     <label for="auto-connect-checkbox" class="checkbox_label"><input id="auto-connect-checkbox" type="checkbox" />
                         <span data-i18n="Auto-connect to Last Server">Auto-connect to Last Server</span>
                     </label>
-                    <a id="viewSecrets" href="javascript:void(0);" data-i18n="[missing_key_text]Missing key;[key_saved_text]Key saved" missing_key_text="❌ Missing key" key_saved_text="✔️ Key saved"><span data-i18n="View hidden API keys">View hidden API keys</span></a>
+                    <a id="viewSecrets" href="javascript:void(0);" data-i18n="[missing_key_text]Missing key;[key_saved_text]Key saved" missing_key_text="❌ Missing key" key_saved_text="✔️ Key saved">
+                        <span data-i18n="View hidden API keys">View hidden API keys</span>
+                    </a>
                 </div>
             </div>
         </div>
@@ -4745,7 +4794,7 @@
                                 <input id="never_resize_avatars" type="checkbox" />
                                 <small data-i18n="Never resize avatars">Never resize avatars</small>
                             </label>
-                           <label for="background_thumbnails_animation" class="checkbox_label" title="Make animated backgrounds static in the selection menu. This will reduce UI and network lag if you have a large amount. This is only a change for the selection menu.">
+                           <label data-i18n="[title]Make animated backgrounds static in the selection menu. This will reduce UI and network lag if you have a large amount. This is only a change for the selection menu." for="background_thumbnails_animation" class="checkbox_label" title="Make animated backgrounds static in the selection menu. This will reduce UI and network lag if you have a large amount. This is only a change for the selection menu.">
                                <input id="background_thumbnails_animation" type="checkbox" />
                                <small data-i18n="Animated background thumbnails">Animated background thumbnails</small>
                            </label>
@@ -7470,6 +7519,9 @@
             </a>
         </div>
     </div>
+
+    <!-- Area for hidden data lists for secrets autosuggests -->
+    <div id="secrets_datalists" class="displayNone"></div>
 
     <!-- Script includes -->
     <script src="lib/polyfill.js"></script>
