@@ -43,6 +43,7 @@ import {
     extractTextFromOffice,
     download,
     getFileText,
+    getFileExtension,
 } from './utils.js';
 import { extension_settings, renderExtensionTemplateAsync, saveMetadataDebounced } from './extensions.js';
 import { POPUP_RESULT, POPUP_TYPE, Popup, callGenericPopup } from './popup.js';
@@ -204,17 +205,16 @@ export async function populateFileAttachment(message, inputId = 'file_form_input
         const fileNamePrefix = `${Date.now()}_${slug}`;
         const fileBase64 = await getBase64Async(file);
         let base64Data = fileBase64.split(',')[1];
+        const extension = getFileExtension(file);
 
         // If file is image
         if (file.type.startsWith('image/')) {
-            const extension = file.type.split('/')[1];
             const imageUrl = await saveBase64AsFile(base64Data, name2, fileNamePrefix, extension);
             message.extra.image = imageUrl;
             message.extra.inline_image = true;
         }
         // If file is video
         else if (file.type.startsWith('video/')) {
-            const extension = file.type.split('/')[1];
             const videoUrl = await saveBase64AsFile(base64Data, name2, fileNamePrefix, extension);
             message.extra.video = videoUrl;
         } else {
@@ -247,6 +247,7 @@ export async function populateFileAttachment(message, inputId = 'file_form_input
 
     } catch (error) {
         console.error('Could not upload file', error);
+        toastr.error(t`Either the file is corrupted or its format is not supported.`, t`Could not upload the file`);
     } finally {
         $('#file_form').trigger('reset');
     }
