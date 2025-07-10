@@ -86,7 +86,7 @@ const observer = new MutationObserver(function (mutations) {
     });
 });
 
-observer.observe(document.documentElement, observerConfig);
+observer.observe(document.querySelector('#rm_api_block'), observerConfig);
 
 
 /**
