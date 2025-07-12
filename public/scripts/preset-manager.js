@@ -22,7 +22,7 @@ import { groups, selected_group } from './group-chats.js';
 import { instruct_presets } from './instruct-mode.js';
 import { kai_settings } from './kai-settings.js';
 import { convertNovelPreset } from './nai-settings.js';
-import { openai_settings, openai_setting_names } from './openai.js';
+import { openai_settings, openai_setting_names, oai_settings } from './openai.js';
 import { Popup, POPUP_RESULT, POPUP_TYPE } from './popup.js';
 import { context_presets, getContextSettings, power_user } from './power-user.js';
 import { SlashCommand } from './slash-commands/SlashCommand.js';
@@ -526,7 +526,7 @@ class PresetManager {
             case 'openai':
                 presets = openai_settings;
                 preset_names = openai_setting_names;
-                settings = openai_settings;
+                settings = oai_settings;
                 break;
             case 'context':
                 presets = context_presets;
@@ -1035,6 +1035,9 @@ export async function initPresetManager() {
 
         await presetManager.renamePreset(newName);
 
+        await eventSource.emit(event_types.PRESET_DELETED, { apiId: apiId, name: oldName });
+        await eventSource.emit(event_types.PRESET_CHANGED, { apiId: apiId, name: newName });
+
         if (apiId === 'openai') {
             // This is a horrible mess, but prevents the renamed preset from being corrupted.
             $('#update_oai_preset').trigger('click');
@@ -1107,6 +1110,7 @@ export async function initPresetManager() {
             return;
         }
 
+        const name = presetManager.getSelectedPresetName();
         const result = await presetManager.deletePreset();
 
         if (result) {
@@ -1118,6 +1122,7 @@ export async function initPresetManager() {
         }
 
         saveSettingsDebounced();
+        await eventSource.emit(event_types.PRESET_DELETED, { apiId: apiId, name: name });
     });
 
     $(document).on('click', '[data-preset-manager-restore]', async function () {
