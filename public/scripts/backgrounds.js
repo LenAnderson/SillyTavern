@@ -3,7 +3,8 @@ import { chat_metadata, eventSource, event_types, generateQuietPrompt, getCurren
 import { openThirdPartyExtensionMenu, saveMetadataDebounced } from './extensions.js';
 import { SlashCommand } from './slash-commands/SlashCommand.js';
 import { SlashCommandParser } from './slash-commands/SlashCommandParser.js';
-import { createThumbnail, flashHighlight, getBase64Async, stringFormat } from './utils.js';
+import { createThumbnail, flashHighlight, getBase64Async, stringFormat, debounce } from './utils.js';
+import { debounce_timeout } from './constants.js';
 import { t } from './i18n.js';
 import { Popup } from './popup.js';
 
@@ -14,6 +15,11 @@ const LIST_METADATA_KEY = 'chat_backgrounds';
 const PNG_PIXEL = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=';
 const PNG_PIXEL_BLOB = new Blob([Uint8Array.from(atob(PNG_PIXEL), c => c.charCodeAt(0))], { type: 'image/png' });
 const PLACEHOLDER_IMAGE = `url('data:image/png;base64,${PNG_PIXEL}')`;
+
+const THUMBNAIL_COLUMNS_MIN = 2;
+const THUMBNAIL_COLUMNS_MAX = 8;
+const THUMBNAIL_COLUMNS_DEFAULT_DESKTOP = 5;
+const THUMBNAIL_COLUMNS_DEFAULT_MOBILE = 3;
 
 /**
  * Storage for frontend-generated background thumbnails.
@@ -45,6 +51,53 @@ export let background_settings = {
     animation: false,
 };
 
+/**
+ * Creates a single thumbnail DOM element. The CSS now handles all sizing.
+ * @param {object} imageData - Data for the image (filename, isCustom).
+ * @returns {HTMLElement} The created thumbnail element.
+ */
+function createThumbnailElement(imageData) {
+    const bg = imageData.filename;
+    const isCustom = imageData.isCustom;
+
+    const thumbnail = $('#background_template .bg_example').clone();
+
+    const clipper = document.createElement('div');
+    clipper.className = 'thumbnail-clipper lazy-load-background';
+    clipper.style.backgroundImage = PLACEHOLDER_IMAGE;
+
+    const titleElement = thumbnail.find('.BGSampleTitle');
+    clipper.appendChild(titleElement.get(0));
+    thumbnail.append(clipper);
+
+    const url = generateUrlParameter(bg, isCustom);
+    const title = isCustom ? bg.split('/').pop() : bg;
+    const friendlyTitle = title.slice(0, title.lastIndexOf('.'));
+
+    thumbnail.attr('title', title);
+    thumbnail.attr('bgfile', bg);
+    thumbnail.attr('custom', String(isCustom));
+    thumbnail.data('url', url);
+    titleElement.text(friendlyTitle);
+
+    return thumbnail.get(0);
+}
+
+/**
+ * Applies the thumbnail column count to the CSS and updates button states.
+ * @param {number} count - The number of columns to display.
+ */
+function applyThumbnailColumns(count) {
+    const newCount = Math.max(THUMBNAIL_COLUMNS_MIN, Math.min(count, THUMBNAIL_COLUMNS_MAX));
+    background_settings.thumbnailColumns = newCount;
+    document.documentElement.style.setProperty('--bg-thumb-columns', newCount.toString());
+
+    $('#bg_thumb_zoom_in').prop('disabled', newCount <= THUMBNAIL_COLUMNS_MIN);
+    $('#bg_thumb_zoom_out').prop('disabled', newCount >= THUMBNAIL_COLUMNS_MAX);
+
+    saveSettingsDebounced();
+}
+
 export function loadBackgroundSettings(settings) {
     let backgroundSettings = settings.background;
     if (!backgroundSettings || !backgroundSettings.name || !backgroundSettings.url) {
@@ -56,10 +109,21 @@ export function loadBackgroundSettings(settings) {
     if (!Object.hasOwn(backgroundSettings, 'animation')) {
         backgroundSettings.animation = false;
     }
+
+    // If a value is already saved, use it. Otherwise, determine default based on screen size.
+    let columns = backgroundSettings.thumbnailColumns;
+    if (!columns) {
+        const isNarrowScreen = window.matchMedia('(max-width: 480px)').matches;
+        columns = isNarrowScreen ? THUMBNAIL_COLUMNS_DEFAULT_MOBILE : THUMBNAIL_COLUMNS_DEFAULT_DESKTOP;
+    }
+    background_settings.thumbnailColumns = columns;
+    applyThumbnailColumns(background_settings.thumbnailColumns);
+
     setBackground(backgroundSettings.name, backgroundSettings.url);
     setFittingClass(backgroundSettings.fitting);
     $('#background_fitting').val(backgroundSettings.fitting);
     $('#background_thumbnails_animation').prop('checked', background_settings.animation);
+    highlightSelectedBackground();
 }
 
 /**
@@ -68,46 +132,26 @@ export function loadBackgroundSettings(settings) {
  */
 async function forceSetBackground(backgroundInfo) {
     saveBackgroundMetadata(backgroundInfo.url);
-    setCustomBackground();
+    $('#bg1').css('background-image', backgroundInfo.url);
 
     const list = chat_metadata[LIST_METADATA_KEY] || [];
     const bg = backgroundInfo.path;
     list.push(bg);
     chat_metadata[LIST_METADATA_KEY] = list;
     saveMetadataDebounced();
-    await getChatBackgroundsList();
+    renderChatBackgrounds();
     highlightNewBackground(bg);
     highlightLockedBackground();
 }
 
 async function onChatChanged() {
-    if (hasCustomBackground()) {
-        setCustomBackground();
-    }
-    else {
-        unsetCustomBackground();
-    }
+    const lockedUrl = chat_metadata[BG_METADATA_KEY];
 
-    await getChatBackgroundsList();
+    $('#bg1').css('background-image', lockedUrl || background_settings.url);
+
+    renderChatBackgrounds();
     highlightLockedBackground();
-}
-
-async function getChatBackgroundsList() {
-    const list = chat_metadata[LIST_METADATA_KEY];
-    const listEmpty = !Array.isArray(list) || list.length === 0;
-
-    $('#bg_custom_content').empty();
-    $('#bg_chat_hint').toggle(listEmpty);
-
-    if (listEmpty) {
-        return;
-    }
-
-    for (const bg of list) {
-        const template = await getBackgroundFromTemplate(bg, true);
-        $('#bg_custom_content').append(template);
-    }
-    activateLazyLoader();
+    highlightSelectedBackground();
 }
 
 function getBackgroundPath(fileUrl) {
@@ -115,59 +159,53 @@ function getBackgroundPath(fileUrl) {
 }
 
 function highlightLockedBackground() {
-    $('.bg_example').removeClass('locked');
+    $('.bg_example.locked-background').removeClass('locked-background');
 
-    const lockedBackground = chat_metadata[BG_METADATA_KEY];
+    const lockedBackgroundUrl = chat_metadata[BG_METADATA_KEY];
 
-    if (!lockedBackground) {
+    if (lockedBackgroundUrl) {
+        $('.bg_example').filter(function () {
+            return $(this).data('url') === lockedBackgroundUrl;
+        }).addClass('locked-background');
+    }
+}
+
+/**
+ * Locks the background for the current chat
+ * @param {Event|null} event
+ */
+function onLockBackgroundClick(event = null) {
+    if (!getCurrentChatId()) {
+        toastr.warning(t`Select a chat to lock the background for it`);
         return;
     }
 
-    $('.bg_example').each(function () {
-        const url = $(this).data('url');
-        if (url === lockedBackground) {
-            $(this).addClass('locked');
-        }
-    });
-}
+    // Take the global background's URL and save it to the chat's metadata.
+    const urlToLock = event ? $(event.target).closest('.bg_example').data('url') : background_settings.url;
+    saveBackgroundMetadata(urlToLock);
+    $('#bg1').css('background-image', urlToLock);
 
-/**
- * Locks the background for the current chat
- * @param {Event} e Click event
- * @returns {string} Empty string
- */
-function onLockBackgroundClick(e) {
-    e?.stopPropagation();
-
-    const chatName = getCurrentChatId();
-
-    if (!chatName) {
-        toastr.warning('Select a chat to lock the background for it');
-        return '';
-    }
-
-    const relativeBgImage = getUrlParameter(this) ?? background_settings.url;
-
-    saveBackgroundMetadata(relativeBgImage);
-    setCustomBackground();
+    // Update UI states to reflect the new lock.
     highlightLockedBackground();
-    return '';
 }
 
 /**
- * Locks the background for the current chat
- * @param {Event} e Click event
- * @returns {string} Empty string
+ * Unlocks the background for the current chat
+ * @param {Event|null} _event
  */
-function onUnlockBackgroundClick(e) {
-    e?.stopPropagation();
+function onUnlockBackgroundClick(_event = null) {
+    // Delete the lock from the chat's metadata.
     removeBackgroundMetadata();
-    unsetCustomBackground();
+
+    // Revert the view to the current global background.
+    $('#bg1').css('background-image', background_settings.url);
+
+    // Update UI states to reflect the removal of the lock.
     highlightLockedBackground();
-    return '';
+    highlightSelectedBackground();
 }
 
-function hasCustomBackground() {
+function isChatBackgroundLocked() {
     return chat_metadata[BG_METADATA_KEY];
 }
 
@@ -181,54 +219,22 @@ function removeBackgroundMetadata() {
     saveMetadataDebounced();
 }
 
-function setCustomBackground() {
-    const file = chat_metadata[BG_METADATA_KEY];
-
-    // bg already set
-    if (document.getElementById('bg_custom').style.backgroundImage == file) {
-        return;
-    }
-
-    $('#bg_custom').css('background-image', file);
-}
-
-function unsetCustomBackground() {
-    $('#bg_custom').css('background-image', 'none');
-}
-
 function onSelectBackgroundClick() {
-    const isCustom = $(this).attr('custom') === 'true';
-    const relativeBgImage = getUrlParameter(this);
-
-    // if clicked on upload button
-    if (!relativeBgImage) {
-        return;
-    }
-
-    // Automatically lock the background if it's custom or other background is locked
-    if (hasCustomBackground() || isCustom) {
-        saveBackgroundMetadata(relativeBgImage);
-        setCustomBackground();
-        highlightLockedBackground();
-    }
-    highlightLockedBackground();
-
-    const customBg = window.getComputedStyle(document.getElementById('bg_custom')).backgroundImage;
-
-    // Custom background is set. Do not override the layer below
-    if (customBg !== 'none') {
-        return;
-    }
-
     const bgFile = $(this).attr('bgfile');
-    const backgroundUrl = getBackgroundPath(bgFile);
+    const backgroundCssUrl = getUrlParameter(this);
 
-    // Fetching to browser memory to reduce flicker
-    fetch(backgroundUrl).then(() => {
-        setBackground(bgFile, relativeBgImage);
-    }).catch(() => {
-        console.log('Background could not be set: ' + backgroundUrl);
-    });
+    if (isChatBackgroundLocked()) {
+        // If a background is locked, update the locked background directly
+        saveBackgroundMetadata(backgroundCssUrl);
+        $('#bg1').css('background-image', backgroundCssUrl);
+        highlightLockedBackground();
+    } else {
+        // Otherwise, update the global background setting
+        setBackground(bgFile, backgroundCssUrl);
+    }
+
+    // Update UI highlights to reflect the changes.
+    highlightSelectedBackground();
 }
 
 async function onCopyToSystemBackgroundClick(e) {
@@ -257,7 +263,7 @@ async function onCopyToSystemBackgroundClick(e) {
     const index = list.indexOf(bgNames.oldBg);
     list.splice(index, 1);
     saveMetadataDebounced();
-    await getChatBackgroundsList();
+    renderChatBackgrounds();
 }
 
 /**
@@ -265,9 +271,10 @@ async function onCopyToSystemBackgroundClick(e) {
  * It caches the thumbnail in local storage and returns a blob URL for the thumbnail.
  * If the thumbnail cannot be fetched, it returns a transparent PNG pixel as a fallback.
  * @param {string} bg Background URL
+ * @param {boolean} isCustom Is the background custom?
  * @returns {Promise<string>} Blob URL of the thumbnail
  */
-async function getThumbnailFromStorage(bg) {
+async function getThumbnailFromStorage(bg, isCustom) {
     const cachedBlobUrl = THUMBNAIL_BLOBS.get(bg);
     if (cachedBlobUrl) {
         return cachedBlobUrl;
@@ -281,7 +288,8 @@ async function getThumbnailFromStorage(bg) {
     }
 
     try {
-        const response = await fetch(getBackgroundPath(bg), { cache: 'force-cache' });
+        const url = isCustom ? bg : getBackgroundPath(bg);
+        const response = await fetch(url, { cache: 'force-cache' });
         if (!response.ok) {
             throw new Error('Fetch failed with status: ' + response.status);
         }
@@ -380,29 +388,32 @@ async function onDeleteBackgroundClick(e) {
             list.splice(index, 1);
         }
 
-        const siblingSelector = '.bg_example:not(#form_bg_download)';
-        const nextBg = bgToDelete.next(siblingSelector);
-        const prevBg = bgToDelete.prev(siblingSelector);
-        const anyBg = $(siblingSelector);
+        if (bg === background_settings.name) {
+            const siblingSelector = '.bg_example';
+            const nextBg = bgToDelete.next(siblingSelector);
+            const prevBg = bgToDelete.prev(siblingSelector);
 
-        if (nextBg.length > 0) {
-            nextBg.trigger('click');
-        } else if (prevBg.length > 0) {
-            prevBg.trigger('click');
-        } else {
-            $(anyBg[Math.floor(Math.random() * anyBg.length)]).trigger('click');
+            if (nextBg.length > 0) {
+                nextBg.trigger('click');
+            } else if (prevBg.length > 0) {
+                prevBg.trigger('click');
+            } else {
+                const anyOtherBg = $('.bg_example').not(bgToDelete).first();
+                if (anyOtherBg.length > 0) {
+                    anyOtherBg.trigger('click');
+                }
+            }
         }
 
         bgToDelete.remove();
 
         if (url === chat_metadata[BG_METADATA_KEY]) {
             removeBackgroundMetadata();
-            unsetCustomBackground();
             highlightLockedBackground();
         }
 
         if (isCustom) {
-            await getChatBackgroundsList();
+            renderChatBackgrounds();
             saveMetadataDebounced();
         }
     }
@@ -443,6 +454,47 @@ async function autoBackgroundCommand() {
     return '';
 }
 
+/**
+ * Renders the system backgrounds gallery.
+ * @param {string[]} [backgrounds] - Optional filtered list of backgrounds.
+ */
+function renderSystemBackgrounds(backgrounds) {
+    const sourceList = backgrounds || [];
+    const container = $('#bg_menu_content');
+    container.empty();
+
+    if (sourceList.length === 0) return;
+
+    sourceList.forEach(bg => {
+        const imageData = { filename: bg, isCustom: false };
+        const thumbnail = createThumbnailElement(imageData);
+        container.append(thumbnail);
+    });
+
+    activateLazyLoader();
+}
+
+/**
+ * Renders the chat-specific (custom) backgrounds gallery.
+ * @param {string[]} [backgrounds] - Optional filtered list of backgrounds.
+ */
+function renderChatBackgrounds(backgrounds) {
+    const sourceList = backgrounds ?? (chat_metadata[LIST_METADATA_KEY] || []);
+    const container = $('#bg_custom_content');
+    container.empty();
+    $('#bg_chat_hint').toggle(!sourceList.length);
+
+    if (sourceList.length === 0) return;
+
+    sourceList.forEach(bg => {
+        const imageData = { filename: bg, isCustom: true };
+        const thumbnail = createThumbnailElement(imageData);
+        container.append(thumbnail);
+    });
+
+    activateLazyLoader();
+}
+
 export async function getBackgrounds() {
     const response = await fetch('/api/backgrounds/all', {
         method: 'POST',
@@ -452,12 +504,9 @@ export async function getBackgrounds() {
     if (response.ok) {
         const { images, config } = await response.json();
         Object.assign(THUMBNAIL_CONFIG, config);
-        $('#bg_menu_content').children('div').remove();
-        for (const bg of images) {
-            const template = await getBackgroundFromTemplate(bg, false);
-            $('#bg_menu_content').append(template);
-        }
-        activateLazyLoader();
+
+        renderSystemBackgrounds(images);
+        highlightSelectedBackground();
     }
 }
 
@@ -479,14 +528,19 @@ function activateLazyLoader() {
     lazyLoadObserver = new IntersectionObserver((entries, observer) => {
         entries.forEach(entry => {
             if (entry.target instanceof HTMLElement && entry.isIntersecting) {
-                const target = entry.target;
-                const bg = target.getAttribute('bgfile');
-                const isCustom = target.getAttribute('custom') === 'true';
-                resolveImageUrl(bg, isCustom)
-                    .then(url => { target.style.backgroundImage = url; })
-                    .catch(() => { target.style.backgroundImage = PLACEHOLDER_IMAGE; });
-                target.classList.remove('lazy-load-background');
-                observer.unobserve(target);
+                const clipper = entry.target;
+                const parentThumbnail = clipper.closest('.bg_example');
+
+                if (parentThumbnail) {
+                    const bg = parentThumbnail.getAttribute('bgfile');
+                    const isCustom = parentThumbnail.getAttribute('custom') === 'true';
+                    resolveImageUrl(bg, isCustom)
+                        .then(url => { clipper.style.backgroundImage = url; })
+                        .catch(() => { clipper.style.backgroundImage = PLACEHOLDER_IMAGE; });
+                }
+
+                clipper.classList.remove('lazy-load-background');
+                observer.unobserve(clipper);
             }
         });
     }, options);
@@ -519,7 +573,7 @@ async function resolveImageUrl(bg, isCustom) {
     const fileExtension = bg.split('.').pop().toLowerCase();
     const isAnimated = ['mp4', 'webp'].includes(fileExtension);
     const thumbnailUrl = isAnimated && !background_settings.animation
-        ? await getThumbnailFromStorage(bg)
+        ? await getThumbnailFromStorage(bg, isCustom)
         : isCustom
             ? bg
             : getThumbnailUrl('bg', bg);
@@ -527,30 +581,11 @@ async function resolveImageUrl(bg, isCustom) {
     return `url("${thumbnailUrl}")`;
 }
 
-/**
- * Instantiates a background template
- * @param {string} bg Path to background
- * @param {boolean} isCustom Whether the background is custom
- * @returns {Promise<JQuery<HTMLElement>>} Background template
- */
-async function getBackgroundFromTemplate(bg, isCustom) {
-    const template = $('#background_template .bg_example').clone();
-    const url = generateUrlParameter(bg, isCustom);
-    const title = isCustom ? bg.split('/').pop() : bg;
-    const friendlyTitle = title.slice(0, title.lastIndexOf('.'));
-
-    template.attr('title', title);
-    template.attr('bgfile', bg);
-    template.attr('custom', String(isCustom));
-    template.data('url', url);
-    template.addClass('lazy-load-background');
-    template.css('background-image', PLACEHOLDER_IMAGE);
-    template.find('.BGSampleTitle').text(friendlyTitle);
-    return template;
-}
-
 async function setBackground(bg, url) {
-    $('#bg1').css('background-image', url);
+    // Only change the visual background if one is not locked for the current chat.
+    if (!isChatBackgroundLocked()) {
+        $('#bg1').css('background-image', url);
+    }
     background_settings.name = bg;
     background_settings.url = url;
     saveSettingsDebounced();
@@ -573,14 +608,21 @@ async function delBackground(bg) {
 }
 
 async function onBackgroundUploadSelected() {
-    const form = $('#form_bg_download').get(0);
+    const form = $('#form_bg_upload').get(0);
 
     if (!(form instanceof HTMLFormElement)) {
-        console.error('form_bg_download is not a form');
+        console.error('form_bg_upload is not a form');
         return;
     }
 
     const formData = new FormData(form);
+
+    const file = formData.get('avatar');
+    if (!(file instanceof File) || file.size === 0) {
+        form.reset();
+        return;
+    }
+
     await convertFileIfVideo(formData);
     await uploadBackground(formData);
     form.reset();
@@ -614,7 +656,7 @@ async function convertFileIfVideo(formData) {
         const sourceBuffer = await file.arrayBuffer();
         const convertedBuffer = await globalThis.convertVideoToAnimatedWebp({ buffer: new Uint8Array(sourceBuffer), name: file.name });
         const convertedFileName = file.name.replace(/\.[^/.]+$/, '.webp');
-        const convertedFile = new File([convertedBuffer], convertedFileName, { type: 'image/webp' });
+        const convertedFile = new File([new Uint8Array(convertedBuffer)], convertedFileName, { type: 'image/webp' });
         formData.set('avatar', convertedFile);
         toastMessage.remove();
     } catch (error) {
@@ -671,46 +713,107 @@ function highlightNewBackground(bg) {
  * @param {string} fitting Fitting type
  */
 function setFittingClass(fitting) {
-    const backgrounds = $('#bg1, #bg_custom');
+    const backgrounds = $('#bg1');
     for (const option of ['cover', 'contain', 'stretch', 'center']) {
         backgrounds.toggleClass(option, option === fitting);
     }
     background_settings.fitting = fitting;
 }
 
+function highlightSelectedBackground() {
+    $('.bg_example.selected-background').removeClass('selected-background');
+
+    // The "selected" highlight should always reflect the global background setting.
+    const activeUrl = background_settings.url;
+
+    if (activeUrl) {
+        // Find the thumbnail whose data-url attribute matches the active URL
+        $('.bg_example').filter(function () {
+            return $(this).data('url') === activeUrl;
+        }).addClass('selected-background');
+    }
+}
+
 function onBackgroundFilterInput() {
-    const filterValue = String($(this).val()).toLowerCase();
-    $('#bg_menu_content > div').each(function () {
-        const $bgContent = $(this);
-        if ($bgContent.attr('title').toLowerCase().includes(filterValue)) {
-            $bgContent.show();
-        } else {
-            $bgContent.hide();
-        }
+    const filterValue = String($('#bg-filter').val()).toLowerCase();
+    $('#bg_menu_content > .bg_example, #bg_custom_content > .bg_example').each(function () {
+        const $bg = $(this);
+        const title = $bg.attr('title') || '';
+        const hasMatch = title.toLowerCase().includes(filterValue);
+        $bg.toggle(hasMatch);
     });
 }
+
+const debouncedOnBackgroundFilterInput = debounce(onBackgroundFilterInput, debounce_timeout.standard);
 
 export function initBackgrounds() {
     eventSource.on(event_types.CHAT_CHANGED, onChatChanged);
     eventSource.on(event_types.FORCE_SET_BACKGROUND, forceSetBackground);
-    $(document).on('click', '.bg_example', onSelectBackgroundClick);
-    $(document).on('click', '.bg_example_lock', onLockBackgroundClick);
-    $(document).on('click', '.bg_example_unlock', onUnlockBackgroundClick);
-    $(document).on('click', '.bg_example_edit', onRenameBackgroundClick);
-    $(document).on('click', '.bg_example_cross', onDeleteBackgroundClick);
-    $(document).on('click', '.bg_example_copy', onCopyToSystemBackgroundClick);
+
+    $(document)
+        .off('click', '.bg_example').on('click', '.bg_example', onSelectBackgroundClick)
+        .off('click', '.bg_example .mobile-only-menu-toggle').on('click', '.bg_example .mobile-only-menu-toggle', function (e) {
+            e.stopPropagation();
+            const $context = $(this).closest('.bg_example');
+            const wasOpen = $context.hasClass('mobile-menu-open');
+            // Close all other open menus before opening a new one.
+            $('.bg_example.mobile-menu-open').removeClass('mobile-menu-open');
+            if (!wasOpen) {
+                $context.addClass('mobile-menu-open');
+            }
+        })
+        .off('blur', '.bg_example.mobile-menu-open').on('blur', '.bg_example.mobile-menu-open', function () {
+            if (!$(this).is(':focus-within')) {
+                $(this).removeClass('mobile-menu-open');
+            }
+        })
+        .off('click', '.jg-button').on('click', '.jg-button', function (e) {
+            e.stopPropagation();
+            const action = $(this).data('action');
+
+            switch (action) {
+                case 'lock':
+                    onLockBackgroundClick.call(this, e.originalEvent);
+                    break;
+                case 'unlock':
+                    onUnlockBackgroundClick.call(this, e.originalEvent);
+                    break;
+                case 'edit':
+                    onRenameBackgroundClick.call(this, e.originalEvent);
+                    break;
+                case 'delete':
+                    onDeleteBackgroundClick.call(this, e.originalEvent);
+                    break;
+                case 'copy':
+                    onCopyToSystemBackgroundClick.call(this, e.originalEvent);
+                    break;
+            }
+        });
+
+    $('#bg_thumb_zoom_in').on('click', () => {
+        applyThumbnailColumns(background_settings.thumbnailColumns - 1);
+    });
+    $('#bg_thumb_zoom_out').on('click', () => {
+        applyThumbnailColumns(background_settings.thumbnailColumns + 1);
+    });
     $('#auto_background').on('click', autoBackgroundCommand);
     $('#add_bg_button').on('change', onBackgroundUploadSelected);
-    $('#bg-filter').on('input', onBackgroundFilterInput);
+    $('#bg-filter').on('input', () => debouncedOnBackgroundFilterInput());
     SlashCommandParser.addCommandObject(SlashCommand.fromProps({
         name: 'lockbg',
-        callback: () => onLockBackgroundClick(new CustomEvent('click')),
+        callback: () => {
+            onLockBackgroundClick();
+            return '';
+        },
         aliases: ['bglock'],
         helpString: 'Locks a background for the currently selected chat',
     }));
     SlashCommandParser.addCommandObject(SlashCommand.fromProps({
         name: 'unlockbg',
-        callback: () => onUnlockBackgroundClick(new CustomEvent('click')),
+        callback: () => {
+            onUnlockBackgroundClick();
+            return '';
+        },
         aliases: ['bgunlock'],
         helpString: 'Unlocks a background for the currently selected chat',
     }));

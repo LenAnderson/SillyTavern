@@ -85,11 +85,30 @@ const hash_derivations = {
     '854b703e44ca06bdb196cc471c728d15dbab61e744fe6cdce980086b61646ed1':
         'GLM-4'
     ,
+
+    // Kimi K2, ...
+    'aab20feb9bc6881f941ea649356130ffbc4943b3c2577c0991e1fba90de5a0fc':
+        'Moonshot AI'
+    ,
+
+    // gpt-oss (unsloth)
+    '70da0d2348e40aaf8dad05f04a316835fd10547bd7e3392ce337e4c79ba91c01':
+        'OpenAI Harmony'
+    ,
+
+    // gpt-oss (ggml-org)
+    'a4c9919cbbd4acdd51ccffe22da049264b1b73e59055fa58811a99efbd7c8146':
+        'OpenAI Harmony'
+    ,
 };
 
-const substr_derivations = {
-    '<|im_start|>': 'ChatML', // qwen2.5, ...
-};
+const substr_derivations = [
+    ['Moonshot AI', ['<|im_user|>user<|im_middle|>', '<|im_assistant|>assistant<|im_middle|>', '<|im_end|>']],
+    ['OpenAI Harmony', ['<|start|>user<|message|>', '<|start|>assistant<|channel|>final<|message|>', '<|end|>']],
+
+    // Generic cases
+    ['ChatML', ['<|im_start|>user', '<|im_start|>assistant', '<|im_end|>']],
+];
 
 const parse_derivation = derivation => (typeof derivation === 'string') ? {
     'context': derivation,
@@ -109,8 +128,8 @@ export async function deriveTemplatesFromChatTemplate(chat_template, hash) {
     }
 
     // heuristics
-    for (const [substr, derivation] of Object.entries(substr_derivations) ) {
-        if (chat_template.includes(substr)) {
+    for (const [derivation, substr] of substr_derivations) {
+        if ([substr].flat().every(str => chat_template.includes(str))) {
             return parse_derivation(derivation);
         }
     }

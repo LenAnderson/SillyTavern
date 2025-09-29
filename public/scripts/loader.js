@@ -269,7 +269,7 @@ export function showLoader() {
         <div id="loader" style="color:white;">
             <div id="load-spinner" class="fa-solid fa-gear fa-spin fa-3x"></div>
             <div id="load-spinner-message" style="position:fixed;top:4em;left:0;right:0;"></div>
-        </div>`, POPUP_TYPE.DISPLAY, null, { transparent: true, animation: 'none' });
+        </div>`, POPUP_TYPE.DISPLAY, null, { transparent: true, animation: 'none', wide: true, large: true });
 
     // No close button, loaders are not closable
     loaderPopup.closeButton.style.display = 'none';

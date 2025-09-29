@@ -9,7 +9,7 @@ import { FILTER_TYPES, FilterHelper } from './filters.js';
 import { getTokenCountAsync } from './tokenizers.js';
 import { power_user } from './power-user.js';
 import { getTagKeyForEntity } from './tags.js';
-import { debounce_timeout } from './constants.js';
+import { debounce_timeout, GENERATION_TYPE_TRIGGERS } from './constants.js';
 import { getRegexedString, regex_placement } from './extensions/regex/engine.js';
 import { SlashCommandParser } from './slash-commands/SlashCommandParser.js';
 import { SlashCommand } from './slash-commands/SlashCommand.js';
@@ -17,7 +17,7 @@ import { ARGUMENT_TYPE, SlashCommandArgument, SlashCommandNamedArgument } from '
 import { SlashCommandEnumValue, enumTypes } from './slash-commands/SlashCommandEnumValue.js';
 import { commonEnumProviders, enumIcons } from './slash-commands/SlashCommandCommonEnumsProvider.js';
 import { SlashCommandClosure } from './slash-commands/SlashCommandClosure.js';
-import { callGenericPopup, Popup, POPUP_TYPE } from './popup.js';
+import { callGenericPopup, Popup, POPUP_RESULT, POPUP_TYPE } from './popup.js';
 import { StructuredCloneMap } from './util/StructuredCloneMap.js';
 import { renderTemplateAsync } from './templates.js';
 import { t } from './i18n.js';
@@ -107,6 +107,7 @@ const KNOWN_DECORATORS = ['@@activate', '@@dont_activate'];
  * @property {string} characterDepthPrompt Character depth prompt (sometimes referred to as character notes)
  * @property {string} scenario Character defined scenario
  * @property {string} creatorNotes Character creator notes
+ * @property {string} trigger The type that triggered the scan, e.g. 'normal', 'continue', etc.
  */
 
 /**
@@ -145,7 +146,50 @@ const KNOWN_DECORATORS = ['@@activate', '@@dont_activate'];
  * @typedef TimedEffectType Type of timed effect
  * @type {'sticky'|'cooldown'|'delay'}
  */
+
+/**
+ * @typedef {object} WIPromptResult
+ * @property {string} worldInfoString - Complete world info string
+ * @property {string} worldInfoBefore - World info that goes before the prompt
+ * @property {string} worldInfoAfter - World info that goes after the prompt
+ * @property {Array} worldInfoExamples - Array of example entries
+ * @property {Array} worldInfoDepth - Array of depth entries
+ * @property {Array} anBefore - Array of entries before Author's Note
+ * @property {Array} anAfter - Array of entries after Author's Note
+ * @property {{[key: string]: string[]}} outletEntries - Array of entries to be added to an outlet
+ */
+
+/**
+ * @typedef {object} WIActivated
+ * @property {string} worldInfoBefore The world info before the chat.
+ * @property {string} worldInfoAfter The world info after the chat.
+ * @property {any[]} EMEntries The entries for examples.
+ * @property {any[]} WIDepthEntries The depth entries.
+ * @property {any[]} ANBeforeEntries The entries before Author's Note.
+ * @property {any[]} ANAfterEntries The entries after Author's Note.
+ * @property {{[key: string]: string[]}} outletEntries - Array of entries to be added to an outlet
+ * @property {Set<any>} allActivatedEntries All entries.
+ */
+
+/**
+ * @typedef {object} WIEntryFieldDefinition
+ * @property {any} default - Default value for the field
+ * @property {string} type - Type of the field, can be 'string', 'number', 'boolean', 'array', 'enum'
+ * @property {boolean} [excludeFromTemplate=false] - Whether to exclude this field from the template
+ * @property {(value: any) => boolean} [arrayFilter] - Optional filter function for array fields to filter out unwanted values
+ */
 // End typedef area
+
+/** @type {Readonly<WIGlobalScanData>} */
+const defaultGlobalScanData = Object.freeze({
+    trigger: 'normal',
+    personaDescription: '',
+    characterDescription: '',
+    characterPersonality: '',
+    characterDepthPrompt: '',
+    scenario: '',
+    creatorNotes: '',
+});
 
 /**
  * Represents a scanning buffer for one evaluation of World Info.
@@ -776,6 +820,7 @@ export const world_info_position = {
     atDepth: 4,
     EMTop: 5,
     EMBottom: 6,
+    outlet: 7,
 };
 
 export const wi_anchor_position = {
@@ -802,14 +847,6 @@ export const worldInfoCache = new StructuredCloneMap({ cloneOnGet: true, cloneOn
  * @param {number} maxContext - The maximum context size of the generation.
  * @param {boolean} isDryRun - If true, the function will not emit any events.
  * @param {WIGlobalScanData} globalScanData Chat independent context to be scanned
- * @typedef {object} WIPromptResult
- * @property {string} worldInfoString - Complete world info string
- * @property {string} worldInfoBefore - World info that goes before the prompt
- * @property {string} worldInfoAfter - World info that goes after the prompt
- * @property {Array} worldInfoExamples - Array of example entries
- * @property {Array} worldInfoDepth - Array of depth entries
- * @property {Array} anBefore - Array of entries before Author's Note
- * @property {Array} anAfter - Array of entries after Author's Note
  * @returns {Promise<WIPromptResult>} The world info string and depth.
  */
 export async function getWorldInfoPrompt(chat, maxContext, isDryRun, globalScanData) {
@@ -833,6 +870,7 @@ export async function getWorldInfoPrompt(chat, maxContext, isDryRun, globalScanD
         worldInfoDepth: activatedWorldInfo.WIDepthEntries ?? [],
         anBefore: activatedWorldInfo.ANBeforeEntries ?? [],
         anAfter: activatedWorldInfo.ANAfterEntries ?? [],
+        outletEntries: activatedWorldInfo.outletEntries ?? {},
     };
 }
 
@@ -1140,7 +1178,7 @@ function registerWorldInfoSlashCommands() {
             return '';
         }
 
-        if (newWorldInfoEntryTemplate[field] === undefined) {
+        if (!Object.hasOwn(newWorldInfoEntryDefinition, field)) {
             toastr.warning('Valid field name is required');
             return '';
         }
@@ -1168,7 +1206,7 @@ function registerWorldInfoSlashCommands() {
                 }
                 break;
             default:
-                fieldValue = entry[field];
+                fieldValue = entry[field] ?? newWorldInfoEntryDefinition[field]?.default;
         }
 
         if (fieldValue === undefined) {
@@ -1254,10 +1292,18 @@ function registerWorldInfoSlashCommands() {
             return '';
         }
 
-        if (newWorldInfoEntryTemplate[field] === undefined) {
+        if (!Object.hasOwn(newWorldInfoEntryDefinition, field)) {
             toastr.warning('Valid field name is required');
             return '';
         }
+
+        // Init a default value for the field if it does not exist
+        if (!Object.hasOwn(entry, field)) {
+            entry[field] = newWorldInfoEntryDefinition[field].default;
+        }
+
+        // Use an array filter if it exists for the field
+        const arrayFilter = newWorldInfoEntryDefinition[field]?.arrayFilter || (() => true);
 
         // handle special cases, otherwise execute default logic
         let tagNames;
@@ -1286,7 +1332,7 @@ function registerWorldInfoSlashCommands() {
                 break;
             default:
                 if (Array.isArray(entry[field])) {
-                    entry[field] = parseStringArray(value);
+                    entry[field] = parseStringArray(value).filter(arrayFilter);
                 } else if (typeof entry[field] === 'boolean') {
                     entry[field] = isTrueBoolean(value);
                 } else if (typeof entry[field] === 'number') {
@@ -1875,14 +1921,19 @@ export async function updateWorldInfoList() {
     });
 
     if (result.ok) {
-        var data = await result.json();
+        const data = await result.json();
+        const editorSelected = String($('#world_editor_select').find(':selected').text());
         world_names = data.world_names?.length ? data.world_names : [];
         $('#world_info').find('option[value!=""]').remove();
         $('#world_editor_select').find('option[value!=""]').remove();
 
         world_names.forEach((item, i) => {
-            $('#world_info').append(`<option value='${i}'${selected_world_info.includes(item) ? ' selected' : ''}>${item}</option>`);
-            $('#world_editor_select').append(`<option value='${i}'>${item}</option>`);
+            const globalListOption = new Option(item, i.toString());
+            globalListOption.selected = selected_world_info.includes(item);
+            const editorListOption = new Option(item, i.toString());
+            editorListOption.selected = editorSelected === item;
+            $('#world_info').append(globalListOption);
+            $('#world_editor_select').append(editorListOption);
         });
     }
 }
@@ -2302,21 +2353,21 @@ async function displayWorldEntries(name, data, navigation = navigation_option.no
         const entryCount = Object.keys(data.entries).length;
         const moreThan100 = entryCount > 100;
 
-        let content = '<span>Apply your current sorting to the "Order" field. The Order values will go down from the chosen number.</span>';
+        let content = '<span>' + t`Apply your current sorting to the "Order" field. The Order values will go down from the chosen number.` + '</span>';
         if (moreThan100) {
-            content += `<div class="m-t-1"><i class="fa-solid fa-triangle-exclamation" style="color: #FFD43B;"></i> More than 100 entries in this world. If you don't choose a number higher than that, the lower entries will default to 0.<br />(Usual default: 100)<br />Minimum: ${entryCount}</div>`;
+            content += '<div class="m-t-1"><i class="fa-solid fa-triangle-exclamation" style="color: #FFD43B;"></i> ' + t`More than 100 entries in this world. If you don't choose a number higher than that, the lower entries will default to 0.<br />(Usual default: 100)<br />Minimum: ${entryCount}` + '</div>';
         }
 
-        const result = await Popup.show.input('Apply Current Sorting', content, '100', { okButton: 'Apply', cancelButton: 'Cancel' });
+        const result = await Popup.show.input(t`Apply Current Sorting`, content, '100', { okButton: t`Apply`, cancelButton: 'Cancel' });
         if (!result) return;
 
         const start = Number(result);
         if (isNaN(start) || start < 0) {
-            toastr.error('Invalid number: ' + result, 'Apply Current Sorting');
+            toastr.error(t`Invalid number: ${result}`, t`Apply Current Sorting`);
             return;
         }
         if (start < entryCount) {
-            toastr.warning('A number lower than the entry count has been chosen. All entries below that will default to 0.', 'Apply Current Sorting');
+            toastr.warning(t`A number lower than the entry count has been chosen. All entries below that will default to 0.`, t`Apply Current Sorting`);
         }
 
         // We need to sort the entries here, as the data source isn't sorted
@@ -2439,6 +2490,8 @@ export const originalWIDataKeyMap = {
     'sticky': 'extensions.sticky',
     'cooldown': 'extensions.cooldown',
     'delay': 'extensions.delay',
+    'triggers': 'extensions.triggers',
+    'ignoreBudget': 'extensions.ignore_budget',
 };
 
 /** Checks the state of the current search, and adds/removes the search sorting option accordingly */
@@ -3190,7 +3243,7 @@ export async function getWorldEntry(name, data, entry) {
             return;
         }
         const wrapper = document.createElement('div');
-        wrapper.textContent = t`Move '${sourceName}' to:`;
+        wrapper.textContent = t`Move/Copy '${sourceName}' to:`;
         const container = document.createElement('div');
         container.appendChild(wrapper);
         container.appendChild(select);
@@ -3198,10 +3251,15 @@ export async function getWorldEntry(name, data, entry) {
         select.addEventListener('change', function () {
             selectedWorldIndex = this.value === '' ? -1 : Number(this.value);
         });
-        const popupConfirm = await callGenericPopup(container, POPUP_TYPE.CONFIRM, '', {
-            okButton: t`Move`,
+        const popup = new Popup(container, POPUP_TYPE.CONFIRM, '', {
             cancelButton: t`Cancel`,
+            customButtons: [
+                { text: t`Move`, result: POPUP_RESULT.CUSTOM1 },
+                { text: t`Copy`, result: POPUP_RESULT.CUSTOM2 },
+            ],
         });
+        popup.okButton.style.display = 'none'; // Hide the default OK button
+        const popupConfirm = await popup.show();
         if (!popupConfirm) return;
         if (selectedWorldIndex === -1) return;
         const selectedValue = world_names[selectedWorldIndex];
@@ -3209,7 +3267,8 @@ export async function getWorldEntry(name, data, entry) {
             toastr.warning(t`Please select a target lorebook.`);
             return;
         }
-        await moveWorldInfoEntry(sourceWorld, selectedValue, sourceUid);
+        const deleteOriginal = popupConfirm === POPUP_RESULT.CUSTOM1;
+        await moveWorldInfoEntry(sourceWorld, selectedValue, sourceUid, { deleteOriginal });
     });
 
     let drawerInitialized = false;
@@ -3371,6 +3430,19 @@ export async function getWorldEntry(name, data, entry) {
         contentInput.val(entry.content).trigger('input', { skipCount: true, noSave: true });
         editTemplate.find('.editor_maximize').attr('data-for', contentInputId);
 
+        // Outlet name
+        const outletNameInput = editTemplate.find('input[name="outletName"]');
+        outletNameInput.data('uid', entry.uid);
+        outletNameInput.on('input', async function (_, { noSave = false } = {}) {
+            const uid = $(this).data('uid');
+            const value = $(this).val();
+            data.entries[uid].outletName = value;
+            setWIOriginalDataValue(data, uid, 'extensions.outlet_name', data.entries[uid].outletName);
+            !noSave && await saveWorldInfo(name, data);
+        });
+        outletNameInput.val(entry.outletName ?? '').trigger('input', { noSave: true });
+        setTimeout(() => createEntryInputAutocomplete(outletNameInput, getOutletNameCallback(data), { allowMultiple: true }), 1);
+
         // Scan depth
         const scanDepthInput = editTemplate.find('input[name="scanDepth"]');
         scanDepthInput.data('uid', entry.uid);
@@ -3497,6 +3569,41 @@ export async function getWorldEntry(name, data, entry) {
         automationIdInput.val(entry.automationId ?? '').trigger('input', { noSave: true });
         setTimeout(() => createEntryInputAutocomplete(automationIdInput, getAutomationIdCallback(data)), 1);
 
+        // Generation Type Triggers
+        const generationTypeTriggers = editTemplate.find('select[name="triggers"]');
+        generationTypeTriggers.data('uid', entry.uid);
+        generationTypeTriggers.on('input', async function (_, { noSave = false } = {}) {
+            const uid = $(this).data('uid');
+            const value = $(this).val();
+            data.entries[uid].triggers = Array.isArray(value) ? value : [];
+            setWIOriginalDataValue(data, uid, 'extensions.triggers', data.entries[uid].triggers);
+            !noSave && await saveWorldInfo(name, data);
+        });
+        if (!isMobile()) {
+            generationTypeTriggers.select2({
+                placeholder: t`All types (default)`,
+                width: '100%',
+                closeOnSelect: false,
+                allowClear: true,
+            });
+        }
+        generationTypeTriggers
+            .val(Array.isArray(entry.triggers) ? entry.triggers : [])
+            .trigger('input', { noSave: true })
+            .trigger('change');
+
+        // Ignore budget
+        const ignoreBudgetInput = editTemplate.find('input[name="ignoreBudget"]');
+        ignoreBudgetInput.data('uid', entry.uid);
+        ignoreBudgetInput.on('input', async function (_, { noSave = false } = {}) {
+            const uid = $(this).data('uid');
+            const value = $(this).prop('checked');
+            data.entries[uid].ignoreBudget = value;
+            setWIOriginalDataValue(data, uid, 'extensions.ignore_budget', data.entries[uid].ignoreBudget);
+            !noSave && await saveWorldInfo(name, data);
+        });
+        ignoreBudgetInput.prop('checked', entry.ignoreBudget ?? false).trigger('input', { noSave: true });
+
         countTokensDebounced(counter, contentInput.val());
 
         editTemplate.find('.inline-drawer-content').css('display', 'none');
@@ -3508,63 +3615,105 @@ export async function getWorldEntry(name, data, entry) {
     return headerTemplate;
 }
 
+
+/**
+ * Builds a jQuery UI autocomplete callback: (control, request, response) => void
+ * @param {object} [opt={}] - Optional arguments
+ * @param {{entries: Record<string, any>}} [opt.data]   - Your WI data
+ * @param {(entry:any)=>string|string[]|null|undefined} [opt.collectValues] - Extract values from one entry
+ * @param {() => Iterable<string>} [opt.includeExtras] - Optional global extras to include
+ * @param {(ctx:{result:string[], control:JQuery, input:any, haystack:string[]})=>string[]} [opt.postFilter] - Optional final filter step (for special rules like your "group" de-dupe logic)
+ */
+function buildAutocompleteCallback({ data, collectValues, includeExtras = () => [], postFilter } = {}) {
+    return function (control, input, output) {
+        const uid = $(control).data('uid');
+
+        // Collect unique values from all *other* entries
+        const values = new Set();
+        for (const entry of Object.values(data.entries ?? {})) {
+            if (entry?.uid == uid) continue;
+            const raw = collectValues(entry);
+            if (raw == null) continue;
+            const arr = Array.isArray(raw) ? raw : [raw];
+            for (const v of arr) {
+                const s = String(v).trim();
+                if (s) values.add(s);
+            }
+        }
+
+        // Add optional global extras
+        for (const v of includeExtras()) {
+            const s = String(v).trim();
+            if (s) values.add(s);
+        }
+
+        // Sort stable & locale-aware
+        const haystack = Array.from(values).sort((a, b) => a.localeCompare(b));
+
+        // Case-insensitive contains
+        const needle = String(input.term ?? '').toLowerCase();
+        let result = haystack.filter(x => x.toLowerCase().includes(needle));
+
+        // Optional final-pass semantics
+        if (postFilter) {
+            result = postFilter({ result, control: $(control), input, haystack });
+        }
+
+        output(result);
+    };
+}
+
+/**
+ * Splits a string into an array of strings, separated by commas and trimmed
+ * @param {string} s - The string to split
+ * @returns {string[]} An array of strings, separated by commas and trimmed
+ */
+const splitCsv = s => String(s ?? '').split(/,\s*/).filter(Boolean);
+
 /**
  * Get the inclusion groups for the autocomplete.
  * @param {any} data WI data
  * @returns {(input: any, output: any) => any} Callback function for the autocomplete
  */
 function getInclusionGroupCallback(data) {
-    return function (control, input, output) {
-        const uid = $(control).data('uid');
-        const thisGroups = String($(control).val()).split(/,\s*/).filter(x => x).map(x => x.toLowerCase());
-        const groups = new Set();
-        for (const entry of Object.values(data.entries)) {
-            // Skip the groups of this entry, because auto-complete should only suggest the ones that are already available on other entries
-            if (entry.uid == uid) continue;
-            if (entry.group) {
-                entry.group.split(/,\s*/).filter(x => x).forEach(x => groups.add(x));
-            }
-        }
+    return buildAutocompleteCallback({
+        data,
+        collectValues: entry => entry.group ? splitCsv(entry.group) : [],
+        postFilter: ({ result, control, input, haystack }) => {
+            const thisGroups = splitCsv(String($(control).val()));
+            const needle = String(input.term ?? '').toLowerCase();
+            const hasExactMatch = haystack.some(x => x.toLowerCase() === needle);
 
-        const haystack = Array.from(groups);
-        haystack.sort((a, b) => a.localeCompare(b));
-        const needle = input.term.toLowerCase();
-        const hasExactMatch = haystack.findIndex(x => x.toLowerCase() == needle) !== -1;
-        const result = haystack.filter(x => x.toLowerCase().includes(needle) && (!thisGroups.includes(x) || hasExactMatch && thisGroups.filter(g => g == x).length == 1));
-
-        output(result);
-    };
+            // include suggestion if it contains the needle AND
+            // (not already present OR (exact match typed && appears only once))
+            return result.filter(x =>
+                !thisGroups.includes(x) ||
+                (hasExactMatch && thisGroups.filter(g => g === x).length === 1),
+            );
+        },
+    });
 }
 
 function getAutomationIdCallback(data) {
-    return function (control, input, output) {
-        const uid = $(control).data('uid');
-        const ids = new Set();
-        for (const entry of Object.values(data.entries)) {
-            // Skip automation id of this entry, because auto-complete should only suggest the ones that are already available on other entries
-            if (entry.uid == uid) continue;
-            if (entry.automationId) {
-                ids.add(String(entry.automationId));
-            }
-        }
+    return buildAutocompleteCallback({
+        data,
+        collectValues: entry => entry.automationId != null ? [String(entry.automationId)] : [],
+        includeExtras: () =>
+            ('quickReplyApi' in globalThis && globalThis.quickReplyApi?.listAutomationIds)
+                ? globalThis.quickReplyApi.listAutomationIds()
+                : [],
+    });
+}
 
-        if ('quickReplyApi' in globalThis) {
-            for (const automationId of globalThis.quickReplyApi.listAutomationIds()) {
-                ids.add(String(automationId));
-            }
-        }
-
-        const haystack = Array.from(ids);
-        haystack.sort((a, b) => a.localeCompare(b));
-        const needle = input.term.toLowerCase();
-        const result = haystack.filter(x => x.toLowerCase().includes(needle));
-
-        output(result);
-    };
+function getOutletNameCallback(data) {
+    return buildAutocompleteCallback({
+        data,
+        collectValues: entry => entry.position === world_info_position.outlet && entry.outletName ? [entry.outletName] : [],
+    });
 }
 
 /**
- * Create an autocomplete for the inclusion group.
+ * Create an autocomplete for an input element.
  * @param {JQuery<HTMLElement>} input - Input element to attach the autocomplete to
  * @param {(control: JQuery<HTMLElement>, input: any, output: any) => any} callback - Source data callbacks
  * @param {object} [options={}] - Optional arguments
@@ -3616,7 +3765,7 @@ export function duplicateWorldInfoEntry(data, uid) {
     }
 
     // Exclude uid and gather the rest of the properties
-    const originalData = Object.assign({}, data.entries[uid]);
+    const originalData = structuredClone(data.entries[uid]);
     delete originalData.uid;
 
     // Create new entry and copy over data
@@ -3639,7 +3788,7 @@ export async function deleteWorldInfoEntry(data, uid, { silent = false } = {}) {
         return;
     }
 
-    const confirmation = silent || await Popup.show.confirm(`Delete the entry with UID: ${uid}?`, 'This action is irreversible!');
+    const confirmation = silent || await Popup.show.confirm(t`Delete the entry with UID: ${uid}?`, t`This action is irreversible!`);
     if (!confirmation) {
         return false;
     }
@@ -3653,7 +3802,7 @@ export async function deleteWorldInfoEntry(data, uid, { silent = false } = {}) {
  *
  * Use `newEntryTemplate` if you just need the template that contains default values
  *
- * @type {{[key: string]: { default: any, type: string, excludeFromTemplate?: boolean }}}
+ * @type {{[key: string]: WIEntryFieldDefinition}}
  */
 export const newWorldInfoEntryDefinition = {
     key: { default: [], type: 'array' },
@@ -3668,6 +3817,7 @@ export const newWorldInfoEntryDefinition = {
     order: { default: 100, type: 'number' },
     position: { default: 0, type: 'number' },
     disable: { default: false, type: 'boolean' },
+    ignoreBudget: { default: false, type: 'boolean' },
     excludeRecursion: { default: false, type: 'boolean' },
     preventRecursion: { default: false, type: 'boolean' },
     matchPersonaDescription: { default: false, type: 'boolean' },
@@ -3680,6 +3830,7 @@ export const newWorldInfoEntryDefinition = {
     probability: { default: 100, type: 'number' },
     useProbability: { default: true, type: 'boolean' },
     depth: { default: DEFAULT_DEPTH, type: 'number' },
+    outletName: { default: '', type: 'string' },
     group: { default: '', type: 'string' },
     groupOverride: { default: false, type: 'boolean' },
     groupWeight: { default: DEFAULT_WEIGHT, type: 'number' },
@@ -3695,6 +3846,7 @@ export const newWorldInfoEntryDefinition = {
     characterFilterNames: { default: [], type: 'array', excludeFromTemplate: true },
     characterFilterTags: { default: [], type: 'array', excludeFromTemplate: true },
     characterFilterExclude: { default: false, type: 'boolean', excludeFromTemplate: true },
+    triggers: { default: [], type: 'array', arrayFilter: (value) => GENERATION_TYPE_TRIGGERS.includes(value) },
 };
 
 export const newWorldInfoEntryTemplate = Object.fromEntries(
@@ -4041,6 +4193,8 @@ export async function getSortedEntries() {
             getPersonaLore(),
         ]);
 
+        await eventSource.emit(event_types.WORLDINFO_ENTRIES_LOADED, { globalLore, characterLore, chatLore, personaLore });
+
         let entries;
 
         switch (Number(world_info_character_strategy)) {
@@ -4144,23 +4298,14 @@ function parseDecorators(content) {
  * @param {number} maxContext The maximum context size of the generation.
  * @param {boolean} isDryRun Whether to perform a dry run.
  * @param {WIGlobalScanData} globalScanData Chat independent context to be scanned
- * @typedef {object} WIActivated
- * @property {string} worldInfoBefore The world info before the chat.
- * @property {string} worldInfoAfter The world info after the chat.
- * @property {any[]} EMEntries The entries for examples.
- * @property {any[]} WIDepthEntries The depth entries.
- * @property {any[]} ANBeforeEntries The entries before Author's Note.
- * @property {any[]} ANAfterEntries The entries after Author's Note.
- * @property {Set<any>} allActivatedEntries All entries.
  * @returns {Promise<WIActivated>} The world info activated.
  */
-
 //MARK: checkWorldInfo
-export async function checkWorldInfo(chat, maxContext, isDryRun, globalScanData) {
+export async function checkWorldInfo(chat, maxContext, isDryRun, globalScanData = defaultGlobalScanData) {
     const context = getContext();
     const buffer = new WorldInfoBuffer(chat, globalScanData);
 
-    console.debug(`[WI] --- START WI SCAN (on ${chat.length} messages)${isDryRun ? ' (DRY RUN)' : ''} ---`);
+    console.debug(`[WI] --- START WI SCAN (on ${chat.length} messages, trigger = ${globalScanData.trigger})${isDryRun ? ' (DRY RUN)' : ''} ---`);
 
     // Combine the chat
 
@@ -4197,7 +4342,7 @@ export async function checkWorldInfo(chat, maxContext, isDryRun, globalScanData)
     timedEffects.checkTimedEffects();
 
     if (sortedEntries.length === 0) {
-        return { worldInfoBefore: '', worldInfoAfter: '', WIDepthEntries: [], EMEntries: [], ANBeforeEntries: [], ANAfterEntries: [], allActivatedEntries: new Set() };
+        return { worldInfoBefore: '', worldInfoAfter: '', WIDepthEntries: [], EMEntries: [], ANBeforeEntries: [], ANAfterEntries: [], outletEntries: {}, allActivatedEntries: new Set() };
     }
 
     /** @type {number[]} Represents the delay levels for entries that are delayed until recursion */
@@ -4232,7 +4377,7 @@ export async function checkWorldInfo(chat, maxContext, isDryRun, globalScanData)
         // Loop and find all entries that can activate here
         let activatedNow = new Set();
 
-        for (let entry of sortedEntries) {
+        for (const entry of sortedEntries) {
             // Logging preparation
             let headerLogged = false;
             function log(...args) {
@@ -4251,6 +4396,15 @@ export async function checkWorldInfo(chat, maxContext, isDryRun, globalScanData)
             if (entry.disable == true) {
                 log('disabled');
                 continue;
+            }
+
+            // Check for generation type trigger filter
+            if (Array.isArray(entry.triggers) && entry.triggers.length > 0) {
+                const isTriggered = entry.triggers.includes(globalScanData.trigger);
+                if (!isTriggered) {
+                    log(`skipped by generation type trigger filter (${globalScanData.trigger} ∉ ${entry.triggers})`);
+                    continue;
+                }
             }
 
             // Check if this entry applies to the character or if it's excluded
@@ -4448,7 +4602,17 @@ export async function checkWorldInfo(chat, maxContext, isDryRun, globalScanData)
         console.debug('[WI] --- PROBABILITY CHECKS ---');
         !newEntries.length && console.debug('[WI] No probability checks to do');
 
+        let ignoresBudget = newEntries.filter(e => e.ignoreBudget).length;
+
         for (const entry of newEntries) {
+            ignoresBudget -= (entry.ignoreBudget ? 1 : 0);
+            if (token_budget_overflowed && !entry.ignoreBudget) {
+                if (ignoresBudget > 0) {
+                    continue;
+                }
+                break;
+            }
+
             function verifyProbability() {
                 // If we don't need to roll, it's always true
                 if (!entry.useProbability || entry.probability === 100) {
@@ -4482,16 +4646,18 @@ export async function checkWorldInfo(chat, maxContext, isDryRun, globalScanData)
             entry.content = substituteParams(entry.content);
             newContent += `${entry.content}\n`;
 
-            if ((textToScanTokens + (await getTokenCountAsync(newContent))) >= budget) {
-                console.debug('[WI] --- BUDGET OVERFLOW CHECK ---');
-                if (world_info_overflow_alert) {
-                    console.warn(`[WI] budget of ${budget} reached, stopping after ${allActivatedEntries.size} entries`);
-                    toastr.warning(`World info budget reached after ${allActivatedEntries.size} entries.`, 'World Info');
-                } else {
-                    console.debug(`[WI] budget of ${budget} reached, stopping after ${allActivatedEntries.size} entries`);
+            if (!entry.ignoreBudget && (textToScanTokens + (await getTokenCountAsync(newContent))) >= budget) {
+                if (!token_budget_overflowed) {
+                    console.debug('[WI] --- BUDGET OVERFLOW CHECK ---');
+                    if (world_info_overflow_alert) {
+                        console.warn(`[WI] budget of ${budget} reached, stopping after ${allActivatedEntries.size} entries`);
+                        toastr.warning(`World info budget reached after ${allActivatedEntries.size} entries.`, 'World Info');
+                    } else {
+                        console.debug(`[WI] budget of ${budget} reached, stopping after ${allActivatedEntries.size} entries`);
+                    }
+                    token_budget_overflowed = true;
                 }
-                token_budget_overflowed = true;
-                break;
+                continue;
             }
 
             allActivatedEntries.set(`${entry.world}.${entry.uid}`, entry);
@@ -4577,6 +4743,8 @@ export async function checkWorldInfo(chat, maxContext, isDryRun, globalScanData)
     const ANTopEntries = [];
     const ANBottomEntries = [];
     const WIDepthEntries = [];
+    /** @type {{[key: string]: string[]}} */
+    const WIOutletEntries = {};
 
     // Appends from insertion order 999 to 1. Use unshift for this purpose
     // TODO (kingbri): Change to use WI Anchor positioning instead of separate top/bottom arrays
@@ -4625,6 +4793,18 @@ export async function checkWorldInfo(chat, maxContext, isDryRun, globalScanData)
                 }
                 break;
             }
+            case world_info_position.outlet: {
+                if (!entry.outletName) {
+                    console.warn(`[WI] Entry ${entry.uid} has position 'outlet' but no outlet name. Skipping.`);
+                    break;
+                }
+                if (Array.isArray(WIOutletEntries[entry.outletName])) {
+                    WIOutletEntries[entry.outletName].push(content);
+                } else {
+                    WIOutletEntries[entry.outletName] = [content];
+                }
+                break;
+            }
             default:
                 break;
         }
@@ -4646,7 +4826,7 @@ export async function checkWorldInfo(chat, maxContext, isDryRun, globalScanData)
     console.log(`[WI] ${isDryRun ? 'Hypothetically adding' : 'Adding'} ${allActivatedEntries.size} entries to prompt`, Array.from(allActivatedEntries.values()));
     console.debug(`[WI] --- DONE${isDryRun ? ' (DRY RUN)' : ''} ---`);
 
-    return { worldInfoBefore, worldInfoAfter, EMEntries, WIDepthEntries, ANBeforeEntries: ANTopEntries, ANAfterEntries: ANBottomEntries, allActivatedEntries: new Set(allActivatedEntries.values()) };
+    return { worldInfoBefore, worldInfoAfter, EMEntries, WIDepthEntries, ANBeforeEntries: ANTopEntries, ANAfterEntries: ANBottomEntries, outletEntries: WIOutletEntries, allActivatedEntries: new Set(allActivatedEntries.values()) };
 }
 
 /**
@@ -4866,6 +5046,7 @@ function convertAgnaiMemoryBook(inputObj) {
             displayIndex: index,
             probability: 100,
             useProbability: true,
+            outletName: '',
             group: '',
             groupOverride: false,
             groupWeight: DEFAULT_WEIGHT,
@@ -4878,6 +5059,8 @@ function convertAgnaiMemoryBook(inputObj) {
             sticky: null,
             cooldown: null,
             delay: null,
+            triggers: [],
+            ignoreBudget: false,
         };
     });
 
@@ -4908,6 +5091,7 @@ function convertRisuLorebook(inputObj) {
             displayIndex: index,
             probability: entry.activationPercent ?? 100,
             useProbability: entry.activationPercent ?? true,
+            outletName: '',
             group: '',
             groupOverride: false,
             groupWeight: DEFAULT_WEIGHT,
@@ -4920,6 +5104,8 @@ function convertRisuLorebook(inputObj) {
             sticky: null,
             cooldown: null,
             delay: null,
+            triggers: [],
+            ignoreBudget: false,
         };
     });
 
@@ -4955,6 +5141,7 @@ function convertNovelLorebook(inputObj) {
             displayIndex: index,
             probability: 100,
             useProbability: true,
+            outletName: '',
             group: '',
             groupOverride: false,
             groupWeight: DEFAULT_WEIGHT,
@@ -4967,6 +5154,8 @@ function convertNovelLorebook(inputObj) {
             sticky: null,
             cooldown: null,
             delay: null,
+            triggers: [],
+            ignoreBudget: false,
         };
     });
 
@@ -5003,6 +5192,7 @@ export function convertCharacterBook(characterBook) {
             useProbability: entry.extensions?.useProbability ?? true,
             depth: entry.extensions?.depth ?? DEFAULT_DEPTH,
             selectiveLogic: entry.extensions?.selectiveLogic ?? world_info_logic.AND_ANY,
+            outletName: entry.extensions?.outlet_name ?? '',
             group: entry.extensions?.group ?? '',
             groupOverride: entry.extensions?.group_override ?? false,
             groupWeight: entry.extensions?.group_weight ?? DEFAULT_WEIGHT,
@@ -5023,6 +5213,8 @@ export function convertCharacterBook(characterBook) {
             matchScenario: entry.extensions?.match_scenario ?? false,
             matchCreatorNotes: entry.extensions?.match_creator_notes ?? false,
             extensions: entry.extensions ?? {},
+            triggers: entry.extensions?.triggers || [],
+            ignoreBudget: entry.extensions?.ignore_budget ?? false,
         };
     });
 
@@ -5350,9 +5542,11 @@ export async function assignLorebookToChat(event) {
  * @param {string} sourceName - The name of the source lorebook file.
  * @param {string} targetName - The name of the target lorebook file.
  * @param {string|number} uid - The UID of the entry to move from the source lorebook.
+ * @param {Object} options - Additional options for the move operation.
+ * @param {boolean} [options.deleteOriginal=true] - Whether to delete the original entry from the source lorebook after moving it.
  * @returns {Promise<boolean>} True if the move was successful, false otherwise.
  */
-export async function moveWorldInfoEntry(sourceName, targetName, uid) {
+export async function moveWorldInfoEntry(sourceName, targetName, uid, { deleteOriginal = true } = {}) {
     if (sourceName === targetName) {
         return false;
     }
@@ -5394,7 +5588,6 @@ export async function moveWorldInfoEntry(sourceName, targetName, uid) {
 
         const entryToMove = structuredClone(sourceData.entries[entryUidString]);
 
-
         const newUid = getFreeWorldEntryUid(targetData);
         if (newUid === null) {
             console.error(`[WI Move] Failed to get a free UID in '${targetName}'.`);
@@ -5408,20 +5601,20 @@ export async function moveWorldInfoEntry(sourceName, targetName, uid) {
 
         targetData.entries[newUid] = entryToMove;
 
-        delete sourceData.entries[entryUidString];
-        // Remove from originalData if it exists
-        deleteWIOriginalDataValue(sourceData, entryUidString);
-        // TODO: setWIOriginalDataValue
-        console.debug(`[WI Move] Removed entry UID ${entryUidString} from source '${sourceName}'.`);
-
+        if (deleteOriginal) {
+            delete sourceData.entries[entryUidString];
+            // Remove from originalData if it exists
+            deleteWIOriginalDataValue(sourceData, entryUidString);
+            // TODO: setWIOriginalDataValue
+            console.debug(`[WI Move] Removed entry UID ${entryUidString} from source '${sourceName}'.`);
+        }
 
         await saveWorldInfo(targetName, targetData, true);
         console.debug(`[WI Move] Saved target lorebook '${targetName}'.`);
         await saveWorldInfo(sourceName, sourceData, true);
         console.debug(`[WI Move] Saved source lorebook '${sourceName}'.`);
 
-
-        console.log(`[WI Move] ${entryToMove.comment} moved successfully to '${targetName}'.`);
+        console.log(`[WI Move] ${entryToMove.comment} ${deleteOriginal ? 'moved' : 'copied'} successfully to '${targetName}'.`);
 
         // Check if the currently viewed book in the editor is the source or target and reload it
         const currentEditorBookIndex = Number($('#world_editor_select').val());
@@ -5431,6 +5624,10 @@ export async function moveWorldInfoEntry(sourceName, targetName, uid) {
                 reloadEditor(currentEditorBookName);
             }
         }
+
+        toastr.success(deleteOriginal
+            ? t`Entry moved successfully from '${sourceName}' to '${targetName}'.`
+            : t`Entry copied successfully to '${targetName}'.`);
 
         return true;
     } catch (error) {
@@ -5625,6 +5822,14 @@ export function initWorldInfo() {
 
     // Not needed on mobile
     if (!isMobile()) {
+        $('#world_editor_select').select2({
+            placeholder: t`--- Pick to Edit ---`,
+            searchInputPlaceholder: t`Search...`,
+            allowClear: true,
+            closeOnSelect: true,
+            multiple: false,
+        });
+
         $('#world_info').select2({
             width: '100%',
             placeholder: t`No Worlds active. Click here to select.`,
