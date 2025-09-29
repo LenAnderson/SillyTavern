@@ -842,9 +842,9 @@ async function populationInjectionPrompts(prompts, messages) {
             }
             const roleMessage = roleMessages.at(-1);
             if (roleMessage.content.length) {
-                roleMessage.content += '\n';
+                roleMessage.content = `\n${roleMessage.content}`;
             }
-            roleMessage.content += substituteParams(prompt.value.trim());
+            roleMessage.content = `${substituteParams(prompt.value.trim())}${roleMessage.content}`;
         }
 
         if (roleMessages.length) {
