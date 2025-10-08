@@ -3,7 +3,7 @@ import { chat_metadata, eventSource, event_types, generateQuietPrompt, getCurren
 import { openThirdPartyExtensionMenu, saveMetadataDebounced } from './extensions.js';
 import { SlashCommand } from './slash-commands/SlashCommand.js';
 import { SlashCommandParser } from './slash-commands/SlashCommandParser.js';
-import { createThumbnail, flashHighlight, getBase64Async, stringFormat, debounce } from './utils.js';
+import { createThumbnail, flashHighlight, getBase64Async, stringFormat, debounce, setupScrollToTop } from './utils.js';
 import { debounce_timeout } from './constants.js';
 import { t } from './i18n.js';
 import { Popup } from './popup.js';
@@ -837,5 +837,11 @@ export function initBackgrounds() {
         // Refresh background thumbnails
         await getBackgrounds();
         await onChatChanged();
+    });
+
+    setupScrollToTop({
+        scrollContainerId: 'bg-scrollable-content',
+        buttonId: 'bg-scroll-top',
+        drawerId: 'Backgrounds',
     });
 }

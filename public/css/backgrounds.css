@@ -88,6 +88,7 @@
     overflow-y: auto;
     overflow-x: hidden;
     padding: 0 5px 15px;
+    position: relative;
 }
 
 #bg_menu_content,
@@ -217,6 +218,44 @@
 
 .bg_example .jg-button:hover {
     background-color: rgba(255, 255, 255, 0.2);
+}
+
+/* Scroll-to-Top Button */
+#bg-scroll-top {
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+    width: 42px;
+    height: 42px;
+    background: var(--SmartThemeBlurTintColor);
+    color: var(--SmartThemeBodyColor);
+    border: 1px solid var(--SmartThemeBorderColor);
+    border-radius: 50%;
+    cursor: pointer;
+    z-index: 10;
+    font-size: 18px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity var(--animation-duration) ease;
+    pointer-events: none;
+}
+
+#bg-scroll-top.visible {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+#bg-scroll-top:hover {
+    filter: brightness(150%);
+    outline: 1px solid var(--interactable-outline-color);
+}
+
+#bg-scroll-top .fa-solid {
+    margin: 0;
+    padding: 0;
+    line-height: 1;
 }
 
 .thumbnail-clipper {
