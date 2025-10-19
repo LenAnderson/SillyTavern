@@ -18,6 +18,9 @@ import { groups, selected_group } from './group-chats.js';
 import { getCurrentLocale, t } from './i18n.js';
 import { importWorldInfo } from './world-info.js';
 
+export const shiftUpByOne = (e, i, a) => a[i] = e + 1;
+export const shiftDownByOne = (e, i, a) => a[i] = e - 1;
+
 /**
  * Pagination status string template.
  * @type {string}
@@ -30,6 +33,24 @@ export const localizePagination = function(container) {
     container.find('[title="First page"]').attr('title', t`First page`);
     container.find('[title="Last page"]').attr('title', t`Last page`);
 };
+
+/**
+ * Checks if the current environment supports negative lookbehind in regular expressions.
+ * @returns {boolean} True if negative lookbehind is supported, false otherwise.
+ */
+export function canUseNegativeLookbehind() {
+    let result = canUseNegativeLookbehind['result'];
+    if (typeof result !== 'boolean') {
+        try {
+            new RegExp('(?<!_)');
+            result = true;
+        } catch (e) {
+            result = false;
+        }
+        canUseNegativeLookbehind['result'] = result;
+    }
+    return result;
+}
 
 /**
  * Renders a dropdown for selecting page size in pagination.

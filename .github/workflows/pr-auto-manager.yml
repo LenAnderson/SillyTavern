@@ -169,7 +169,7 @@ jobs:
     needs: [label-by-branches, label-by-files]
     runs-on: ubuntu-latest
     # Only runs on comments not done by the github actions bot
-    if: always() && (github.event_name == 'pull_request_review_comment' && github.actor != 'github-actions[bot]')
+    if: always() && (github.event_name == 'pull_request_review_comment' && github.event.sender.type != 'Bot')
 
     # Override permissions, issue labeler needs issues write access
     permissions:
@@ -257,7 +257,7 @@ jobs:
     needs: [label-by-branches, label-by-files, remove-stale-label, check-merge-blocking-labels]
     runs-on: ubuntu-latest
     # Run, even if the previous jobs were skipped/failed
-    if: always()
+    if: always() && (github.event_name == 'pull_request_target')
 
     steps:
       - name: Mint App Token
@@ -287,7 +287,11 @@ jobs:
   update-linked-issues:
     name: 🔗 Mark Linked Issues Done on Staging Merge
     runs-on: ubuntu-latest
-    if: always() && (github.event.pull_request.merged == true && github.event.pull_request.base.ref == 'staging')
+    if: >
+      always() &&
+      github.event_name == 'pull_request_target' &&
+      github.event.pull_request.merged == true &&
+      github.event.pull_request.base.ref == 'staging'
 
     # Override permissions, We need to be able to write to issues
     permissions:

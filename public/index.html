@@ -253,7 +253,7 @@
                         </div>
                         <div id="common-gen-settings-block" class="width100p">
                             <div id="pro-settings-block" class="flex-container gap10h5v justifyCenter">
-                                <div id="amount_gen_block" class="alignitemscenter flex-container marginBot5 flexFlowColumn flexBasis48p flexGrow flexShrink gap0">
+                                <div id="amount_gen_block" class="range-block-range-and-counter alignitemscenter flex-container marginBot5 flexFlowColumn flexBasis48p flexGrow flexShrink gap0">
                                     <small data-i18n="response legth(tokens)">Response (tokens)</small>
                                     <input class="neo-range-slider" type="range" id="amount_gen" name="volume" min="16" max="2048" step="1">
                                     <div data-randomization-disabled="true" class="wide100p">
@@ -284,7 +284,7 @@
                                         </label>
                                     </div>
                                 </div>
-                                <div id="max_context_block" class="alignitemscenter flex-container marginBot5 flexFlowColumn flexBasis48p flexGrow flexShrink gap0">
+                                <div id="max_context_block" class="range-block-range-and-counter alignitemscenter flex-container marginBot5 flexFlowColumn flexBasis48p flexGrow flexShrink gap0">
                                     <small data-i18n="context size(tokens)">Context (tokens)</small>
                                     <input class="neo-range-slider" type="range" id="max_context" name="volume" min="512" max="8192" step="64">
                                     <div data-randomization-disabled="true" class="wide100p">
@@ -648,7 +648,7 @@
                                         Max Response Length (tokens)
                                     </div>
                                     <div class="wide100p">
-                                        <input type="number" id="openai_max_tokens" name="openai_max_tokens" class="text_pole" min="1" max="65536">
+                                        <input type="number" id="openai_max_tokens" name="openai_max_tokens" class="text_pole" min="1" max="65536" step="1">
                                     </div>
                                 </div>
                                 <div class="range-block" data-source="openai,custom,xai,aimlapi,moonshot,azure_openai">
@@ -2058,7 +2058,7 @@
                                             </span>
                                         </div>
                                     </div>
-                                    <div class="range-block" data-source="deepseek,aimlapi,openrouter,custom,claude,xai,makersuite,vertexai,pollinations,moonshot,mistralai,fireworks,cometapi,electronhub,azure_openai">
+                                    <div class="range-block" data-source="deepseek,aimlapi,openrouter,custom,claude,xai,makersuite,vertexai,pollinations,moonshot,mistralai,fireworks,cometapi,electronhub,azure_openai,nanogpt">
                                         <label for="openai_show_thoughts" class="checkbox_label widthFreeExpand">
                                             <input id="openai_show_thoughts" type="checkbox" />
                                             <span data-i18n="Request model reasoning">Request model reasoning</span>
@@ -3017,6 +3017,9 @@
                                 <select id="model_claude_select">
                                     <optgroup label="Versions">
                                         <option value="claude-sonnet-4-5">claude-sonnet-4-5</option>
+                                        <option value="claude-sonnet-4-5-20250929">claude-sonnet-4-5-20250929</option>
+                                        <option value="claude-haiku-4-5">claude-haiku-4-5</option>
+                                        <option value="claude-haiku-4-5-20251001">claude-haiku-4-5-20251001</option>
                                         <option value="claude-opus-4-1">claude-opus-4-1</option>
                                         <option value="claude-opus-4-1-20250805">claude-opus-4-1-20250805</option>
                                         <option value="claude-opus-4-0">claude-opus-4-0</option>
@@ -3156,45 +3159,31 @@
                                         <option value="gemini-2.5-pro-preview-06-05">gemini-2.5-pro-preview-06-05</option>
                                         <option value="gemini-2.5-pro-preview-05-06">gemini-2.5-pro-preview-05-06</option>
                                         <option value="gemini-2.5-pro-preview-03-25">gemini-2.5-pro-preview-03-25</option>
-                                        <option value="gemini-2.5-pro-exp-03-25">gemini-2.5-pro-exp-03-25</option>
                                         <option value="gemini-2.5-flash">gemini-2.5-flash</option>
+                                        <option value="gemini-2.5-flash-preview-09-2025">gemini-2.5-flash-preview-09-2025</option>
                                         <option value="gemini-2.5-flash-preview-05-20">gemini-2.5-flash-preview-05-20</option>
-                                        <option value="gemini-2.5-flash-preview-04-17">gemini-2.5-flash-preview-04-17</option>
                                         <option value="gemini-2.5-flash-lite">gemini-2.5-flash-lite</option>
+                                        <option value="gemini-2.5-flash-lite-preview-09-2025">gemini-2.5-flash-lite-preview-09-2025</option>
                                         <option value="gemini-2.5-flash-lite-preview-06-17">gemini-2.5-flash-lite-preview-06-17</option>
+                                        <option value="gemini-2.5-flash-image">gemini-2.5-flash-image</option>
                                         <option value="gemini-2.5-flash-image-preview">gemini-2.5-flash-image-preview</option>
                                     </optgroup>
                                     <optgroup label="Gemini 2.0">
-                                        <option value="gemini-2.0-pro-exp-02-05">gemini-2.0-pro-exp-02-05 → 2.5-pro-exp-03-25</option>
-                                        <option value="gemini-2.0-pro-exp">gemini-2.0-pro-exp → 2.5-pro-exp-03-25</option>
-                                        <option value="gemini-exp-1206">gemini-exp-1206 → 2.5-pro-exp-03-25</option>
+                                        <option value="gemini-2.0-pro-exp-02-05">gemini-2.0-pro-exp-02-05 → 2.5-exp-03-25</option>
+                                        <option value="gemini-2.0-pro-exp">gemini-2.0-pro-exp → 2.5-exp-03-25</option>
+                                        <option value="gemini-exp-1206">gemini-exp-1206 → 2.5-exp-03-25</option>
                                         <option value="gemini-2.0-flash-001">gemini-2.0-flash-001</option>
                                         <option value="gemini-2.0-flash-exp-image-generation">gemini-2.0-flash-exp-image-generation</option>
                                         <option value="gemini-2.0-flash-preview-image-generation">gemini-2.0-flash-preview-image-generation</option>
                                         <option value="gemini-2.0-flash-exp">gemini-2.0-flash-exp</option>
                                         <option value="gemini-2.0-flash">gemini-2.0-flash</option>
-                                        <option value="gemini-2.0-flash-thinking-exp-01-21">gemini-2.0-flash-thinking-exp-01-21 → 2.5-flash-preview-04-17</option>
-                                        <option value="gemini-2.0-flash-thinking-exp-1219">gemini-2.0-flash-thinking-exp-1219 → 2.5-flash-preview-04-17</option>
-                                        <option value="gemini-2.0-flash-thinking-exp">gemini-2.0-flash-thinking-exp → 2.5-flash-preview-04-17</option>
+                                        <option value="gemini-2.0-flash-thinking-exp-01-21">gemini-2.0-flash-thinking-exp-01-21 → 2.5-flash-preview-05-20</option>
+                                        <option value="gemini-2.0-flash-thinking-exp-1219">gemini-2.0-flash-thinking-exp-1219 → 2.5-flash-preview-05-20</option>
+                                        <option value="gemini-2.0-flash-thinking-exp">gemini-2.0-flash-thinking-exp → 2.5-flash-preview-05-20</option>
                                         <option value="gemini-2.0-flash-lite-001">gemini-2.0-flash-lite-001</option>
                                         <option value="gemini-2.0-flash-lite-preview-02-05">gemini-2.0-flash-lite-preview-02-05</option>
                                         <option value="gemini-2.0-flash-lite-preview">gemini-2.0-flash-lite-preview</option>
                                         <option value="gemini-2.0-flash-lite">gemini-2.0-flash-lite</option>
-                                    </optgroup>
-                                    <optgroup label="Gemini 1.5">
-                                        <option value="gemini-1.5-pro-latest">gemini-1.5-pro-latest</option>
-                                        <option value="gemini-1.5-pro-002">gemini-1.5-pro-002</option>
-                                        <option value="gemini-1.5-pro-001">gemini-1.5-pro-001</option>
-                                        <option value="gemini-1.5-pro">gemini-1.5-pro</option>
-                                        <option value="gemini-1.5-flash-latest">gemini-1.5-flash-latest</option>
-                                        <option value="gemini-1.5-flash-002">gemini-1.5-flash-002</option>
-                                        <option value="gemini-1.5-flash-001">gemini-1.5-flash-001</option>
-                                        <option value="gemini-1.5-flash">gemini-1.5-flash</option>
-                                        <option value="gemini-1.5-flash-8b-latest">gemini-1.5-flash-8b-latest</option>
-                                        <option value="gemini-1.5-flash-8b-001">gemini-1.5-flash-8b-001</option>
-                                        <option value="gemini-1.5-flash-8b-exp-0924">gemini-1.5-flash-8b-exp-0924</option>
-                                        <option value="gemini-1.5-flash-8b-exp-0827">gemini-1.5-flash-8b-exp-0827</option>
-                                        <option value="gemini-1.5-flash-8b">gemini-1.5-flash-8b</option>
                                     </optgroup>
                                     <optgroup label="Gemma">
                                         <option value="gemma-3n-e4b-it">gemma-3n-e4b-it</option>
@@ -3206,6 +3195,9 @@
                                     </optgroup>
                                     <optgroup label="LearnLM">
                                         <option value="learnlm-2.0-flash-experimental">learnlm-2.0-flash-experimental</option>
+                                    </optgroup>
+                                    <optgroup label="Robotics-ER">
+                                        <option value="gemini-robotics-er-1.5-preview">gemini-robotics-er-1.5-preview</option>
                                     </optgroup>
                                     <optgroup id="google_other_models" label="Other"></optgroup>
                                 </select>
@@ -3332,15 +3324,9 @@
                                     <!-- data-mode="full" is for models that require a service account -->
                                     <optgroup label="Gemini 2.5">
                                         <option value="gemini-2.5-pro">gemini-2.5-pro</option>
-                                        <option value="gemini-2.5-pro-preview-06-05">gemini-2.5-pro-preview-06-05</option>
-                                        <option value="gemini-2.5-pro-preview-05-06">gemini-2.5-pro-preview-05-06</option>
-                                        <option value="gemini-2.5-pro-preview-03-25">gemini-2.5-pro-preview-03-25</option>
-                                        <option value="gemini-2.5-pro-exp-03-25" data-mode="full">gemini-2.5-pro-exp-03-25</option>
                                         <option value="gemini-2.5-flash">gemini-2.5-flash</option>
-                                        <option value="gemini-2.5-flash-preview-05-20">gemini-2.5-flash-preview-05-20</option>
-                                        <option value="gemini-2.5-flash-preview-04-17">gemini-2.5-flash-preview-04-17</option>
                                         <option value="gemini-2.5-flash-lite">gemini-2.5-flash-lite</option>
-                                        <option value="gemini-2.5-flash-lite-preview-06-17">gemini-2.5-flash-lite-preview-06-17</option>
+                                        <option value="gemini-2.5-flash-image">gemini-2.5-flash-image</option>
                                         <option value="gemini-2.5-flash-image-preview">gemini-2.5-flash-image-preview</option>
                                     </optgroup>
                                     <optgroup label="Gemini 2.0">
@@ -3793,7 +3779,7 @@
                             <span class="fa-solid fa-circle-question note-link-span"></span>
                         </a>
                     </h3>
-                    <div class="flex-container">
+                    <div class="flex-container" data-cc-null>
                         <input id="af_master_import_file" type="file" hidden accept=".json" class="displayNone">
                         <div id="af_master_import" class="menu_button menu_button_icon" title="Import Advanced Formatting settings&#10;&#10;You can also provide legacy files for Instruct and Context templates." data-i18n="[title]Import Advanced Formatting settings">
                             <i class="fa-solid fa-file-import"></i>
@@ -3805,10 +3791,16 @@
                         </div>
                     </div>
                 </div>
+                <div id="advanced-formatting-cc-notice" class="info-block warning">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+                    <span data-i18n="Grayed-out options have no effect when Chat Completion API is used.">
+                        Grayed-out options have no effect when Chat Completion API is used.
+                    </span>
+                </div>
                 <div class="flex-container spaceEvenly">
                     <div id="ContextSettings" class="flex-container flexNoGap flexFlowColumn flex1">
                         <div>
-                            <h4 class="standoutHeader title_restorable">
+                            <h4 class="standoutHeader title_restorable" data-cc-null>
                                 <div>
                                     <span data-i18n="Context Template">Context Template</span>
                                 </div>
@@ -3819,7 +3811,7 @@
                                     </label>
                                 </div>
                             </h4>
-                            <div class="flex-container" title="Select your current Context Template" data-i18n="[title]Select your current Context Template">
+                            <div class="flex-container" title="Select your current Context Template" data-i18n="[title]Select your current Context Template" data-cc-null>
                                 <select id="context_presets" data-preset-manager-for="context" class="flex1 text_pole"></select>
                                 <div class="flex-container justifyCenter gap3px">
                                     <input type="file" hidden data-preset-manager-file="context" accept=".json, .settings">
@@ -3833,12 +3825,14 @@
                                 </div>
                             </div>
                             <div>
-                                <label for="context_story_string" class="flex-container">
-                                    <small data-i18n="Story String">Story String</small>
-                                    <i class="editor_maximize fa-solid fa-maximize right_menu_button" data-for="context_story_string" title="Expand the editor" data-i18n="[title]Expand the editor"></i>
-                                </label>
-                                <textarea id="context_story_string" class="text_pole textarea_compact autoSetHeight"></textarea>
-                                <div class="flex-container flexFlowColumn">
+                                <div data-cc-null>
+                                    <label for="context_story_string" class="flex-container">
+                                        <small data-i18n="Story String">Story String</small>
+                                        <i class="editor_maximize fa-solid fa-maximize right_menu_button" data-for="context_story_string" title="Expand the editor" data-i18n="[title]Expand the editor"></i>
+                                    </label>
+                                    <textarea id="context_story_string" class="text_pole textarea_compact autoSetHeight"></textarea>
+                                </div>
+                                <div class="flex-container flexFlowColumn" data-cc-null>
                                     <div id="context_story_string_position_block">
                                         <label for="context_story_string_position">
                                             <small data-i18n="Position:">Position:</small>
@@ -3867,7 +3861,7 @@
                                         </div>
                                     </div>
                                 </div>
-                                <div class="flex-container">
+                                <div class="flex-container" data-cc-null>
                                     <div class="flex1">
                                         <label for="context_example_separator">
                                             <small data-i18n="Example Separator">Example Separator</small>
@@ -3892,13 +3886,13 @@
                                         </span>
                                     </h4>
 
-                                    <label class="checkbox_label" for="always-force-name2-checkbox">
+                                    <label class="checkbox_label" for="always-force-name2-checkbox" data-cc-null>
                                         <input id="always-force-name2-checkbox" type="checkbox" />
                                         <small data-i18n="Always add character's name to prompt">
                                             Always add character's name to prompt
                                         </small>
                                     </label>
-                                    <label class="checkbox_label" for="single_line">
+                                    <label class="checkbox_label" for="single_line" data-cc-null>
                                         <input id="single_line" type="checkbox" />
                                         <small data-i18n="Generate only one line per request">
                                             Generate only one line per request
@@ -3921,11 +3915,11 @@
                                             Trim Incomplete Sentences
                                         </small>
                                     </label>
-                                    <label class="checkbox_label" title="Add Chat Start and Example Separator to a list of stopping strings." data-i18n="[title]Add Chat Start and Example Separator to a list of stopping strings.">
+                                    <label class="checkbox_label" title="Add Chat Start and Example Separator to a list of stopping strings." data-i18n="[title]Add Chat Start and Example Separator to a list of stopping strings." data-cc-null>
                                         <input id="context_use_stop_strings" type="checkbox" />
                                         <small data-i18n="Separators as Stop Strings">Separators as Stop Strings</small>
                                     </label>
-                                    <label class="checkbox_label" title="Add Character and User names to a list of stopping strings." data-i18n="[title]Add Character and User names to a list of stopping strings.">
+                                    <label class="checkbox_label" title="Add Character and User names to a list of stopping strings." data-i18n="[title]Add Character and User names to a list of stopping strings." data-cc-null>
                                         <input id="context_names_as_stop_strings" type="checkbox" />
                                         <small data-i18n="Names as Stop Strings">Names as Stop Strings</small>
                                     </label>
@@ -3933,7 +3927,7 @@
                             </div>
                         </div>
                     </div>
-                    <div id="InstructSettingsColumn" class="flex-container flexNoGap flexFlowColumn flex1">
+                    <div id="InstructSettingsColumn" class="flex-container flexNoGap flexFlowColumn flex1" data-cc-null>
                         <h4 class="standoutHeader title_restorable justifySpaceBetween">
                             <div class="flex-container">
                                 <span data-i18n="Instruct Template">Instruct Template</span>
@@ -4127,7 +4121,7 @@
                         </div>
                     </div>
                     <div id="SystemPromptColumn" class="flex-container flexNoGap flexFlowColumn flex1">
-                        <h4 class="standoutHeader title_restorable justifySpaceBetween">
+                        <h4 class="standoutHeader title_restorable justifySpaceBetween" data-cc-null>
                             <div class="flex-container">
                                 <span data-i18n="System Prompt">System Prompt</span>
                             </div>
@@ -4138,7 +4132,7 @@
                                 </label>
                             </div>
                         </h4>
-                        <div id="SystemPromptBlock" class="marginBot10">
+                        <div id="SystemPromptBlock" class="marginBot10" data-cc-null>
                             <div class="flex-container" title="Select your current System Prompt" data-i18n="[title]Select your current System Prompt">
                                 <select id="sysprompt_select" data-preset-manager-for="sysprompt" class="flex1 text_pole"></select>
                                 <div class="flex-container margin0 justifyCenter gap3px">
@@ -4196,7 +4190,7 @@
                             </label>
                         </div>
 
-                        <div name="tokenizerSettingsBlock">
+                        <div name="tokenizerSettingsBlock" data-cc-null>
                             <div name="tokenizerSelectorBlock">
                                 <h4 class="standoutHeader"><span data-i18n="Tokenizer">Tokenizer</span>
                                     <a href="https://docs.sillytavern.app/usage/prompts/tokenizer/" class="notes-link" target="_blank">
@@ -4231,7 +4225,7 @@
                                         Token Padding
                                     </small>
                                 </div>
-                                <input id="token_padding" class="text_pole textarea_compact" type="number" min="-2048" max="2048" />
+                                <input id="token_padding" class="text_pole textarea_compact" type="number" min="-2048" max="2048" step="1" />
                             </div>
                         </div>
                         <div>
@@ -4309,7 +4303,7 @@
                         </div>
                         <div>
                             <h4 class="standoutHeader" data-i18n="Miscellaneous">Miscellaneous</h4>
-                            <div name="bindModelPresetBlock">
+                            <div name="bindModelPresetBlock" data-cc-null>
                                 <label for="bind_model_templates" class="checkbox_label">
                                     <input id="bind_model_templates" type="checkbox" />
                                     <small data-i18n="Bind Model to Templates">Bind Model to Templates</small>
@@ -6265,7 +6259,7 @@
                 <div name="selectChatPopupHeader" class="flex-container alignitemscenter justifySpaceBetween flexGap10">
                     <div id="select_chat_import"> <!-- import chat popup header -->
                         <form id="form_import_chat" action="javascript:void(null);" method="post" enctype="multipart/form-data" style="display: none;">
-                            <input type="file" id="chat_import_file" accept=".json, .jsonl" name="avatar">
+                            <input type="file" id="chat_import_file" accept=".json, .jsonl" multiple name="avatar">
                             <input id="chat_import_file_type" name="file_type" class="text_pole" value="" autocomplete="off" style="display: none;">
                             <input id="chat_import_avatar_url" name="avatar_url" class="text_pole" value="" autocomplete="off" style="display: none;">
                             <input id="chat_import_character_name" name="character_name" class="text_pole" value="" autocomplete="off" style="display: none;">
@@ -7222,10 +7216,17 @@
             <div class="alternate_greeting">
                 <details open>
                     <summary>
-                        <div class="title_restorable">
+                        <div class="title_restorable gap5px">
                             <div class="flex-container alignItemsCenter">
                                 <strong><span data-i18n="Alternate Greeting #">Alternate Greeting #</span><span class="greeting_index"></span></strong>
                                 <i class="editor_maximize fa-solid fa-maximize right_menu_button" title="Expand the editor" data-i18n="[title]Expand the editor"></i>
+                            </div>
+                            <span class="expander"></span>
+                            <div class="menu_button menu_button_icon move_up_alternate_greeting" title="Move up" data-i18n="[title]Move up">
+                                <i class="fa-solid fa-chevron-up"></i>
+                            </div>
+                            <div class="menu_button menu_button_icon move_down_alternate_greeting" title="Move down" data-i18n="[title]Move down">
+                                <i class="fa-solid fa-chevron-down"></i>
                             </div>
                             <div class="menu_button menu_button_icon delete_alternate_greeting">
                                 <i class="fa-solid fa-trash-alt"></i>

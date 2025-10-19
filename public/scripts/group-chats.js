@@ -2064,9 +2064,11 @@ export async function deleteGroupChat(groupId, chatId, { jumpToNewChat = true } 
 /**
  * Imports a group chat from a file and adds it to the group.
  * @param {FormData} formData Form data to send to the server
- * @param {EventTarget} eventTarget Element that triggered the import
+ * @param {object} [options={}] Options for the import
+ * @param {boolean} [options.refresh] Whether to refresh the group chat list after import
+ * @returns {Promise<string[]>} List of imported file names
  */
-export async function importGroupChat(formData, eventTarget) {
+export async function importGroupChat(formData, { refresh = true } = {}) {
     const fetchResult = await fetch('/api/chats/group/import', {
         method: 'POST',
         headers: getRequestHeaders({ omitContentType: true }),
@@ -2083,14 +2085,16 @@ export async function importGroupChat(formData, eventTarget) {
             if (group) {
                 group.chats.push(chatId);
                 await editGroup(selected_group, true, true);
-                await displayPastChats();
+                if (refresh) {
+                    await displayPastChats();
+                }
             }
         }
+
+        return data?.fileNames || [];
     }
 
-    if (eventTarget instanceof HTMLInputElement) {
-        eventTarget.value = '';
-    }
+    return [];
 }
 
 export async function saveGroupBookmarkChat(groupId, name, metadata, mesId) {
@@ -2160,7 +2164,7 @@ function doCurMemberListPopout() {
         // Remove pagination from popout
         newElement.find('.group_pagination').empty();
 
-        $('body').append(newElement);
+        $('#movingDivs').append(newElement);
         loadMovingUIState();
         $('#groupMemberListPopout').fadeIn(animation_duration);
         dragElement(newElement);
